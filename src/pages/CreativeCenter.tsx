@@ -95,92 +95,39 @@ const quickTools = [
   },
 ];
 
-// 创作灵感/热门模板
-const inspirations = [
-  {
-    id: "1",
-    title: "双十一大促海报",
-    category: "电商促销",
-    thumbnail: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=400",
-    uses: 12500,
-  },
-  {
-    id: "2",
-    title: "新品上市宣传",
-    category: "品牌推广",
-    thumbnail: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400",
-    uses: 8900,
-  },
-  {
-    id: "3",
-    title: "小红书种草笔记",
-    category: "社交媒体",
-    thumbnail: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=400",
-    uses: 15600,
-  },
-  {
-    id: "4",
-    title: "春节祝福海报",
-    category: "节日营销",
-    thumbnail: "https://images.unsplash.com/photo-1514539079130-25950c84af65?w=400",
-    uses: 9800,
-  },
-];
-
-// 最近创作
-const recentWorks = [
-  {
-    id: "1",
-    title: "产品宣传图",
-    tool: "AI 绘图",
-    time: "2小时前",
-    thumbnail: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=200",
-  },
-  {
-    id: "2",
-    title: "小红书文案",
-    tool: "AI 文案",
-    time: "5小时前",
-    thumbnail: null,
-  },
-  {
-    id: "3",
-    title: "双十一海报",
-    tool: "AI 海报",
-    time: "昨天",
-    thumbnail: "https://images.unsplash.com/photo-1558655146-d09347e92766?w=200",
-  },
-];
-
-// 创作数据统计
+// 创作数据统计 - 新用户默认为零
 const stats = [
-  { label: "本月创作", value: "128", icon: BarChart3, change: "+23%" },
-  { label: "累计作品", value: "1,256", icon: Star, change: "" },
-  { label: "节省时间", value: "86h", icon: Clock, change: "" },
-  { label: "使用天数", value: "45", icon: Calendar, change: "" },
+  { label: "本月创作", value: "0", icon: BarChart3, change: "" },
+  { label: "累计作品", value: "0", icon: Star, change: "" },
+  { label: "节省时间", value: "0h", icon: Clock, change: "" },
+  { label: "使用天数", value: "0", icon: Calendar, change: "" },
 ];
 
-// 创作技巧
-const tips = [
-  {
-    id: "1",
-    title: "如何写出爆款小红书文案",
-    category: "文案技巧",
-    readTime: "5分钟",
-  },
-  {
-    id: "2",
-    title: "AI绘图提示词优化指南",
-    category: "绘图技巧",
-    readTime: "8分钟",
-  },
-  {
-    id: "3",
-    title: "海报设计的黄金法则",
-    category: "设计技巧",
-    readTime: "6分钟",
-  },
-];
+// 创作灵感/热门模板 - 新用户为空
+const inspirations: Array<{
+  id: string;
+  title: string;
+  category: string;
+  thumbnail: string;
+  uses: number;
+}> = [];
+
+// 最近创作 - 新用户为空
+const recentWorks: Array<{
+  id: string;
+  title: string;
+  tool: string;
+  time: string;
+  thumbnail: string | null;
+}> = [];
+
+// 创作技巧 - 新用户为空
+const tips: Array<{
+  id: string;
+  title: string;
+  category: string;
+  readTime: string;
+}> = [];
 
 const CreativeCenter = () => {
   const navigate = useNavigate();
@@ -280,32 +227,40 @@ const CreativeCenter = () => {
                   </button>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  {inspirations.map((item) => (
-                    <div
-                      key={item.id}
-                      className="glass-card rounded-xl overflow-hidden group cursor-pointer hover:shadow-lg transition-all"
-                    >
-                      <div className="aspect-[16/9] bg-secondary/30 relative overflow-hidden">
-                        <img
-                          src={item.thumbnail}
-                          alt={item.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                        <div className="absolute bottom-3 left-3 right-3">
-                          <div className="text-white font-medium text-sm">{item.title}</div>
-                          <div className="flex items-center gap-2 text-xs text-white/80 mt-1">
-                            <span>{item.category}</span>
-                            <span>·</span>
-                            <span className="flex items-center gap-1">
-                              <Users className="w-3 h-3" />
-                              {item.uses.toLocaleString()} 人使用
-                            </span>
+                  {inspirations.length > 0 ? (
+                    inspirations.map((item) => (
+                      <div
+                        key={item.id}
+                        className="glass-card rounded-xl overflow-hidden group cursor-pointer hover:shadow-lg transition-all"
+                      >
+                        <div className="aspect-[16/9] bg-secondary/30 relative overflow-hidden">
+                          <img
+                            src={item.thumbnail}
+                            alt={item.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                          <div className="absolute bottom-3 left-3 right-3">
+                            <div className="text-white font-medium text-sm">{item.title}</div>
+                            <div className="flex items-center gap-2 text-xs text-white/80 mt-1">
+                              <span>{item.category}</span>
+                              <span>·</span>
+                              <span className="flex items-center gap-1">
+                                <Users className="w-3 h-3" />
+                                {item.uses.toLocaleString()} 人使用
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
+                    ))
+                  ) : (
+                    <div className="col-span-2 glass-card rounded-xl p-8 text-center">
+                      <Lightbulb className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                      <p className="text-muted-foreground text-sm">暂无创作灵感</p>
+                      <p className="text-muted-foreground/60 text-xs mt-1">开始创作后，这里会为你推荐灵感</p>
                     </div>
-                  ))}
+                  )}
                 </div>
 
                 {/* 创作技巧 */}
@@ -321,23 +276,31 @@ const CreativeCenter = () => {
                     </button>
                   </div>
                   <div className="space-y-3">
-                    {tips.map((tip) => (
-                      <div
-                        key={tip.id}
-                        className="glass-card rounded-xl p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition-all"
-                      >
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
-                          <Lightbulb className="w-5 h-5 text-violet-600" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-medium text-foreground text-sm">{tip.title}</div>
-                          <div className="text-xs text-muted-foreground mt-0.5">
-                            {tip.category} · 阅读 {tip.readTime}
+                    {tips.length > 0 ? (
+                      tips.map((tip) => (
+                        <div
+                          key={tip.id}
+                          className="glass-card rounded-xl p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition-all"
+                        >
+                          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
+                            <Lightbulb className="w-5 h-5 text-violet-600" />
                           </div>
+                          <div className="flex-1">
+                            <div className="font-medium text-foreground text-sm">{tip.title}</div>
+                            <div className="text-xs text-muted-foreground mt-0.5">
+                              {tip.category} · 阅读 {tip.readTime}
+                            </div>
+                          </div>
+                          <ArrowRight className="w-4 h-4 text-muted-foreground" />
                         </div>
-                        <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                      ))
+                    ) : (
+                      <div className="glass-card rounded-xl p-6 text-center">
+                        <Target className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
+                        <p className="text-muted-foreground text-sm">暂无创作技巧</p>
+                        <p className="text-muted-foreground/60 text-xs mt-1">更多技巧即将上线</p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
               </div>
@@ -360,34 +323,42 @@ const CreativeCenter = () => {
                     </button>
                   </div>
                   <div className="space-y-3">
-                    {recentWorks.map((work) => (
-                      <div
-                        key={work.id}
-                        className="glass-card rounded-xl p-3 flex items-center gap-3 cursor-pointer hover:shadow-md transition-all"
-                      >
-                        <div className="w-12 h-12 rounded-lg bg-secondary/30 overflow-hidden flex-shrink-0">
-                          {work.thumbnail ? (
-                            <img
-                              src={work.thumbnail}
-                              alt={work.title}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <FileText className="w-5 h-5 text-muted-foreground" />
+                    {recentWorks.length > 0 ? (
+                      recentWorks.map((work) => (
+                        <div
+                          key={work.id}
+                          className="glass-card rounded-xl p-3 flex items-center gap-3 cursor-pointer hover:shadow-md transition-all"
+                        >
+                          <div className="w-12 h-12 rounded-lg bg-secondary/30 overflow-hidden flex-shrink-0">
+                            {work.thumbnail ? (
+                              <img
+                                src={work.thumbnail}
+                                alt={work.title}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <FileText className="w-5 h-5 text-muted-foreground" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-foreground text-sm truncate">
+                              {work.title}
                             </div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-foreground text-sm truncate">
-                            {work.title}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {work.tool} · {work.time}
+                            <div className="text-xs text-muted-foreground">
+                              {work.tool} · {work.time}
+                            </div>
                           </div>
                         </div>
+                      ))
+                    ) : (
+                      <div className="glass-card rounded-xl p-6 text-center">
+                        <Sparkles className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
+                        <p className="text-muted-foreground text-sm">暂无创作记录</p>
+                        <p className="text-muted-foreground/60 text-xs mt-1">开始你的第一次创作吧</p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
 
@@ -430,26 +401,18 @@ const CreativeCenter = () => {
                   <div className="flex items-center gap-2 mb-4">
                     <Target className="w-5 h-5 text-green-500" />
                     <span className="font-semibold text-foreground">每日任务</span>
-                    <span className="ml-auto text-xs text-muted-foreground">2/3 已完成</span>
+                    <span className="ml-auto text-xs text-muted-foreground">0/3 已完成</span>
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
-                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                      <span className="text-sm text-muted-foreground line-through">登录签到</span>
-                      <span className="ml-auto text-xs text-green-500">+10积分</span>
+                      <div className="w-5 h-5 rounded-full border-2 border-border" />
+                      <span className="text-sm text-foreground">登录签到</span>
+                      <span className="ml-auto text-xs text-muted-foreground">+10积分</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
-                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                      <span className="text-sm text-muted-foreground line-through">创作1个作品</span>
-                      <span className="ml-auto text-xs text-green-500">+20积分</span>
+                      <div className="w-5 h-5 rounded-full border-2 border-border" />
+                      <span className="text-sm text-foreground">创作1个作品</span>
+                      <span className="ml-auto text-xs text-muted-foreground">+20积分</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="w-5 h-5 rounded-full border-2 border-border" />
