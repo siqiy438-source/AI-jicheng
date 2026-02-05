@@ -1,5 +1,5 @@
 import { memo, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 // 直接导入而非 barrel imports (bundle-barrel-imports)
 import { ArrowLeft } from "lucide-react";
 import { Sparkles } from "lucide-react";
@@ -31,14 +31,17 @@ import {
 
 // 静态 JSX 提取到组件外部 (rendering-hoist-jsx)
 const PageIcon = (
-  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
-    <Sparkles className="w-7 h-7 text-white" />
+  <div
+    className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center"
+    aria-hidden="true"
+  >
+    <Sparkles className="w-7 h-7 text-white" aria-hidden="true" />
   </div>
 );
 
 const InspirationEmptyState = (
   <div className="col-span-2 glass-card rounded-xl p-8 text-center">
-    <Lightbulb className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+    <Lightbulb className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" aria-hidden="true" />
     <p className="text-muted-foreground text-sm">暂无创作灵感</p>
     <p className="text-muted-foreground/60 text-xs mt-1">
       开始创作后，这里会为你推荐灵感
@@ -50,7 +53,7 @@ const InspirationEmptyState = (
 const StatsGrid = memo(function StatsGrid() {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-      {DEFAULT_STATS.map((stat, index) => (
+      {DEFAULT_STATS.map((stat) => (
         <StatCard key={stat.label} stat={stat} />
       ))}
     </div>
@@ -95,7 +98,7 @@ const TipsSection = memo(function TipsSection() {
         <EmptyState
           icon={Target}
           title="暂无创作技巧"
-          description="更多技巧即将上线"
+          description="更多技巧即将上线…"
         />
       )}
     </div>
@@ -125,17 +128,6 @@ const RecentWorksSection = memo(function RecentWorksSection() {
 
 // 主组件
 const Lingxi = () => {
-  const navigate = useNavigate();
-
-  // 使用 useCallback 稳定回调引用 (rerender-functional-setstate)
-  const handleBack = useCallback(() => {
-    navigate("/");
-  }, [navigate]);
-
-  const handleViewAllWorks = useCallback(() => {
-    navigate("/my-works");
-  }, [navigate]);
-
   // 空函数用于暂未实现的功能
   const handleViewMore = useCallback(() => {
     // TODO: 实现查看更多功能
@@ -148,74 +140,85 @@ const Lingxi = () => {
         <Header />
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-6xl mx-auto px-6 py-8">
-            {/* 返回按钮 */}
-            <button
-              onClick={handleBack}
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
+            {/* 返回按钮 - 使用 Link 实现正确的导航语义 */}
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md touch-action-manipulation"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-4 h-4" aria-hidden="true" />
               <span>返回首页</span>
-            </button>
+            </Link>
 
             {/* 页面标题 */}
-            <div className="flex items-center gap-4 mb-8">
+            <header className="flex items-center gap-4 mb-8">
               {PageIcon}
               <div>
-                <h1 className="text-2xl font-bold text-foreground">灵犀</h1>
+                <h1 className="text-2xl font-bold text-foreground text-balance">
+                  灵犀
+                </h1>
                 <p className="text-muted-foreground text-sm">
                   心有灵犀，创意无限
                 </p>
               </div>
-            </div>
+            </header>
 
             {/* 数据统计 */}
-            <StatsGrid />
+            <section aria-labelledby="stats-heading">
+              <h2 id="stats-heading" className="sr-only">数据统计</h2>
+              <StatsGrid />
+            </section>
 
             {/* 快捷工具 */}
-            <div className="mb-8">
+            <section className="mb-8" aria-labelledby="tools-heading">
               <SectionHeader
                 title="快捷工具"
                 icon={Zap}
                 iconColor="text-yellow-500"
+                headingId="tools-heading"
               />
               <QuickToolsGrid />
-            </div>
+            </section>
 
             {/* 主内容区 */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* 左侧：创作灵感 + 技巧 */}
-              <div className="lg:col-span-2">
-                <SectionHeader
-                  title="创作灵感"
-                  icon={Lightbulb}
-                  iconColor="text-amber-500"
-                  onViewMore={handleViewMore}
-                />
-                <InspirationSection />
+              <div className="lg:col-span-2 space-y-6">
+                <section aria-labelledby="inspiration-heading">
+                  <SectionHeader
+                    title="创作灵感"
+                    icon={Lightbulb}
+                    iconColor="text-amber-500"
+                    onViewMore={handleViewMore}
+                    headingId="inspiration-heading"
+                  />
+                  <InspirationSection />
+                </section>
 
-                <div className="mt-6">
+                <section aria-labelledby="tips-heading">
                   <SectionHeader
                     title="创作技巧"
                     icon={Target}
                     iconColor="text-red-500"
                     onViewMore={handleViewMore}
+                    headingId="tips-heading"
                   />
                   <TipsSection />
-                </div>
+                </section>
               </div>
 
               {/* 右侧：最近创作 + 每日任务 */}
               <div className="space-y-6">
-                <div>
+                <section aria-labelledby="recent-heading">
                   <SectionHeader
                     title="最近创作"
                     icon={Clock}
                     iconColor="text-blue-500"
-                    onViewMore={handleViewAllWorks}
+                    linkTo="/my-works"
                     viewMoreText="全部"
+                    headingId="recent-heading"
                   />
                   <RecentWorksSection />
-                </div>
+                </section>
 
                 <DailyTasks />
               </div>

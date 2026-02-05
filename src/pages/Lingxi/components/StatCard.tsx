@@ -9,17 +9,20 @@ export const StatCard = memo(function StatCard({ stat }: StatCardProps) {
   const Icon = stat.icon;
 
   return (
-    <div className="glass-card rounded-xl p-4">
+    <article className="glass-card rounded-xl p-4 transition-shadow hover:shadow-md">
       <div className="flex items-center justify-between mb-2">
-        <Icon className="w-5 h-5 text-muted-foreground" />
+        <Icon className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
         {stat.change && (
-          <span className="text-xs text-green-500 font-medium">
+          <span className="text-xs text-green-500 font-medium tabular-nums">
             {stat.change}
           </span>
         )}
       </div>
-      <div className="text-2xl font-bold text-foreground">{stat.value}</div>
+      {/* tabular-nums 确保数字对齐 */}
+      <div className="text-2xl font-bold text-foreground tabular-nums">
+        {stat.value}
+      </div>
       <div className="text-sm text-muted-foreground">{stat.label}</div>
-    </div>
+    </article>
   );
 });

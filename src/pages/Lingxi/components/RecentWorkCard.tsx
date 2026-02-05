@@ -10,29 +10,35 @@ export const RecentWorkCard = memo(function RecentWorkCard({
   work,
 }: RecentWorkCardProps) {
   return (
-    <div className="glass-card rounded-xl p-3 flex items-center gap-3 cursor-pointer hover:shadow-md transition-all">
+    <article
+      className="glass-card rounded-xl p-3 flex items-center gap-3 cursor-pointer hover:shadow-md transition-shadow touch-action-manipulation"
+      role="button"
+      tabIndex={0}
+    >
       <div className="w-12 h-12 rounded-lg bg-secondary/30 overflow-hidden flex-shrink-0">
         {work.thumbnail ? (
           <img
             src={work.thumbnail}
-            alt={work.title}
+            alt=""
+            width={48}
+            height={48}
             className="w-full h-full object-cover"
             loading="lazy"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <FileText className="w-5 h-5 text-muted-foreground" />
+            <FileText className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
           </div>
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="font-medium text-foreground text-sm truncate">
+        <h3 className="font-medium text-foreground text-sm truncate">
           {work.title}
-        </div>
-        <div className="text-xs text-muted-foreground">
+        </h3>
+        <p className="text-xs text-muted-foreground">
           {work.tool} · {work.time}
-        </div>
+        </p>
       </div>
-    </div>
+    </article>
   );
 });
