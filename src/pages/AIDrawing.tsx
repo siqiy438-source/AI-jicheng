@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import {
   ArrowLeft,
@@ -18,9 +18,19 @@ import {
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
 
-// 风格选项
-const stylePresets = [
+// 提示词类型
+interface PromptPreset {
+  id: string;
+  name: string;
+  icon: string;
+  prompt: string;
+  description?: string;
+}
+
+// 默认风格选项（本地）
+const defaultStylePresets = [
   { id: "poster", name: "海报设计", icon: "🎨" },
   { id: "sketch", name: "手绘风格", icon: "🖌️" },
   { id: "anime", name: "动漫风格", icon: "✨" },
@@ -49,7 +59,7 @@ const AIDrawing = () => {
 
   // 状态管理
   const [prompt, setPrompt] = useState("");
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [selectedRatio, setSelectedRatio] = useState("4:3");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -60,26 +70,104 @@ const AIDrawing = () => {
   const [selectedLanguage, setSelectedLanguage] = useState("zh");
   const materialInputRef = useRef<HTMLInputElement>(null);
 
-  // 处理图片上传
-  const handleImageUpload = (file: File) => {
-    if (file && file.type.startsWith("image/")) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
-        setGeneratedImage(null);
-      };
-      reader.readAsDataURL(file);
+  // 风格预设列表（从数据库加载）
+  const [stylePresets, setStylePresets] = useState<PromptPreset[]>(
+    defaultStylePresets.map(s => ({ ...s, prompt: '' }))
+  );
+
+  // 从 Supabase 加载提示词
+  useEffect(() => {
+    const loadPrompts = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('prompts')
+          .select('id, name, icon, prompt, description')
+          .eq('category', 'drawing')
+          .eq('is_active', true);
+
+        if (error) {
+          console.error('加载提示词失败:', error);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          // 合并默认选项和数据库选项
+          const dbPresets: PromptPreset[] = data.map(item => ({
+            id: item.id,
+            name: item.name,
+            icon: item.icon || '🎨',
+            prompt: item.prompt,
+            description: item.description,
+          }));
+
+          // 默认选项放前面，数据库选项放后面
+          const defaultWithPrompt = defaultStylePresets.map(s => ({ ...s, prompt: '' }));
+          setStylePresets([...defaultWithPrompt, ...dbPresets]);
+        }
+      } catch (err) {
+        console.error('加载提示词出错:', err);
+      }
+    };
+
+    loadPrompts();
+  }, []);
+
+  // 处理风格选择
+  const handleStyleSelect = (styleId: string) => {
+    setSelectedStyle(styleId);
+    setShowStyleMenu(false);
+
+    // 如果选中的风格有预设提示词（来自数据库），清空输入框并设置提示
+    const selected = stylePresets.find(s => s.id === styleId);
+    if (selected?.prompt) {
+      // 不填充提示词，保持输入框为空或显示提示
+      setPrompt('');
+      // 如果是女装搭配，自动设置比例为 9:16
+      if (styleId === 'fashion-outfit') {
+        setSelectedRatio('9:16');
+      }
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) handleImageUpload(file);
+  // 获取当前风格是否有预设提示词（需要上传图片模式）
+  const currentStyleHasPrompt = stylePresets.find(s => s.id === selectedStyle)?.prompt;
+
+  // 处理图片上传（支持多张）
+  const handleImageUpload = (files: FileList | null) => {
+    if (!files) return;
+
+    const maxImages = 5;
+    const remainingSlots = maxImages - imagePreviews.length;
+    const filesToProcess = Array.from(files).slice(0, remainingSlots);
+
+    filesToProcess.forEach(file => {
+      if (file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setImagePreviews(prev => [...prev, e.target?.result as string]);
+          setGeneratedImage(null);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
   };
 
-  // 清除图片
-  const clearImage = () => {
-    setImagePreview(null);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleImageUpload(e.target.files);
+    // 重置 input 以便可以重复选择相同文件
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  // 清除单张图片
+  const clearImage = (index: number) => {
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // 清除所有图片
+  const clearAllImages = () => {
+    setImagePreviews([]);
     setGeneratedImage(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -93,15 +181,48 @@ const AIDrawing = () => {
     setPrompt(prompt + "，高清，细节丰富，光影效果好");
   };
 
-  // 模拟生成
-  const handleGenerate = () => {
-    if (!prompt.trim() && !imagePreview) return;
+  // 调用 AI 生成
+  const handleGenerate = async () => {
+    if (!prompt.trim() && imagePreviews.length === 0 && !currentStyleHasPrompt) return;
     setIsGenerating(true);
-    setTimeout(() => {
-      // 模拟生成结果
-      setGeneratedImage(imagePreview || "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=800");
+    setGeneratedImage(null);
+
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://kzdjqqinkonqlclbwleh.supabase.co';
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/ai-image`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: prompt || undefined,
+          styleId: currentStyleHasPrompt ? selectedStyle : undefined,
+          aspectRatio: selectedRatio,
+          // 如果有图片，将 base64 图片作为参考描述
+          images: imagePreviews.length > 0 ? imagePreviews : undefined,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || '生成失败');
+      }
+
+      // 优先使用 imageUrl，其次使用 base64
+      const resultImage = data.imageUrl || data.imageBase64;
+      if (resultImage) {
+        setGeneratedImage(resultImage);
+      } else {
+        throw new Error('未能获取生成的图片');
+      }
+    } catch (error) {
+      console.error('生成失败:', error);
+      alert(`生成失败: ${error instanceof Error ? error.message : '未知错误'}`);
+    } finally {
       setIsGenerating(false);
-    }, 2000);
+    }
   };
 
   // 处理键盘事件
@@ -154,22 +275,44 @@ const AIDrawing = () => {
         {/* 输入卡片 */}
         <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5 mb-4 md:mb-6 shadow-lg">
           {/* 已上传的图片预览 */}
-          {imagePreview && (
-            <div className="mb-4 flex items-start gap-3">
-              <div className="relative group">
-                <img
-                  src={imagePreview}
-                  alt="参考图"
-                  className="h-16 w-16 md:h-20 md:w-20 object-cover rounded-lg md:rounded-xl border border-border"
-                />
-                <button
-                  onClick={clearImage}
-                  className="absolute -top-2 -right-2 w-5 h-5 bg-black/70 text-white rounded-full flex items-center justify-center touch-target"
-                >
-                  <X className="w-3 h-3" />
-                </button>
+          {imagePreviews.length > 0 && (
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-muted-foreground">已上传 {imagePreviews.length}/5 张图片</span>
+                {imagePreviews.length > 1 && (
+                  <button
+                    onClick={clearAllImages}
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    清除全部
+                  </button>
+                )}
               </div>
-              <span className="text-xs text-muted-foreground mt-1">参考图片</span>
+              <div className="flex items-start gap-2 flex-wrap">
+                {imagePreviews.map((preview, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={preview}
+                      alt={`参考图 ${index + 1}`}
+                      className="h-16 w-16 md:h-20 md:w-20 object-cover rounded-lg md:rounded-xl border border-border"
+                    />
+                    <button
+                      onClick={() => clearImage(index)}
+                      className="absolute -top-2 -right-2 w-5 h-5 bg-black/70 text-white rounded-full flex items-center justify-center touch-target"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+                {imagePreviews.length < 5 && (
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="h-16 w-16 md:h-20 md:w-20 rounded-lg md:rounded-xl border-2 border-dashed border-border hover:border-muted-foreground flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <span className="text-2xl">+</span>
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
@@ -179,7 +322,7 @@ const AIDrawing = () => {
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="输入你想要可视化的内容..."
+            placeholder={currentStyleHasPrompt ? "已选择预设风格，直接上传图片即可（也可输入补充说明）" : "输入你想要可视化的内容..."}
             rows={3}
             enterKeyHint="send"
             className="w-full bg-transparent text-foreground placeholder:text-muted-foreground resize-none focus:outline-none text-sm md:text-base leading-relaxed"
@@ -213,10 +356,7 @@ const AIDrawing = () => {
                     {stylePresets.map((style) => (
                       <button
                         key={style.id}
-                        onClick={() => {
-                          setSelectedStyle(style.id);
-                          setShowStyleMenu(false);
-                        }}
+                        onClick={() => handleStyleSelect(style.id)}
                         className={cn(
                           "w-full flex items-center gap-2 px-3 py-2.5 text-sm hover:bg-secondary/50 transition-colors touch-target",
                           selectedStyle === style.id && "bg-orange-50 text-orange-700"
@@ -271,6 +411,7 @@ const AIDrawing = () => {
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
+                multiple
                 onChange={handleFileChange}
                 className="hidden"
               />
@@ -355,10 +496,10 @@ const AIDrawing = () => {
               {/* 发送按钮 */}
               <button
                 onClick={handleGenerate}
-                disabled={(!prompt.trim() && !imagePreview) || isGenerating}
+                disabled={(!prompt.trim() && imagePreviews.length === 0 && !currentStyleHasPrompt) || isGenerating}
                 className={cn(
                   "w-11 h-11 rounded-xl flex items-center justify-center transition-all touch-target flex-shrink-0",
-                  (prompt.trim() || imagePreview) && !isGenerating
+                  ((prompt.trim() || imagePreviews.length > 0 || currentStyleHasPrompt) && !isGenerating)
                     ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-md"
                     : "bg-secondary/50 text-muted-foreground/50 cursor-not-allowed"
                 )}
