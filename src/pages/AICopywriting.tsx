@@ -1,10 +1,281 @@
+import { useState, useRef } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
-import { ArrowLeft, FileText } from "lucide-react";
+import {
+  ArrowLeft,
+  FileText,
+  X,
+  Sparkles,
+  Loader2,
+  Wand2,
+  Send,
+  Paperclip,
+  Bot,
+  Copy,
+  Check,
+  ChevronDown,
+  File,
+  Image,
+  FileSpreadsheet,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
+
+// 智能体选项
+const agentOptions = [
+  { id: "xiaohongshu", name: "小红书文案", icon: "📕", description: "爆款笔记、种草文案" },
+  { id: "douyin", name: "抖音文案", icon: "🎵", description: "短视频脚本、口播文案" },
+  { id: "weixin", name: "公众号文案", icon: "💚", description: "深度文章、推文写作" },
+  { id: "ad", name: "广告文案", icon: "📢", description: "营销广告、促销文案" },
+  { id: "product", name: "产品文案", icon: "🏷️", description: "详情页、卖点提炼" },
+  { id: "general", name: "通用写作", icon: "✏️", description: "各类文案通用助手" },
+];
+
+// 消息类型
+interface Message {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  files?: { name: string; type: string }[];
+  timestamp: Date;
+}
+
+// 文件类型图标
+const getFileIcon = (type: string) => {
+  if (type.startsWith("image/")) return <Image className="w-4 h-4" />;
+  if (type.includes("spreadsheet") || type.includes("excel") || type.includes("csv"))
+    return <FileSpreadsheet className="w-4 h-4" />;
+  return <File className="w-4 h-4" />;
+};
 
 const AICopywriting = () => {
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // 状态管理
+  const [prompt, setPrompt] = useState("");
+  const [selectedAgent, setSelectedAgent] = useState(agentOptions[0]);
+  const [showAgentMenu, setShowAgentMenu] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<{ name: string; type: string; preview?: string }[]>([]);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // 处理文件上传
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      const newFiles = Array.from(files).map((file) => ({
+        name: file.name,
+        type: file.type,
+      }));
+      setUploadedFiles((prev) => [...prev, ...newFiles]);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  // 移除文件
+  const removeFile = (index: number) => {
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // 一键优化提示词
+  const optimizePrompt = () => {
+    if (!prompt.trim()) return;
+    const optimizations: Record<string, string> = {
+      xiaohongshu: "，要求：吸引眼球的标题、适当使用emoji、口语化表达、加入互动引导",
+      douyin: "，要求：开头3秒抓住注意力、节奏感强、口语化、有记忆点",
+      weixin: "，要求：深度有价值、逻辑清晰、金句点睛、引发思考",
+      ad: "，要求：突出卖点、制造紧迫感、明确行动号召、简洁有力",
+      product: "，要求：突出核心卖点、解决用户痛点、场景化描述、数据支撑",
+      general: "，要求：表达清晰、结构完整、语言流畅、重点突出",
+    };
+    setPrompt(prompt + (optimizations[selectedAgent.id] || ""));
+  };
+
+  // 复制内容
+  const copyContent = (id: string, content: string) => {
+    navigator.clipboard.writeText(content);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  // 发送消息
+  const handleSend = () => {
+    if (!prompt.trim() && uploadedFiles.length === 0) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: "user",
+      content: prompt,
+      files: uploadedFiles.length > 0 ? [...uploadedFiles] : undefined,
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setPrompt("");
+    setUploadedFiles([]);
+    setIsGenerating(true);
+
+    // 模拟 AI 响应
+    setTimeout(() => {
+      const responses: Record<string, string> = {
+        xiaohongshu: `# 🌟 ${prompt.slice(0, 20)}...
+
+姐妹们！今天必须给你们安利这个宝藏好物！！！
+
+用了一周真的绝绝子～之前一直在纠结要不要入手，现在只恨自己没有早点发现它！
+
+✨ 亮点总结：
+1️⃣ 效果真的很惊艳
+2️⃣ 性价比超高
+3️⃣ 包装颜值在线
+
+💡 使用心得：
+刚开始用可能需要适应一下，但坚持下来真的会有惊喜！强烈建议大家试试～
+
+📌 小tips：建议搭配xxx一起使用，效果加倍！
+
+#好物分享 #真实测评 #种草`,
+        douyin: `【开头】
+"等等！先别划走！这个东西你一定要知道..."
+
+【正文】
+你有没有遇到过这种情况？（痛点描述）
+今天教你一招，轻松解决！
+
+第一步：xxx
+第二步：xxx
+第三步：xxx
+
+【结尾】
+学会了吗？赶紧试试吧！
+觉得有用的话，点个赞收藏一下～
+
+#${prompt.slice(0, 10)} #干货分享 #涨知识`,
+        weixin: `# ${prompt.slice(0, 15)}：一个值得深思的话题
+
+在这个快节奏的时代，我们似乎总是在追赶，却很少停下来思考真正重要的事情。
+
+## 现象观察
+
+最近，越来越多的人开始关注这个话题。数据显示...
+
+## 深度分析
+
+从表面上看，这似乎只是一个简单的问题。但如果我们深入挖掘，就会发现...
+
+## 解决方案
+
+基于以上分析，我认为可以从以下几个维度入手：
+
+1. **认知层面**：首先需要...
+2. **行动层面**：其次要...
+3. **习惯层面**：最后是...
+
+## 结语
+
+改变从来都不是一蹴而就的，但只要我们愿意迈出第一步，一切皆有可能。
+
+---
+*如果这篇文章对你有启发，欢迎分享给更多需要的人。*`,
+        ad: `🔥【限时特惠】${prompt.slice(0, 10)}
+
+❌ 还在为xxx烦恼？
+❌ 还在花冤枉钱？
+❌ 还在走弯路？
+
+✅ 现在，一个方案帮你全搞定！
+
+🎯 核心优势：
+• 效果显著，已有10000+用户验证
+• 操作简单，小白也能轻松上手
+• 售后无忧，7天无理由退换
+
+⏰ 限时福利：
+原价 ¥299
+今日特惠 ¥99
+前100名再送价值¥50礼包！
+
+👇 点击下方立即抢购
+数量有限，售完即止！`,
+        product: `## ${prompt.slice(0, 15)} - 产品详情
+
+### 🎯 解决痛点
+- 痛点1：xxx → 我们的解决方案
+- 痛点2：xxx → 我们的解决方案
+
+### ✨ 核心卖点
+1. **卖点一**：具体描述...
+2. **卖点二**：具体描述...
+3. **卖点三**：具体描述...
+
+### 📊 数据支撑
+- 用户满意度：98.5%
+- 复购率：76%
+- 好评数：10000+
+
+### 🛡️ 品质保障
+✓ 正品保证
+✓ 7天无理由退换
+✓ 专业售后服务
+
+### 📦 规格参数
+| 参数 | 说明 |
+|------|------|
+| 规格 | xxx |
+| 材质 | xxx |
+| 产地 | xxx |`,
+        general: `# ${prompt}
+
+根据您的需求，我为您生成了以下内容：
+
+## 主要内容
+
+这是一段精心撰写的文案，围绕您提供的主题展开。文案注重以下几个方面：
+
+1. **清晰的表达**：确保读者能够快速理解核心信息
+2. **合理的结构**：层次分明，逻辑清晰
+3. **恰当的语气**：符合目标受众的阅读习惯
+
+## 建议优化方向
+
+- 可以根据具体使用场景调整语气
+- 添加更多具体案例或数据支撑
+- 根据平台特点进行针对性调整
+
+---
+*如需调整或有其他要求，请告诉我，我会为您进一步优化。*`,
+      };
+
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: responses[selectedAgent.id] || responses.general,
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, assistantMessage]);
+      setIsGenerating(false);
+
+      // 滚动到底部
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    }, 2000);
+  };
+
+  // 处理键盘事件
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-gradient-main">
@@ -12,7 +283,7 @@ const AICopywriting = () => {
       <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
         <Header />
         <main className="flex-1 overflow-y-auto">
-          <div className="max-w-5xl mx-auto px-6 py-8">
+          <div className="max-w-4xl mx-auto px-6 py-8">
             {/* 返回按钮 */}
             <button
               onClick={() => navigate("/")}
@@ -24,19 +295,279 @@ const AICopywriting = () => {
 
             {/* 页面标题 */}
             <div className="flex items-center gap-4 mb-8">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center">
-                <FileText className="w-8 h-8 text-orange-600" />
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center">
+                <FileText className="w-7 h-7 text-orange-600" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-foreground">AI 文案</h1>
-                <p className="text-muted-foreground">智能写作，助力内容创造</p>
+                <p className="text-muted-foreground text-sm">选择智能体，上传素材，智能生成文案</p>
               </div>
             </div>
 
-            {/* 功能区域占位 */}
-            <div className="glass-card rounded-2xl p-8 text-center">
-              <p className="text-muted-foreground">文案生成功能开发中...</p>
+            {/* 聊天消息区域 */}
+            {messages.length > 0 && (
+              <div className="space-y-6 mb-6">
+                {messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={cn(
+                      "flex gap-4",
+                      message.role === "user" ? "flex-row-reverse" : ""
+                    )}
+                  >
+                    {/* 头像 */}
+                    <div
+                      className={cn(
+                        "w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0",
+                        message.role === "user"
+                          ? "bg-gradient-to-br from-orange-500 to-orange-600"
+                          : "bg-gradient-to-br from-purple-100 to-purple-50"
+                      )}
+                    >
+                      {message.role === "user" ? (
+                        <span className="text-white text-sm font-medium">我</span>
+                      ) : (
+                        <Bot className="w-5 h-5 text-purple-600" />
+                      )}
+                    </div>
+
+                    {/* 消息内容 */}
+                    <div
+                      className={cn(
+                        "flex-1 max-w-[80%]",
+                        message.role === "user" ? "flex flex-col items-end" : ""
+                      )}
+                    >
+                      {/* 附件显示 */}
+                      {message.files && message.files.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {message.files.map((file, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center gap-1.5 px-2.5 py-1.5 bg-secondary/50 rounded-lg text-sm text-muted-foreground"
+                            >
+                              {getFileIcon(file.type)}
+                              <span className="max-w-[120px] truncate">{file.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* 文本内容 */}
+                      <div
+                        className={cn(
+                          "rounded-2xl px-4 py-3",
+                          message.role === "user"
+                            ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white"
+                            : "glass-card"
+                        )}
+                      >
+                        <div
+                          className={cn(
+                            "whitespace-pre-wrap text-sm leading-relaxed",
+                            message.role === "assistant" && "prose prose-sm max-w-none"
+                          )}
+                        >
+                          {message.content}
+                        </div>
+
+                        {/* AI 回复的操作按钮 */}
+                        {message.role === "assistant" && (
+                          <div className="flex justify-end mt-3 pt-3 border-t border-border/50">
+                            <button
+                              onClick={() => copyContent(message.id, message.content)}
+                              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs text-muted-foreground hover:bg-secondary/50 transition-colors"
+                            >
+                              {copiedId === message.id ? (
+                                <>
+                                  <Check className="w-3.5 h-3.5 text-green-500" />
+                                  <span className="text-green-500">已复制</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="w-3.5 h-3.5" />
+                                  <span>复制</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {/* 生成中状态 */}
+                {isGenerating && (
+                  <div className="flex gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center flex-shrink-0">
+                      <Bot className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <div className="glass-card rounded-2xl px-4 py-3">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span className="text-sm">正在生成文案...</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div ref={messagesEndRef} />
+              </div>
+            )}
+
+            {/* 输入卡片 */}
+            <div className="glass-card rounded-2xl p-5 shadow-lg">
+              {/* 已上传的文件预览 */}
+              {uploadedFiles.length > 0 && (
+                <div className="mb-4 flex flex-wrap gap-2">
+                  {uploadedFiles.map((file, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-2 px-3 py-2 bg-secondary/50 rounded-xl text-sm group"
+                    >
+                      {getFileIcon(file.type)}
+                      <span className="max-w-[150px] truncate text-foreground">{file.name}</span>
+                      <button
+                        onClick={() => removeFile(index)}
+                        className="w-4 h-4 rounded-full bg-black/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-2.5 h-2.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* 输入区域 */}
+              <textarea
+                ref={textareaRef}
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="描述你需要的文案内容..."
+                rows={3}
+                className="w-full bg-transparent text-foreground placeholder:text-muted-foreground resize-none focus:outline-none text-base leading-relaxed"
+              />
+
+              {/* 分隔线 */}
+              <div className="border-t border-border/50 my-3" />
+
+              {/* 工具栏 */}
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* 智能体选择 */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowAgentMenu(!showAgentMenu)}
+                      className={cn(
+                        "flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-all border",
+                        "bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
+                      )}
+                    >
+                      <span>{selectedAgent.icon}</span>
+                      <span>{selectedAgent.name}</span>
+                      <ChevronDown className={cn("w-4 h-4 transition-transform", showAgentMenu && "rotate-180")} />
+                    </button>
+                    {showAgentMenu && (
+                      <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-2 z-10 min-w-[200px]">
+                        {agentOptions.map((agent) => (
+                          <button
+                            key={agent.id}
+                            onClick={() => {
+                              setSelectedAgent(agent);
+                              setShowAgentMenu(false);
+                            }}
+                            className={cn(
+                              "w-full flex items-start gap-3 px-4 py-2.5 hover:bg-secondary/50 transition-colors text-left",
+                              selectedAgent.id === agent.id && "bg-purple-50"
+                            )}
+                          >
+                            <span className="text-lg">{agent.icon}</span>
+                            <div>
+                              <div className={cn(
+                                "text-sm font-medium",
+                                selectedAgent.id === agent.id ? "text-purple-700" : "text-foreground"
+                              )}>
+                                {agent.name}
+                              </div>
+                              <div className="text-xs text-muted-foreground">{agent.description}</div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 分隔符 */}
+                  <div className="w-px h-5 bg-border mx-1" />
+
+                  {/* 上传文件按钮 */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".txt,.doc,.docx,.pdf,.png,.jpg,.jpeg,.csv,.xlsx"
+                    multiple
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center gap-1.5 p-2 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
+                    title="上传参考文件"
+                  >
+                    <Paperclip className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* 右侧按钮 */}
+                <div className="flex items-center gap-2">
+                  {/* 一键优化 */}
+                  <button
+                    onClick={optimizePrompt}
+                    disabled={!prompt.trim()}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all border",
+                      prompt.trim()
+                        ? "bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
+                        : "bg-secondary/30 border-transparent text-muted-foreground/50 cursor-not-allowed"
+                    )}
+                  >
+                    <Wand2 className="w-4 h-4" />
+                    <span>一键优化</span>
+                  </button>
+
+                  {/* 发送按钮 */}
+                  <button
+                    onClick={handleSend}
+                    disabled={(!prompt.trim() && uploadedFiles.length === 0) || isGenerating}
+                    className={cn(
+                      "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
+                      (prompt.trim() || uploadedFiles.length > 0) && !isGenerating
+                        ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-md"
+                        : "bg-secondary/50 text-muted-foreground/50 cursor-not-allowed"
+                    )}
+                  >
+                    {isGenerating ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <Send className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
+
+            {/* 空状态提示 */}
+            {messages.length === 0 && !isGenerating && (
+              <div className="text-center py-16">
+                <div className="w-20 h-20 rounded-full bg-secondary/50 flex items-center justify-center mx-auto mb-4">
+                  <Sparkles className="w-10 h-10 text-muted-foreground/50" />
+                </div>
+                <p className="text-muted-foreground mb-2">选择智能体，输入需求开始创作</p>
+                <p className="text-sm text-muted-foreground/70">支持上传文档、图片作为参考素材</p>
+              </div>
+            )}
           </div>
         </main>
       </div>
