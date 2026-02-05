@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
 import {
@@ -10,20 +9,15 @@ import {
   Video,
   Mic,
   Wand2,
-  TrendingUp,
   Clock,
   Star,
   ArrowRight,
   Zap,
   Target,
   Lightbulb,
-  Rocket,
-  Crown,
-  Gift,
   Calendar,
   BarChart3,
   Users,
-  Eye,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -359,40 +353,6 @@ const CreativeCenter = () => {
                         <p className="text-muted-foreground/60 text-xs mt-1">开始你的第一次创作吧</p>
                       </div>
                     )}
-                  </div>
-                </div>
-
-                {/* 会员权益卡片 */}
-                <div className="glass-card rounded-xl overflow-hidden">
-                  <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-4 text-white">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Crown className="w-5 h-5" />
-                      <span className="font-semibold">创作会员</span>
-                    </div>
-                    <p className="text-sm text-white/90">解锁全部高级功能，创作无限可能</p>
-                  </div>
-                  <div className="p-4 space-y-3">
-                    <div className="flex items-center gap-3 text-sm">
-                      <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
-                        <Zap className="w-3 h-3 text-green-600" />
-                      </div>
-                      <span className="text-foreground">无限次数生成</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm">
-                      <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
-                        <Rocket className="w-3 h-3 text-blue-600" />
-                      </div>
-                      <span className="text-foreground">优先使用新功能</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm">
-                      <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center">
-                        <Gift className="w-3 h-3 text-purple-600" />
-                      </div>
-                      <span className="text-foreground">专属模板素材</span>
-                    </div>
-                    <button className="w-full mt-2 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg font-medium hover:from-amber-600 hover:to-orange-600 transition-all">
-                      立即开通
-                    </button>
                   </div>
                 </div>
 

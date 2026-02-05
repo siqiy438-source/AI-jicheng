@@ -17,59 +17,16 @@ import {
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
-// 模拟作品数据
-const mockWorks = [
-  {
-    id: "1",
-    title: "双十一促销海报",
-    type: "poster",
-    thumbnail: "https://images.unsplash.com/photo-1558655146-d09347e92766?w=400",
-    createdAt: "2024-01-15 14:30",
-    tool: "AI 海报",
-  },
-  {
-    id: "2",
-    title: "产品宣传图",
-    type: "drawing",
-    thumbnail: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400",
-    createdAt: "2024-01-14 10:20",
-    tool: "AI 绘图",
-  },
-  {
-    id: "3",
-    title: "小红书种草文案",
-    type: "copywriting",
-    thumbnail: null,
-    content: "姐妹们！今天必须给你们安利这个宝藏好物！用了一周真的绝绝子～",
-    createdAt: "2024-01-13 16:45",
-    tool: "AI 文案",
-  },
-  {
-    id: "4",
-    title: "品牌形象海报",
-    type: "poster",
-    thumbnail: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400",
-    createdAt: "2024-01-12 09:15",
-    tool: "AI 海报",
-  },
-  {
-    id: "5",
-    title: "抖音短视频脚本",
-    type: "copywriting",
-    thumbnail: null,
-    content: "等等！先别划走！这个东西你一定要知道...",
-    createdAt: "2024-01-11 11:30",
-    tool: "AI 文案",
-  },
-  {
-    id: "6",
-    title: "节日祝福海报",
-    type: "poster",
-    thumbnail: "https://images.unsplash.com/photo-1513151233558-d860c5398176?w=400",
-    createdAt: "2024-01-10 15:00",
-    tool: "AI 海报",
-  },
-];
+// 作品数据 - 新用户为空
+const mockWorks: Array<{
+  id: string;
+  title: string;
+  type: string;
+  thumbnail: string | null;
+  content?: string;
+  createdAt: string;
+  tool: string;
+}> = [];
 
 // 获取类型图标
 const getTypeIcon = (type: string) => {

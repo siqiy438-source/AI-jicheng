@@ -23,71 +23,23 @@ import {
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
-// 模拟文件夹数据
-const mockFolders = [
-  { id: "1", name: "产品图片", count: 12 },
-  { id: "2", name: "Logo素材", count: 5 },
-  { id: "3", name: "背景图", count: 8 },
-  { id: "4", name: "字体素材", count: 3 },
-];
+// 文件夹数据 - 新用户为空
+const mockFolders: Array<{
+  id: string;
+  name: string;
+  count: number;
+}> = [];
 
-// 模拟素材数据
-const mockMaterials = [
-  {
-    id: "1",
-    name: "产品主图.png",
-    type: "image",
-    thumbnail: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400",
-    size: "2.4 MB",
-    uploadedAt: "2024-01-15",
-    folder: "产品图片",
-  },
-  {
-    id: "2",
-    name: "品牌Logo.svg",
-    type: "image",
-    thumbnail: "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=400",
-    size: "156 KB",
-    uploadedAt: "2024-01-14",
-    folder: "Logo素材",
-  },
-  {
-    id: "3",
-    name: "渐变背景.jpg",
-    type: "image",
-    thumbnail: "https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=400",
-    size: "1.8 MB",
-    uploadedAt: "2024-01-13",
-    folder: "背景图",
-  },
-  {
-    id: "4",
-    name: "产品细节图1.png",
-    type: "image",
-    thumbnail: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400",
-    size: "3.1 MB",
-    uploadedAt: "2024-01-12",
-    folder: "产品图片",
-  },
-  {
-    id: "5",
-    name: "宣传视频.mp4",
-    type: "video",
-    thumbnail: "https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400",
-    size: "15.6 MB",
-    uploadedAt: "2024-01-11",
-    folder: null,
-  },
-  {
-    id: "6",
-    name: "产品说明.txt",
-    type: "document",
-    thumbnail: null,
-    size: "12 KB",
-    uploadedAt: "2024-01-10",
-    folder: null,
-  },
-];
+// 素材数据 - 新用户为空
+const mockMaterials: Array<{
+  id: string;
+  name: string;
+  type: string;
+  thumbnail: string | null;
+  size: string;
+  uploadedAt: string;
+  folder: string | null;
+}> = [];
 
 // 获取文件类型图标
 const getFileIcon = (type: string) => {
