@@ -44,7 +44,7 @@ const MobileNavItem = ({ icon, label, to, active }: NavItemProps) => {
       </span>
       <span
         className={cn(
-          "text-[10px] font-medium transition-colors duration-200",
+          "text-[11px] font-medium transition-colors duration-200",
           active ? "text-primary" : "text-muted-foreground"
         )}
       >

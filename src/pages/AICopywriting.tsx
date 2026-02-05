@@ -294,7 +294,7 @@ const AICopywriting = () => {
         </div>
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-foreground">AI 文案</h1>
-          <p className="text-muted-foreground text-xs md:text-sm">选择智能体，上传素材，智能生成文案</p>
+          <p className="text-muted-foreground text-sm">选择智能体，上传素材，智能生成文案</p>
         </div>
       </div>
 
@@ -456,7 +456,7 @@ const AICopywriting = () => {
               <button
                 onClick={() => setShowAgentMenu(!showAgentMenu)}
                 className={cn(
-                  "flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-1.5 rounded-full text-xs md:text-sm transition-all border",
+                  "flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-1.5 rounded-full text-sm transition-all border",
                   "bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 active:bg-purple-100"
                 )}
               >
@@ -486,7 +486,7 @@ const AICopywriting = () => {
                         )}>
                           {agent.name}
                         </div>
-                        <div className="text-xs text-muted-foreground">{agent.description}</div>
+                        <div className="text-sm text-muted-foreground">{agent.description}</div>
                       </div>
                     </button>
                   ))}
@@ -560,7 +560,7 @@ const AICopywriting = () => {
             <Sparkles className="w-8 h-8 md:w-10 md:h-10 text-muted-foreground/50" />
           </div>
           <p className="text-muted-foreground mb-2">选择智能体，输入需求开始创作</p>
-          <p className="text-sm text-muted-foreground/70">支持上传文档、图片作为参考素材</p>
+          <p className="text-sm text-muted-foreground">支持上传文档、图片作为参考素材</p>
         </div>
       )}
     </PageLayout>

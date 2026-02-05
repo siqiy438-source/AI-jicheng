@@ -47,7 +47,7 @@ const Index = () => {
         {/* 装饰标签 */}
         <div className="inline-flex items-center gap-2 px-3 py-1.5 mb-4 md:mb-6 rounded-full bg-primary/10 border border-primary/20">
           <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-          <span className="text-xs font-medium text-primary">创作者工坊</span>
+          <span className="text-sm font-medium text-primary">创作者工坊</span>
         </div>
 
         {/* 主标题 - 移动端字号稍小 */}
@@ -94,7 +94,7 @@ const Index = () => {
 
       {/* 底部装饰 - 移动端简化 */}
       <div className="mt-12 md:mt-20 pt-6 md:pt-8 border-t border-border/50 opacity-0 animate-fade-in" style={{ animationDelay: '600ms' }}>
-        <p className="text-xs text-muted-foreground/50 text-center">
+        <p className="text-sm text-muted-foreground/50 text-center">
           Powered by AI · 让创意触手可及
         </p>
       </div>

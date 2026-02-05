@@ -55,9 +55,9 @@ export const Header = () => {
         </button>
 
         {/* 通知按钮 */}
-        <button className="p-2 md:p-2.5 rounded-xl hover:bg-accent transition-colors relative touch-target">
+        <button className="p-2.5 rounded-xl hover:bg-accent transition-colors relative touch-target">
           <Bell className="w-5 h-5 text-muted-foreground" />
-          <span className="absolute top-1 md:top-1.5 right-1 md:right-1.5 w-2 h-2 bg-primary rounded-full" />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full" />
         </button>
 
         {/* 用户区域 */}

@@ -747,6 +747,37 @@
   .scrollbar-thin {
     scrollbar-width: none;
   }
+
+  /* 移动端字体最小 14px */
+  body {
+    font-size: 14px;
+  }
+
+  /* 确保按钮和交互元素足够大 */
+  button,
+  a,
+  [role="button"],
+  input[type="button"],
+  input[type="submit"] {
+    min-height: 44px;
+  }
+
+  /* 小型按钮例外（图标按钮已有 touch-target） */
+  button.p-2,
+  button.p-1\.5,
+  button.p-1 {
+    min-height: auto;
+  }
+}
+
+/* 隐藏移动端滚动条 - 全局 */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }
 
 /* 移动端安全区域工具类 */

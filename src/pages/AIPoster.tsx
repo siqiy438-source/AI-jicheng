@@ -171,7 +171,7 @@ const AIPoster = () => {
           </div>
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-foreground mb-0.5 md:mb-1">AI 海报</h1>
-            <p className="text-muted-foreground text-xs md:text-sm">选择模板，描述需求，智能生成</p>
+            <p className="text-muted-foreground text-sm">选择模板，描述需求，智能生成</p>
           </div>
         </div>
 
@@ -243,7 +243,7 @@ const AIPoster = () => {
                     setShowStyleMenu(false);
                     setShowSizeMenu(false);
                   }}
-                  className="gap-1.5 md:gap-2 text-xs md:text-sm"
+                  className="gap-1.5 md:gap-2 text-sm"
                 >
                   <span>{selectedTemplate.icon}</span>
                   <span className="max-w-[60px] md:max-w-none truncate">{selectedTemplate.name}</span>
@@ -303,7 +303,7 @@ const AIPoster = () => {
                     setShowTemplateMenu(false);
                     setShowSizeMenu(false);
                   }}
-                  className="gap-1 md:gap-1.5 text-xs md:text-sm"
+                  className="gap-1 md:gap-1.5 text-sm"
                 >
                   <Type className="w-3 h-3 md:w-3.5 md:h-3.5" />
                   <span className="max-w-[50px] md:max-w-none truncate">
@@ -350,7 +350,7 @@ const AIPoster = () => {
                     setShowTemplateMenu(false);
                     setShowStyleMenu(false);
                   }}
-                  className="gap-1 md:gap-1.5 text-xs md:text-sm"
+                  className="gap-1 md:gap-1.5 text-sm"
                 >
                   <Ratio className="w-3 h-3 md:w-3.5 md:h-3.5" />
                   <span>{selectedSize.ratio}</span>

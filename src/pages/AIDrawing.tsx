@@ -147,7 +147,7 @@ const AIDrawing = () => {
           </div>
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-foreground">AI 绘图</h1>
-            <p className="text-muted-foreground text-xs md:text-sm">描述你想要的画面，AI 帮你实现</p>
+            <p className="text-muted-foreground text-sm">描述你想要的画面，AI 帮你实现</p>
           </div>
         </div>
 
@@ -189,7 +189,7 @@ const AIDrawing = () => {
           <div className="border-t border-border/50 my-3" />
 
           {/* 工具栏 */}
-          <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-1.5 md:gap-2 flex-wrap">
               {/* 风格选择 */}
               <div className="relative" onClick={(e) => e.stopPropagation()}>
@@ -199,14 +199,14 @@ const AIDrawing = () => {
                     setShowRatioMenu(false);
                   }}
                   className={cn(
-                    "flex items-center gap-1 md:gap-1.5 px-2 md:px-3 py-1.5 rounded-full text-xs md:text-sm transition-all border touch-target",
+                    "flex items-center gap-1 md:gap-1.5 px-2.5 md:px-3 py-2 rounded-full text-sm transition-all border touch-target",
                     selectedStyle
                       ? "bg-orange-50 border-orange-200 text-orange-700"
                       : "bg-secondary/50 border-transparent text-muted-foreground hover:bg-secondary"
                   )}
                 >
                   <span>{stylePresets.find(s => s.id === selectedStyle)?.icon || "🎨"}</span>
-                  <span className="hidden sm:inline">{stylePresets.find(s => s.id === selectedStyle)?.name || "风格"}</span>
+                  <span className="hidden xs:inline">{stylePresets.find(s => s.id === selectedStyle)?.name || "风格"}</span>
                 </button>
                 {showStyleMenu && (
                   <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 min-w-[140px]">
@@ -237,9 +237,9 @@ const AIDrawing = () => {
                     setShowRatioMenu(!showRatioMenu);
                     setShowStyleMenu(false);
                   }}
-                  className="flex items-center gap-1 md:gap-1.5 px-2 md:px-3 py-1.5 rounded-full text-xs md:text-sm bg-secondary/50 text-muted-foreground hover:bg-secondary transition-all border border-transparent touch-target"
+                  className="flex items-center gap-1 md:gap-1.5 px-2.5 md:px-3 py-2 rounded-full text-sm bg-secondary/50 text-muted-foreground hover:bg-secondary transition-all border border-transparent touch-target"
                 >
-                  <Ratio className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                  <Ratio className="w-4 h-4" />
                   <span>{selectedRatio}</span>
                 </button>
                 {showRatioMenu && (
@@ -264,7 +264,7 @@ const AIDrawing = () => {
               </div>
 
               {/* 分隔符 */}
-              <div className="w-px h-5 bg-border mx-0.5 md:mx-1" />
+              <div className="w-px h-5 bg-border mx-0.5 md:mx-1 hidden sm:block" />
 
               {/* 上传图片按钮 */}
               <input
@@ -276,7 +276,7 @@ const AIDrawing = () => {
               />
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground transition-all touch-target"
+                className="p-2.5 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground transition-all touch-target"
                 title="上传参考图"
               >
                 <Image className="w-4 h-4" />
@@ -293,7 +293,7 @@ const AIDrawing = () => {
               />
               <button
                 onClick={() => materialInputRef.current?.click()}
-                className="p-2 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground transition-all touch-target"
+                className="p-2.5 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground transition-all touch-target"
                 title="上传素材到素材库"
               >
                 <FolderUp className="w-4 h-4" />
@@ -307,7 +307,7 @@ const AIDrawing = () => {
                     setShowStyleMenu(false);
                     setShowRatioMenu(false);
                   }}
-                  className="p-2 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground transition-all touch-target"
+                  className="p-2.5 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground transition-all touch-target"
                   title="选择语言"
                 >
                   <Languages className="w-4 h-4" />
@@ -336,13 +336,13 @@ const AIDrawing = () => {
             </div>
 
             {/* 右侧按钮 */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-end gap-2">
               {/* 一键优化 */}
               <button
                 onClick={optimizePrompt}
                 disabled={!prompt.trim()}
                 className={cn(
-                  "hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all border touch-target",
+                  "hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-full text-sm transition-all border touch-target",
                   prompt.trim()
                     ? "bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
                     : "bg-secondary/30 border-transparent text-muted-foreground/50 cursor-not-allowed"
@@ -357,7 +357,7 @@ const AIDrawing = () => {
                 onClick={handleGenerate}
                 disabled={(!prompt.trim() && !imagePreview) || isGenerating}
                 className={cn(
-                  "w-10 h-10 rounded-xl flex items-center justify-center transition-all touch-target",
+                  "w-11 h-11 rounded-xl flex items-center justify-center transition-all touch-target flex-shrink-0",
                   (prompt.trim() || imagePreview) && !isGenerating
                     ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-md"
                     : "bg-secondary/50 text-muted-foreground/50 cursor-not-allowed"

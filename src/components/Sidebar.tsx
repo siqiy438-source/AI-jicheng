@@ -40,7 +40,7 @@ const NavItem = ({ icon, label, active, collapsed, to, onClick }: NavItemProps) 
       onClick={handleClick}
       className={cn(
         // 基础样式
-        "relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl",
+        "relative w-full flex items-center gap-3 px-3 py-3 rounded-xl min-h-[44px]",
         "transition-all duration-200 ease-out",
         "group",
         // 左侧指示条
@@ -96,7 +96,7 @@ const NavSection = ({ title, children, collapsed }: NavSectionProps) => (
   <div className="mb-6">
     {!collapsed && (
       <div className="flex items-center gap-2 px-3 mb-3">
-        <span className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest">
+        <span className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-widest">
           {title}
         </span>
         <span className="flex-1 h-px bg-gradient-to-r from-border to-transparent" />
@@ -145,7 +145,7 @@ export const Sidebar = () => {
               <span className="font-semibold text-foreground text-[15px] leading-tight">
                 AI 创作
               </span>
-              <span className="text-[10px] text-muted-foreground/60 tracking-wide">
+              <span className="text-[11px] text-muted-foreground/60 tracking-wide">
                 CREATIVE STUDIO
               </span>
             </div>
@@ -165,7 +165,7 @@ export const Sidebar = () => {
         <button
           onClick={() => setCollapsed(!collapsed)}
           className={cn(
-            "p-1.5 rounded-lg transition-all duration-200",
+            "p-2 rounded-lg transition-all duration-200 min-w-[36px] min-h-[36px]",
             "text-muted-foreground hover:text-foreground",
             "hover:bg-sidebar-accent",
             "active:scale-95",

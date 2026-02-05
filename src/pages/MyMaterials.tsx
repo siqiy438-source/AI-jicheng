@@ -184,7 +184,7 @@ const MyMaterials = () => {
           </div>
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-foreground">我的素材</h1>
-            <p className="text-muted-foreground text-xs md:text-sm hidden sm:block">管理你上传的所有素材文件</p>
+            <p className="text-muted-foreground text-sm hidden sm:block">管理你上传的所有素材文件</p>
           </div>
         </div>
         <input
@@ -217,7 +217,7 @@ const MyMaterials = () => {
           >
             <Folder className="w-3.5 h-3.5" />
             <span>全部</span>
-            <span className="text-xs opacity-70">{mockMaterials.length}</span>
+            <span className="text-sm opacity-70">{mockMaterials.length}</span>
           </button>
           {mockFolders.map((folder) => (
             <button
@@ -230,7 +230,7 @@ const MyMaterials = () => {
             >
               <Folder className="w-3.5 h-3.5" />
               <span>{folder.name}</span>
-              <span className="text-xs opacity-70">{folder.count}</span>
+              <span className="text-sm opacity-70">{folder.count}</span>
             </button>
           ))}
         </div>

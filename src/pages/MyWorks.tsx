@@ -132,7 +132,7 @@ const MyWorks = () => {
           </div>
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-foreground">我的作品</h1>
-            <p className="text-muted-foreground text-xs md:text-sm">管理你创作的所有作品</p>
+            <p className="text-muted-foreground text-sm">管理你创作的所有作品</p>
           </div>
         </div>
         <div className="hidden md:block text-sm text-muted-foreground">
@@ -163,7 +163,7 @@ const MyWorks = () => {
               <button
                 onClick={() => setSelectedType(null)}
                 className={cn(
-                  "px-2.5 md:px-3 py-1.5 rounded-md text-xs md:text-sm transition-all whitespace-nowrap",
+                  "px-2.5 md:px-3 py-1.5 rounded-md text-sm transition-all whitespace-nowrap",
                   !selectedType ? "bg-white shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground active:text-foreground"
                 )}
               >
@@ -172,7 +172,7 @@ const MyWorks = () => {
               <button
                 onClick={() => setSelectedType("poster")}
                 className={cn(
-                  "px-2.5 md:px-3 py-1.5 rounded-md text-xs md:text-sm transition-all whitespace-nowrap",
+                  "px-2.5 md:px-3 py-1.5 rounded-md text-sm transition-all whitespace-nowrap",
                   selectedType === "poster" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground active:text-foreground"
                 )}
               >
@@ -181,7 +181,7 @@ const MyWorks = () => {
               <button
                 onClick={() => setSelectedType("drawing")}
                 className={cn(
-                  "px-2.5 md:px-3 py-1.5 rounded-md text-xs md:text-sm transition-all whitespace-nowrap",
+                  "px-2.5 md:px-3 py-1.5 rounded-md text-sm transition-all whitespace-nowrap",
                   selectedType === "drawing" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground active:text-foreground"
                 )}
               >
@@ -190,7 +190,7 @@ const MyWorks = () => {
               <button
                 onClick={() => setSelectedType("copywriting")}
                 className={cn(
-                  "px-2.5 md:px-3 py-1.5 rounded-md text-xs md:text-sm transition-all whitespace-nowrap",
+                  "px-2.5 md:px-3 py-1.5 rounded-md text-sm transition-all whitespace-nowrap",
                   selectedType === "copywriting" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground active:text-foreground"
                 )}
               >
@@ -224,7 +224,7 @@ const MyWorks = () => {
       </div>
 
       {/* 移动端作品数量 */}
-      <div className="md:hidden text-xs text-muted-foreground mb-3">
+      <div className="md:hidden text-sm text-muted-foreground mb-3">
         共 {filteredWorks.length} 个作品
       </div>
 
@@ -271,11 +271,11 @@ const MyWorks = () => {
                 <div className="p-3 md:p-4">
                   <div className="flex items-start justify-between gap-2 mb-1.5 md:mb-2">
                     <h3 className="font-medium text-foreground text-sm md:text-base truncate">{work.title}</h3>
-                    <span className={cn("flex items-center gap-1 px-1.5 md:px-2 py-0.5 rounded-full text-[10px] md:text-xs flex-shrink-0", getTypeColor(work.type))}>
+                    <span className={cn("flex items-center gap-1 px-1.5 md:px-2 py-0.5 rounded-full text-xs flex-shrink-0", getTypeColor(work.type))}>
                       {getTypeIcon(work.type)}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1.5 md:gap-2 text-[10px] md:text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1.5 md:gap-2 text-xs md:text-xs text-muted-foreground">
                     <Clock className="w-3 h-3" />
                     <span className="truncate">{work.createdAt}</span>
                     <span className="hidden md:inline">·</span>
@@ -311,12 +311,12 @@ const MyWorks = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="font-medium text-foreground text-sm md:text-base truncate">{work.title}</h3>
-                    <span className={cn("flex items-center gap-1 px-1.5 md:px-2 py-0.5 rounded-full text-[10px] md:text-xs flex-shrink-0", getTypeColor(work.type))}>
+                    <span className={cn("flex items-center gap-1 px-1.5 md:px-2 py-0.5 rounded-full text-xs flex-shrink-0", getTypeColor(work.type))}>
                       {getTypeIcon(work.type)}
                       <span className="hidden md:inline">{work.tool}</span>
                     </span>
                   </div>
-                  <div className="flex items-center gap-1.5 md:gap-2 text-[10px] md:text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1.5 md:gap-2 text-xs text-muted-foreground">
                     <Clock className="w-3 h-3" />
                     <span>{work.createdAt}</span>
                   </div>
