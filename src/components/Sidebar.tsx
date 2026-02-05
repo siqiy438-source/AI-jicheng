@@ -192,10 +192,10 @@ export const Sidebar = () => {
           />
           <NavItem
             icon={<Sparkles className="w-[18px] h-[18px]" />}
-            label="创作中心"
-            active={isActive("/creative-center")}
+            label="灵犀"
+            active={isActive("/lingxi")}
             collapsed={collapsed}
-            to="/creative-center"
+            to="/lingxi"
           />
         </NavSection>
 

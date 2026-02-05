@@ -11,7 +11,7 @@ import AIDrawing from "./pages/AIDrawing";
 import AICopywriting from "./pages/AICopywriting";
 import MyWorks from "./pages/MyWorks";
 import MyMaterials from "./pages/MyMaterials";
-import CreativeCenter from "./pages/CreativeCenter";
+import Lingxi from "./pages/Lingxi";
 import MoreFeatures from "./pages/MoreFeatures";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
@@ -33,7 +33,7 @@ const App = () => (
             <Route path="/ai-copywriting" element={<AICopywriting />} />
             <Route path="/my-works" element={<MyWorks />} />
             <Route path="/my-materials" element={<MyMaterials />} />
-            <Route path="/creative-center" element={<CreativeCenter />} />
+            <Route path="/lingxi" element={<Lingxi />} />
             <Route path="/more-features" element={<MoreFeatures />} />
             <Route path="/settings" element={<Settings />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

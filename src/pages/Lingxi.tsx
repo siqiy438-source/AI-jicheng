@@ -123,7 +123,7 @@ const tips: Array<{
   readTime: string;
 }> = [];
 
-const CreativeCenter = () => {
+const Lingxi = () => {
   const navigate = useNavigate();
 
   return (
@@ -148,8 +148,8 @@ const CreativeCenter = () => {
                 <Sparkles className="w-7 h-7 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">创作中心</h1>
-                <p className="text-muted-foreground text-sm">发现灵感，高效创作，成就非凡</p>
+                <h1 className="text-2xl font-bold text-foreground">灵犀</h1>
+                <p className="text-muted-foreground text-sm">心有灵犀，创意无限</p>
               </div>
             </div>
 
@@ -390,4 +390,4 @@ const CreativeCenter = () => {
   );
 };
 
-export default CreativeCenter;
+export default Lingxi;

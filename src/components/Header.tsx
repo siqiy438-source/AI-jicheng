@@ -41,7 +41,7 @@ export const Header = () => {
         ) : (
           <nav className="flex items-center gap-1">
             <button className="px-4 py-2 text-sm font-medium text-foreground hover:text-primary transition-colors">
-              创作中心
+              灵犀
             </button>
           </nav>
         )}
