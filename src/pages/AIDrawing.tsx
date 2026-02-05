@@ -4,46 +4,62 @@ import { Header } from "@/components/Header";
 import {
   ArrowLeft,
   ImageIcon,
-  Upload,
   X,
   Sparkles,
   Download,
   RefreshCw,
   Loader2,
   Wand2,
-  ChevronDown,
-  ChevronUp,
+  Send,
+  Image,
+  Ratio,
+  FolderUp,
+  Languages,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-// 提示词和模板合并数据
-const styleOptions = {
-  模板: ["人像美化", "风景增强", "动漫转换", "艺术风格化", "复古滤镜", "赛博朋克"],
-  风格: ["水彩", "油画", "素描", "动漫", "写实", "3D渲染"],
-};
-
-// 快捷模板（预设组合）
-const quickTemplates = [
-  { id: "anime-portrait", name: "动漫头像", desc: "人像 + 动漫风格", presets: ["人像美化", "动漫"] },
-  { id: "watercolor-landscape", name: "水彩风景", desc: "风景 + 水彩画风", presets: ["风景增强", "水彩"] },
-  { id: "oil-artistic", name: "油画艺术", desc: "艺术风格 + 油画", presets: ["艺术风格化", "油画"] },
-  { id: "cyberpunk-3d", name: "赛博科幻", desc: "赛博朋克 + 3D渲染", presets: ["赛博朋克", "3D渲染"] },
+// 风格选项
+const stylePresets = [
+  { id: "poster", name: "海报设计", icon: "🎨" },
+  { id: "sketch", name: "手绘风格", icon: "🖌️" },
+  { id: "anime", name: "动漫风格", icon: "✨" },
+  { id: "realistic", name: "写实风格", icon: "📷" },
 ];
+
+// 比例选项
+const ratioOptions = [
+  { id: "1:1", name: "1:1" },
+  { id: "4:3", name: "4:3" },
+  { id: "16:9", name: "16:9" },
+  { id: "9:16", name: "9:16" },
+];
+
+// 语言选项
+const languageOptions = [
+  { id: "zh", name: "简体中文", flag: "🇨🇳" },
+  { id: "en", name: "English", flag: "🇺🇸" },
+];
+
 
 const AIDrawing = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // 状态管理
+  const [prompt, setPrompt] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
-  const [selectedQuickTemplate, setSelectedQuickTemplate] = useState<string | null>(null);
-  const [customPrompt, setCustomPrompt] = useState("");
+  const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
+  const [selectedRatio, setSelectedRatio] = useState("4:3");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
-  const [expandedCategory, setExpandedCategory] = useState<string | null>("模板");
+  const [showStyleMenu, setShowStyleMenu] = useState(false);
+  const [showRatioMenu, setShowRatioMenu] = useState(false);
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState("zh");
+  const materialInputRef = useRef<HTMLInputElement>(null);
 
   // 处理图片上传
   const handleImageUpload = (file: File) => {
@@ -62,33 +78,6 @@ const AIDrawing = () => {
     if (file) handleImageUpload(file);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    if (file) handleImageUpload(file);
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-  };
-
-  // 切换选项
-  const toggleOption = (option: string) => {
-    setSelectedOptions((prev) =>
-      prev.includes(option) ? prev.filter((p) => p !== option) : [...prev, option]
-    );
-  };
-
-  // 模拟生成
-  const handleGenerate = () => {
-    if (!imagePreview) return;
-    setIsGenerating(true);
-    setTimeout(() => {
-      setGeneratedImage(imagePreview);
-      setIsGenerating(false);
-    }, 2000);
-  };
-
   // 清除图片
   const clearImage = () => {
     setImagePreview(null);
@@ -98,13 +87,50 @@ const AIDrawing = () => {
     }
   };
 
-  // 切换分类展开
-  const toggleCategory = (category: string) => {
-    setExpandedCategory(expandedCategory === category ? null : category);
+  // 一键优化提示词
+  const optimizePrompt = () => {
+    if (!prompt.trim()) return;
+    // 模拟优化
+    setPrompt(prompt + "，高清，细节丰富，光影效果好");
+  };
+
+  // 模拟生成
+  const handleGenerate = () => {
+    if (!prompt.trim() && !imagePreview) return;
+    setIsGenerating(true);
+    setTimeout(() => {
+      // 模拟生成结果
+      setGeneratedImage(imagePreview || "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=800");
+      setIsGenerating(false);
+    }, 2000);
+  };
+
+  // 处理键盘事件
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleGenerate();
+    }
+  };
+
+  // 关闭所有下拉菜单
+  const closeAllMenus = () => {
+    setShowStyleMenu(false);
+    setShowRatioMenu(false);
+    setShowLanguageMenu(false);
+  };
+
+  // 处理素材上传
+  const handleMaterialUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      // TODO: 实现素材上传到素材库
+      alert(`已选择 ${files.length} 个文件，将上传到素材库`);
+    }
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-main">
+    <div className="flex min-h-screen bg-gradient-main" onClick={closeAllMenus}>
       <Sidebar />
       <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
         <Header />
@@ -121,200 +147,285 @@ const AIDrawing = () => {
 
             {/* 页面标题 */}
             <div className="flex items-center gap-4 mb-8">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center">
-                <ImageIcon className="w-8 h-8 text-purple-600" />
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center">
+                <ImageIcon className="w-7 h-7 text-purple-600" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-foreground">AI 绘图</h1>
-                <p className="text-muted-foreground">上传图片，选择风格，一键生成创意作品</p>
+                <p className="text-muted-foreground text-sm">描述你想要的画面，AI 帮你实现</p>
               </div>
             </div>
 
-            {/* 步骤 1: 上传图片 */}
-            <div className="glass-card rounded-2xl p-6 mb-6">
-              <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-purple-500 text-white text-sm flex items-center justify-center">
-                  1
-                </span>
-                上传图片
-              </h2>
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-
-              {!imagePreview ? (
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  onDrop={handleDrop}
-                  onDragOver={handleDragOver}
-                  className="border-2 border-dashed border-muted-foreground/30 rounded-xl p-12 text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50/50 transition-all"
-                >
-                  <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-foreground font-medium mb-2">点击或拖拽上传图片</p>
-                  <p className="text-sm text-muted-foreground">支持 JPG、PNG 格式</p>
-                </div>
-              ) : (
-                <div className="relative inline-block">
-                  <img
-                    src={imagePreview}
-                    alt="预览"
-                    className="max-h-64 rounded-xl object-contain"
-                  />
-                  <button
-                    onClick={clearImage}
-                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+            {/* 输入卡片 */}
+            <div className="glass-card rounded-2xl p-5 mb-6 shadow-lg">
+              {/* 已上传的图片预览 */}
+              {imagePreview && (
+                <div className="mb-4 flex items-start gap-3">
+                  <div className="relative group">
+                    <img
+                      src={imagePreview}
+                      alt="参考图"
+                      className="h-20 w-20 object-cover rounded-xl border border-border"
+                    />
+                    <button
+                      onClick={clearImage}
+                      className="absolute -top-2 -right-2 w-5 h-5 bg-black/70 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                  <span className="text-xs text-muted-foreground mt-1">参考图片</span>
                 </div>
               )}
-            </div>
 
-            {/* 步骤 2: 选择风格（合并提示词和模板） */}
-            <div className="glass-card rounded-2xl p-6 mb-6">
-              <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2 flex-wrap">
-                <span className="w-6 h-6 rounded-full bg-purple-500 text-white text-sm flex items-center justify-center flex-shrink-0">
-                  2
-                </span>
-                <span>选择风格</span>
-                {selectedOptions.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {selectedOptions.map((option) => (
-                      <span
-                        key={option}
-                        className="text-xs bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full"
-                      >
-                        {option}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </h2>
+              {/* 输入区域 */}
+              <textarea
+                ref={textareaRef}
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="输入你想要可视化的内容..."
+                rows={3}
+                className="w-full bg-transparent text-foreground placeholder:text-muted-foreground resize-none focus:outline-none text-base leading-relaxed"
+              />
 
-              {/* 折叠式分类选择 */}
-              <div className="space-y-2">
-                {Object.entries(styleOptions).map(([category, options]) => (
-                  <div key={category} className="border border-border rounded-xl overflow-hidden">
+              {/* 分隔线 */}
+              <div className="border-t border-border/50 my-3" />
+
+              {/* 工具栏 */}
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* 风格选择 */}
+                  <div className="relative" onClick={(e) => e.stopPropagation()}>
                     <button
-                      onClick={() => toggleCategory(category)}
-                      className="w-full flex items-center justify-between px-4 py-3 bg-secondary/30 hover:bg-secondary/50 transition-colors"
+                      onClick={() => {
+                        setShowStyleMenu(!showStyleMenu);
+                        setShowRatioMenu(false);
+                      }}
+                      className={cn(
+                        "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all border",
+                        selectedStyle
+                          ? "bg-orange-50 border-orange-200 text-orange-700"
+                          : "bg-secondary/50 border-transparent text-muted-foreground hover:bg-secondary"
+                      )}
                     >
-                      <span className="font-medium text-foreground">{category}</span>
-                      <div className="flex items-center gap-2">
-                        {options.filter((o) => selectedOptions.includes(o)).length > 0 && (
-                          <span className="text-xs text-purple-600">
-                            {options.filter((o) => selectedOptions.includes(o)).length} 项
-                          </span>
-                        )}
-                        {expandedCategory === category ? (
-                          <ChevronUp className="w-4 h-4 text-muted-foreground" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                        )}
-                      </div>
+                      <span>{stylePresets.find(s => s.id === selectedStyle)?.icon || "🎨"}</span>
+                      <span>{stylePresets.find(s => s.id === selectedStyle)?.name || "选择风格"}</span>
                     </button>
-                    {expandedCategory === category && (
-                      <div className="p-4 flex flex-wrap gap-2">
-                        {options.map((option) => (
+                    {showStyleMenu && (
+                      <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 min-w-[140px]">
+                        {stylePresets.map((style) => (
                           <button
-                            key={option}
-                            onClick={() => toggleOption(option)}
+                            key={style.id}
+                            onClick={() => {
+                              setSelectedStyle(style.id);
+                              setShowStyleMenu(false);
+                            }}
                             className={cn(
-                              "px-3 py-1.5 rounded-full text-sm transition-all",
-                              selectedOptions.includes(option)
-                                ? "bg-purple-500 text-white"
-                                : "bg-secondary text-secondary-foreground hover:bg-purple-100"
+                              "w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-secondary/50 transition-colors",
+                              selectedStyle === style.id && "bg-orange-50 text-orange-700"
                             )}
                           >
-                            {option}
+                            <span>{style.icon}</span>
+                            <span>{style.name}</span>
                           </button>
                         ))}
                       </div>
                     )}
                   </div>
-                ))}
-              </div>
 
-              {/* 自定义提示词 */}
-              <div className="mt-4">
-                <input
-                  type="text"
-                  value={customPrompt}
-                  onChange={(e) => setCustomPrompt(e.target.value)}
-                  placeholder="自定义提示词（可选）..."
-                  className="w-full px-4 py-2 rounded-xl border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-purple-400"
-                />
-              </div>
-            </div>
+                  {/* 比例选择 */}
+                  <div className="relative" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      onClick={() => {
+                        setShowRatioMenu(!showRatioMenu);
+                        setShowStyleMenu(false);
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm bg-secondary/50 text-muted-foreground hover:bg-secondary transition-all border border-transparent"
+                    >
+                      <Ratio className="w-4 h-4" />
+                      <span>{selectedRatio}</span>
+                    </button>
+                    {showRatioMenu && (
+                      <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 min-w-[100px]">
+                        {ratioOptions.map((ratio) => (
+                          <button
+                            key={ratio.id}
+                            onClick={() => {
+                              setSelectedRatio(ratio.id);
+                              setShowRatioMenu(false);
+                            }}
+                            className={cn(
+                              "w-full px-3 py-2 text-sm hover:bg-secondary/50 transition-colors text-left",
+                              selectedRatio === ratio.id && "bg-purple-50 text-purple-700"
+                            )}
+                          >
+                            {ratio.name}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
 
-            {/* 步骤 3: 生成结果 */}
-            <div className="glass-card rounded-2xl p-6">
-              <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-purple-500 text-white text-sm flex items-center justify-center">
-                  3
-                </span>
-                生成结果
-              </h2>
 
-              <div className="flex gap-3 mb-6">
-                <Button
-                  onClick={handleGenerate}
-                  disabled={!imagePreview || isGenerating}
-                  className="bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600"
-                >
-                  {isGenerating ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      生成中...
-                    </>
-                  ) : (
-                    <>
-                      <Wand2 className="w-4 h-4" />
-                      开始生成
-                    </>
-                  )}
-                </Button>
+                  {/* 分隔符 */}
+                  <div className="w-px h-5 bg-border mx-1" />
 
-                {generatedImage && (
-                  <>
-                    <Button variant="outline" onClick={handleGenerate}>
-                      <RefreshCw className="w-4 h-4" />
-                      重新生成
-                    </Button>
-                    <Button variant="outline">
-                      <Download className="w-4 h-4" />
-                      下载图片
-                    </Button>
-                  </>
-                )}
-              </div>
-
-              {/* 生成结果展示 */}
-              {isGenerating ? (
-                <div className="border-2 border-dashed border-muted-foreground/30 rounded-xl p-12 text-center">
-                  <Loader2 className="w-12 h-12 text-purple-500 mx-auto mb-4 animate-spin" />
-                  <p className="text-muted-foreground">正在生成中，请稍候...</p>
-                </div>
-              ) : generatedImage ? (
-                <div className="rounded-xl overflow-hidden bg-secondary/30 p-4">
-                  <img
-                    src={generatedImage}
-                    alt="生成结果"
-                    className="max-h-96 mx-auto rounded-lg object-contain"
+                  {/* 上传图片按钮 */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
                   />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="p-2 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
+                    title="上传参考图"
+                  >
+                    <Image className="w-4 h-4" />
+                  </button>
+
+                  {/* 上传素材到素材库 */}
+                  <input
+                    ref={materialInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleMaterialUpload}
+                    className="hidden"
+                  />
+                  <button
+                    onClick={() => materialInputRef.current?.click()}
+                    className="p-2 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
+                    title="上传素材到素材库"
+                  >
+                    <FolderUp className="w-4 h-4" />
+                  </button>
+
+                  {/* 语言选择 */}
+                  <div className="relative" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      onClick={() => {
+                        setShowLanguageMenu(!showLanguageMenu);
+                        setShowStyleMenu(false);
+                        setShowRatioMenu(false);
+                      }}
+                      className="p-2 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
+                      title="选择语言"
+                    >
+                      <Languages className="w-4 h-4" />
+                    </button>
+                    {showLanguageMenu && (
+                      <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 min-w-[120px]">
+                        {languageOptions.map((lang) => (
+                          <button
+                            key={lang.id}
+                            onClick={() => {
+                              setSelectedLanguage(lang.id);
+                              setShowLanguageMenu(false);
+                            }}
+                            className={cn(
+                              "w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-secondary/50 transition-colors",
+                              selectedLanguage === lang.id && "bg-purple-50 text-purple-700"
+                            )}
+                          >
+                            <span>{lang.flag}</span>
+                            <span>{lang.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              ) : (
-                <div className="border-2 border-dashed border-muted-foreground/30 rounded-xl p-12 text-center">
-                  <Sparkles className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">完成上述步骤后点击生成</p>
+
+                {/* 右侧按钮 */}
+                <div className="flex items-center gap-2">
+                  {/* 一键优化 */}
+                  <button
+                    onClick={optimizePrompt}
+                    disabled={!prompt.trim()}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all border",
+                      prompt.trim()
+                        ? "bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
+                        : "bg-secondary/30 border-transparent text-muted-foreground/50 cursor-not-allowed"
+                    )}
+                  >
+                    <Wand2 className="w-4 h-4" />
+                    <span>一键优化</span>
+                  </button>
+
+                  {/* 发送按钮 */}
+                  <button
+                    onClick={handleGenerate}
+                    disabled={(!prompt.trim() && !imagePreview) || isGenerating}
+                    className={cn(
+                      "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
+                      (prompt.trim() || imagePreview) && !isGenerating
+                        ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-md"
+                        : "bg-secondary/50 text-muted-foreground/50 cursor-not-allowed"
+                    )}
+                  >
+                    {isGenerating ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <Send className="w-5 h-5" />
+                    )}
+                  </button>
                 </div>
-              )}
+              </div>
             </div>
+
+            {/* 生成结果区域 */}
+            {(isGenerating || generatedImage) && (
+              <div className="glass-card rounded-2xl p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-purple-500" />
+                    生成结果
+                  </h2>
+                  {generatedImage && !isGenerating && (
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={handleGenerate}>
+                        <RefreshCw className="w-4 h-4 mr-1" />
+                        重新生成
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <Download className="w-4 h-4 mr-1" />
+                        下载
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {isGenerating ? (
+                  <div className="flex flex-col items-center justify-center py-16">
+                    <Loader2 className="w-12 h-12 text-purple-500 animate-spin mb-4" />
+                    <p className="text-muted-foreground">正在生成中...</p>
+                  </div>
+                ) : generatedImage ? (
+                  <div className="rounded-xl overflow-hidden bg-secondary/30 p-4">
+                    <img
+                      src={generatedImage}
+                      alt="生成结果"
+                      className="max-h-[500px] mx-auto rounded-lg object-contain"
+                    />
+                  </div>
+                ) : null}
+              </div>
+            )}
+
+            {/* 空状态提示 */}
+            {!isGenerating && !generatedImage && (
+              <div className="text-center py-16">
+                <div className="w-20 h-20 rounded-full bg-secondary/50 flex items-center justify-center mx-auto mb-4">
+                  <Sparkles className="w-10 h-10 text-muted-foreground/50" />
+                </div>
+                <p className="text-muted-foreground">输入描述或上传参考图片开始创作</p>
+              </div>
+            )}
           </div>
         </main>
       </div>
