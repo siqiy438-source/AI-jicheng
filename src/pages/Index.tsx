@@ -2,7 +2,6 @@ import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
 import { SearchBar } from "@/components/SearchBar";
 import { FeatureCard } from "@/components/FeatureCard";
-import { QuickAction } from "@/components/QuickAction";
 import {
   ImageIcon,
   Video,
@@ -45,13 +44,6 @@ const Index = () => {
       description: "持续更新中",
       color: "pink" as const,
     },
-  ];
-
-  const quickActions = [
-    { title: "帮我创建一个营销方案", category: "广告管理" },
-    { title: "下周梦想家，上周投放效果如何？", category: "广告管理" },
-    { title: "我有哪些营销方案存在优化空间？", category: "优化洞察" },
-    { title: "查看账户余额", category: "账户管理" },
   ];
 
   return (
@@ -97,24 +89,6 @@ const Index = () => {
                   delay={150 + index * 50}
                 />
               ))}
-            </div>
-
-            {/* Quick Actions Section */}
-            <div className="opacity-0 animate-fade-in" style={{ animationDelay: "400ms" }}>
-              <div className="text-center mb-6">
-                <p className="text-muted-foreground text-sm">
-                  你还未进行任何创作，试试从以下推荐的方式开始创作
-                </p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto">
-                {quickActions.map((action, index) => (
-                  <QuickAction
-                    key={action.title}
-                    {...action}
-                    delay={450 + index * 50}
-                  />
-                ))}
-              </div>
             </div>
           </div>
         </main>
