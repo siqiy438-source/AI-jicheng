@@ -1,14 +1,16 @@
- import { cn } from "@/lib/utils";
- import { LucideIcon } from "lucide-react";
- 
- interface FeatureCardProps {
-   icon: LucideIcon;
-   title: string;
-   description: string;
-   badge?: string;
-   color: "blue" | "purple" | "green" | "orange" | "pink";
-   delay?: number;
- }
+import { cn } from "@/lib/utils";
+import { LucideIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+interface FeatureCardProps {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  badge?: string;
+  color: "blue" | "purple" | "green" | "orange" | "pink";
+  delay?: number;
+  to?: string;
+}
  
  const colorVariants = {
    blue: "from-blue-400/20 to-blue-500/10 text-blue-600",
@@ -26,23 +28,33 @@
    pink: "bg-gradient-to-br from-pink-100 to-pink-50",
  };
  
- export const FeatureCard = ({
-   icon: Icon,
-   title,
-   description,
-   badge,
-   color,
-   delay = 0,
- }: FeatureCardProps) => {
-   return (
-     <div
-       className={cn(
-         "group relative p-5 rounded-2xl glass-card cursor-pointer",
-         "hover:scale-[1.02] hover:shadow-lg transition-all duration-300",
-         "opacity-0 animate-fade-in"
-       )}
-       style={{ animationDelay: `${delay}ms` }}
-     >
+export const FeatureCard = ({
+  icon: Icon,
+  title,
+  description,
+  badge,
+  color,
+  delay = 0,
+  to,
+}: FeatureCardProps) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    if (to) {
+      navigate(to);
+    }
+  };
+
+  return (
+    <div
+      onClick={handleClick}
+      className={cn(
+        "group relative p-5 rounded-2xl glass-card cursor-pointer",
+        "hover:scale-[1.02] hover:shadow-lg transition-all duration-300",
+        "opacity-0 animate-fade-in"
+      )}
+      style={{ animationDelay: `${delay}ms` }}
+    >
        {badge && (
          <span className="absolute -top-2 -right-2 px-2 py-0.5 text-[10px] font-semibold bg-primary text-primary-foreground rounded-full">
            {badge}
