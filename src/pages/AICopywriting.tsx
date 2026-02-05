@@ -20,6 +20,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { generateCopywriting, continueConversation, isZenmuxConfigured, type ChatMessage } from "@/lib/zenmux";
+import ReactMarkdown from "react-markdown";
 
 // 智能体选项
 const agentOptions = [
@@ -326,14 +327,15 @@ const AICopywriting = () => {
                       : "glass-card"
                   )}
                 >
-                  <div
-                    className={cn(
-                      "whitespace-pre-wrap text-sm leading-relaxed",
-                      message.role === "assistant" && "prose prose-sm max-w-none"
-                    )}
-                  >
-                    {message.content}
-                  </div>
+                  {message.role === "assistant" ? (
+                    <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground">
+                      <ReactMarkdown>{message.content}</ReactMarkdown>
+                    </div>
+                  ) : (
+                    <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                      {message.content}
+                    </div>
+                  )}
 
                   {/* AI 回复的操作按钮 */}
                   {message.role === "assistant" && (
