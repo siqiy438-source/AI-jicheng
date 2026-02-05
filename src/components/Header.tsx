@@ -1,6 +1,7 @@
-import { Bell, HelpCircle, User, LogOut } from "lucide-react";
+import { Bell, HelpCircle, User, LogOut, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,38 +9,74 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 export const Header = () => {
   const { user, loading, signOut } = useAuth();
+  const isMobile = useIsMobile();
 
   return (
-    <header className="h-16 flex items-center justify-between px-6 glass border-b border-border">
-      <div className="flex items-center gap-6">
-        <nav className="flex items-center gap-1">
-          <button className="px-4 py-2 text-sm font-medium text-foreground hover:text-primary transition-colors">
-            创作中心
-          </button>
-        </nav>
+    <header className={cn(
+      "h-14 md:h-16 flex items-center justify-between",
+      "px-4 md:px-6",
+      "glass border-b border-border",
+      // 安全区域适配（顶部刘海）
+      "pt-safe"
+    )}>
+      {/* 左侧：Logo（移动端显示）或导航 */}
+      <div className="flex items-center gap-4 md:gap-6">
+        {/* 移动端显示 Logo */}
+        {isMobile ? (
+          <Link to="/" className="flex items-center gap-2">
+            <div className={cn(
+              "relative w-8 h-8 rounded-lg flex items-center justify-center",
+              "bg-gradient-to-br from-primary to-[hsl(32_85%_48%)]",
+              "shadow-[inset_0_1px_0_hsl(0_0%_100%/0.2),0_2px_6px_hsl(28_80%_52%/0.3)]",
+            )}>
+              <Sparkles className="w-4 h-4 text-primary-foreground" />
+              <span className="absolute inset-0 rounded-lg bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
+            </div>
+            <span className="font-semibold text-foreground text-sm">AI 创作</span>
+          </Link>
+        ) : (
+          <nav className="flex items-center gap-1">
+            <button className="px-4 py-2 text-sm font-medium text-foreground hover:text-primary transition-colors">
+              创作中心
+            </button>
+          </nav>
+        )}
       </div>
-      <div className="flex items-center gap-2">
-        <button className="p-2.5 rounded-xl hover:bg-accent transition-colors">
+
+      {/* 右侧：操作按钮 */}
+      <div className="flex items-center gap-1 md:gap-2">
+        {/* 帮助按钮 - 移动端隐藏 */}
+        <button className="hidden md:flex p-2.5 rounded-xl hover:bg-accent transition-colors touch-target">
           <HelpCircle className="w-5 h-5 text-muted-foreground" />
         </button>
-        <button className="p-2.5 rounded-xl hover:bg-accent transition-colors relative">
+
+        {/* 通知按钮 */}
+        <button className="p-2 md:p-2.5 rounded-xl hover:bg-accent transition-colors relative touch-target">
           <Bell className="w-5 h-5 text-muted-foreground" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full" />
+          <span className="absolute top-1 md:top-1.5 right-1 md:right-1.5 w-2 h-2 bg-primary rounded-full" />
         </button>
 
+        {/* 用户区域 */}
         {loading ? (
-          <div className="ml-2 w-20 h-9 bg-muted animate-pulse rounded-xl" />
+          <div className="ml-1 md:ml-2 w-16 md:w-20 h-8 md:h-9 bg-muted animate-pulse rounded-xl" />
         ) : user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="ml-2 flex items-center gap-2 px-3 py-2 bg-accent hover:bg-accent/80 rounded-xl text-sm font-medium transition-colors">
-                <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-primary-foreground" />
+              <button className={cn(
+                "ml-1 md:ml-2 flex items-center gap-2",
+                "px-2 md:px-3 py-1.5 md:py-2",
+                "bg-accent hover:bg-accent/80 rounded-xl",
+                "text-sm font-medium transition-colors",
+                "touch-target"
+              )}>
+                <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                  <User className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary-foreground" />
                 </div>
-                <span className="max-w-[120px] truncate">
+                <span className="max-w-[80px] md:max-w-[120px] truncate hidden xs:inline">
                   {user.email?.split('@')[0]}
                 </span>
               </button>
@@ -67,7 +104,12 @@ export const Header = () => {
         ) : (
           <Link
             to="/auth"
-            className="ml-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors shadow-soft"
+            className={cn(
+              "ml-1 md:ml-2 px-3 md:px-4 py-1.5 md:py-2",
+              "bg-primary text-primary-foreground rounded-xl",
+              "text-sm font-medium hover:bg-primary/90 transition-colors",
+              "shadow-soft touch-target"
+            )}
           >
             登录
           </Link>

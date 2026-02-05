@@ -14,6 +14,7 @@ import {
   Palette,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -108,8 +109,14 @@ const NavSection = ({ title, children, collapsed }: NavSectionProps) => (
 export const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const isMobile = useIsMobile();
 
   const isActive = (path: string) => location.pathname === path;
+
+  // 移动端不渲染 Sidebar
+  if (isMobile) {
+    return null;
+  }
 
   return (
     <aside

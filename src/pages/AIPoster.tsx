@@ -1,6 +1,5 @@
 import { useState, useRef } from "react";
-import { Sidebar } from "@/components/Sidebar";
-import { Header } from "@/components/Header";
+import { PageLayout } from "@/components/PageLayout";
 import {
   ArrowLeft,
   Palette,
@@ -142,383 +141,384 @@ const AIPoster = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-main" onClick={closeAllMenus}>
-      <Sidebar />
-      <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-y-auto scrollbar-thin">
-          <div className="max-w-4xl mx-auto px-6 py-8">
-            {/* 返回按钮 */}
-            <button
-              onClick={() => navigate("/")}
-              className={cn(
-                "flex items-center gap-2 mb-8",
-                "text-muted-foreground hover:text-foreground",
-                "transition-colors duration-200",
-                "group"
-              )}
-            >
-              <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-              <span className="text-sm">返回首页</span>
-            </button>
+    <PageLayout className="py-4 md:py-8">
+      <div onClick={closeAllMenus}>
+        {/* 返回按钮 */}
+        <button
+          onClick={() => navigate("/")}
+          className={cn(
+            "flex items-center gap-2 mb-6 md:mb-8",
+            "text-muted-foreground hover:text-foreground",
+            "transition-colors duration-200",
+            "group touch-target"
+          )}
+        >
+          <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+          <span className="text-sm">返回首页</span>
+        </button>
 
-            {/* 页面标题 */}
-            <div className="flex items-center gap-4 mb-10">
-              {/* 图标容器 - 工艺感 */}
-              <div className={cn(
-                "relative w-14 h-14 rounded-2xl flex items-center justify-center",
-                "bg-gradient-to-br from-amber-100 to-orange-50",
-                "dark:from-amber-900/30 dark:to-orange-900/20",
-                "shadow-[inset_0_-2px_4px_hsl(0_0%_0%/0.05),0_2px_8px_hsl(28_80%_52%/0.15)]"
-              )}>
-                <Palette className="w-7 h-7 text-amber-600 dark:text-amber-400" />
-                <span className="absolute inset-0 rounded-2xl bg-gradient-to-b from-white/40 to-transparent dark:from-white/10 pointer-events-none" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-foreground mb-1">AI 海报</h1>
-                <p className="text-muted-foreground text-sm">选择模板，描述需求，智能生成专业海报</p>
-              </div>
-            </div>
-
-            {/* 输入卡片 */}
-            <div className={cn(
-              "rounded-2xl p-5 mb-8",
-              "bg-card border border-border",
-              "shadow-[0_4px_16px_-4px_hsl(30_20%_20%/0.08)]"
-            )}>
-              {/* 已上传的图片预览 */}
-              {imagePreview && (
-                <div className="mb-4 flex items-start gap-3">
-                  <div className="relative group">
-                    <img
-                      src={imagePreview}
-                      alt="参考图"
-                      className="h-20 w-20 object-cover rounded-xl border border-border shadow-sm"
-                    />
-                    <button
-                      onClick={clearImage}
-                      className={cn(
-                        "absolute -top-2 -right-2 w-6 h-6",
-                        "bg-foreground/80 text-background rounded-full",
-                        "flex items-center justify-center",
-                        "opacity-0 group-hover:opacity-100",
-                        "transition-all duration-200",
-                        "hover:bg-destructive hover:scale-110"
-                      )}
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                  <span className="text-xs text-muted-foreground mt-2">参考图片</span>
-                </div>
-              )}
-
-              {/* 输入区域 */}
-              <textarea
-                ref={textareaRef}
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="描述你想要的海报内容，如：双十一促销海报，主推运动鞋，红色背景..."
-                rows={3}
-                className={cn(
-                  "w-full bg-transparent resize-none",
-                  "text-foreground text-base leading-relaxed",
-                  "placeholder:text-muted-foreground/50",
-                  "focus:outline-none"
-                )}
-              />
-
-              {/* 分隔线 */}
-              <div className="divider-gradient my-4" />
-
-              {/* 工具栏 */}
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <div className="flex items-center gap-2 flex-wrap">
-                  {/* 模板选择 */}
-                  <div className="relative" onClick={(e) => e.stopPropagation()}>
-                    <Button
-                      variant="tag"
-                      size="sm"
-                      active={true}
-                      onClick={() => {
-                        setShowTemplateMenu(!showTemplateMenu);
-                        setShowStyleMenu(false);
-                        setShowSizeMenu(false);
-                      }}
-                      className="gap-2"
-                    >
-                      <span>{selectedTemplate.icon}</span>
-                      <span>{selectedTemplate.name}</span>
-                      <ChevronDown className={cn(
-                        "w-3.5 h-3.5 transition-transform duration-200",
-                        showTemplateMenu && "rotate-180"
-                      )} />
-                    </Button>
-                    {showTemplateMenu && (
-                      <div className={cn(
-                        "absolute top-full left-0 mt-2 z-20",
-                        "bg-card border border-border rounded-xl",
-                        "shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)]",
-                        "py-2 min-w-[220px]",
-                        "animate-dropdown"
-                      )}>
-                        {posterTemplates.map((template, index) => (
-                          <button
-                            key={template.id}
-                            onClick={() => {
-                              setSelectedTemplate(template);
-                              setShowTemplateMenu(false);
-                            }}
-                            className={cn(
-                              "w-full flex items-start gap-3 px-4 py-2.5",
-                              "text-left transition-all duration-150",
-                              "hover:bg-secondary/50",
-                              selectedTemplate.id === template.id && "bg-primary/10"
-                            )}
-                            style={{ animationDelay: `${index * 30}ms` }}
-                          >
-                            <span className="text-lg">{template.icon}</span>
-                            <div>
-                              <div className={cn(
-                                "text-sm font-medium",
-                                selectedTemplate.id === template.id ? "text-primary" : "text-foreground"
-                              )}>
-                                {template.name}
-                              </div>
-                              <div className="text-xs text-muted-foreground">{template.description}</div>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 风格选择 */}
-                  <div className="relative" onClick={(e) => e.stopPropagation()}>
-                    <Button
-                      variant="tag"
-                      size="sm"
-                      active={!!selectedStyle}
-                      onClick={() => {
-                        setShowStyleMenu(!showStyleMenu);
-                        setShowTemplateMenu(false);
-                        setShowSizeMenu(false);
-                      }}
-                      className="gap-1.5"
-                    >
-                      <Type className="w-3.5 h-3.5" />
-                      <span>{stylePresets.find(s => s.id === selectedStyle)?.name || "选择风格"}</span>
-                    </Button>
-                    {showStyleMenu && (
-                      <div className={cn(
-                        "absolute top-full left-0 mt-2 z-20",
-                        "bg-card border border-border rounded-xl",
-                        "shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)]",
-                        "py-1 min-w-[150px]",
-                        "animate-dropdown"
-                      )}>
-                        {stylePresets.map((style) => (
-                          <button
-                            key={style.id}
-                            onClick={() => {
-                              setSelectedStyle(style.id);
-                              setShowStyleMenu(false);
-                            }}
-                            className={cn(
-                              "w-full flex items-center gap-2 px-3 py-2",
-                              "text-sm transition-all duration-150",
-                              "hover:bg-secondary/50",
-                              selectedStyle === style.id && "bg-primary/10 text-primary"
-                            )}
-                          >
-                            <span>{style.icon}</span>
-                            <span>{style.name}</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 尺寸选择 */}
-                  <div className="relative" onClick={(e) => e.stopPropagation()}>
-                    <Button
-                      variant="tag"
-                      size="sm"
-                      onClick={() => {
-                        setShowSizeMenu(!showSizeMenu);
-                        setShowTemplateMenu(false);
-                        setShowStyleMenu(false);
-                      }}
-                      className="gap-1.5"
-                    >
-                      <Ratio className="w-3.5 h-3.5" />
-                      <span>{selectedSize.ratio}</span>
-                    </Button>
-                    {showSizeMenu && (
-                      <div className={cn(
-                        "absolute top-full left-0 mt-2 z-20",
-                        "bg-card border border-border rounded-xl",
-                        "shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)]",
-                        "py-1 min-w-[140px]",
-                        "animate-dropdown"
-                      )}>
-                        {sizeOptions.map((size) => (
-                          <button
-                            key={size.id}
-                            onClick={() => {
-                              setSelectedSize(size);
-                              setShowSizeMenu(false);
-                            }}
-                            className={cn(
-                              "w-full px-3 py-2 text-sm text-left",
-                              "transition-all duration-150",
-                              "hover:bg-secondary/50",
-                              selectedSize.id === size.id && "bg-primary/10 text-primary"
-                            )}
-                          >
-                            {size.name}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 分隔符 */}
-                  <div className="w-px h-5 bg-border mx-1" />
-
-                  {/* 上传图片按钮 */}
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => fileInputRef.current?.click()}
-                    title="上传参考图"
-                  >
-                    <Image className="w-4 h-4" />
-                  </Button>
-
-                  {/* 上传素材到素材库 */}
-                  <input
-                    ref={materialInputRef}
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleMaterialUpload}
-                    className="hidden"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => materialInputRef.current?.click()}
-                    title="上传素材到素材库"
-                  >
-                    <FolderUp className="w-4 h-4" />
-                  </Button>
-                </div>
-
-                {/* 右侧按钮 */}
-                <div className="flex items-center gap-2">
-                  {/* 一键优化 */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={optimizePrompt}
-                    disabled={!prompt.trim()}
-                    className="gap-1.5"
-                  >
-                    <Wand2 className="w-3.5 h-3.5" />
-                    <span>一键优化</span>
-                  </Button>
-
-                  {/* 发送按钮 */}
-                  <Button
-                    variant="send"
-                    size="icon"
-                    onClick={handleGenerate}
-                    disabled={(!prompt.trim() && !imagePreview) || isGenerating}
-                    className="rounded-xl"
-                  >
-                    {isGenerating ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <Send className="w-5 h-5" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            {/* 生成结果区域 */}
-            {(isGenerating || generatedImage) && (
-              <div className={cn(
-                "rounded-2xl p-6",
-                "bg-card border border-border",
-                "shadow-[0_4px_16px_-4px_hsl(30_20%_20%/0.08)]",
-                "animate-fade-in"
-              )}>
-                <div className="flex items-center justify-between mb-5">
-                  <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-primary" />
-                    生成结果
-                  </h2>
-                  {generatedImage && !isGenerating && (
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={handleGenerate}>
-                        <RefreshCw className="w-4 h-4 mr-1.5" />
-                        重新生成
-                      </Button>
-                      <Button variant="default" size="sm">
-                        <Download className="w-4 h-4 mr-1.5" />
-                        下载
-                      </Button>
-                    </div>
-                  )}
-                </div>
-
-                {isGenerating ? (
-                  <div className="flex flex-col items-center justify-center py-20">
-                    <div className="relative">
-                      <Loader2 className="w-12 h-12 text-primary animate-spin" />
-                      <span className="absolute inset-0 rounded-full animate-ping bg-primary/20" />
-                    </div>
-                    <p className="text-muted-foreground mt-6">正在生成海报...</p>
-                  </div>
-                ) : generatedImage ? (
-                  <div className="rounded-xl overflow-hidden bg-secondary/30 p-4">
-                    <img
-                      src={generatedImage}
-                      alt="生成结果"
-                      className="max-h-[500px] mx-auto rounded-lg object-contain shadow-lg"
-                    />
-                  </div>
-                ) : null}
-              </div>
-            )}
-
-            {/* 空状态提示 */}
-            {!isGenerating && !generatedImage && (
-              <div className="text-center py-20 opacity-0 animate-fade-in" style={{ animationDelay: '300ms' }}>
-                <div className={cn(
-                  "w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-5",
-                  "bg-secondary/50"
-                )}>
-                  <Sparkles className="w-10 h-10 text-muted-foreground/40" />
-                </div>
-                <p className="text-muted-foreground mb-2">选择模板，输入需求开始设计</p>
-                <p className="text-sm text-muted-foreground/60">支持上传产品图、logo等素材作为参考</p>
-              </div>
-            )}
+        {/* 页面标题 */}
+        <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-10">
+          {/* 图标容器 - 移动端稍小 */}
+          <div className={cn(
+            "relative w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center",
+            "bg-gradient-to-br from-amber-100 to-orange-50",
+            "dark:from-amber-900/30 dark:to-orange-900/20",
+            "shadow-[inset_0_-2px_4px_hsl(0_0%_0%/0.05),0_2px_8px_hsl(28_80%_52%/0.15)]"
+          )}>
+            <Palette className="w-6 h-6 md:w-7 md:h-7 text-amber-600 dark:text-amber-400" />
+            <span className="absolute inset-0 rounded-xl md:rounded-2xl bg-gradient-to-b from-white/40 to-transparent dark:from-white/10 pointer-events-none" />
           </div>
-        </main>
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-foreground mb-0.5 md:mb-1">AI 海报</h1>
+            <p className="text-muted-foreground text-xs md:text-sm">选择模板，描述需求，智能生成</p>
+          </div>
+        </div>
+
+        {/* 输入卡片 */}
+        <div className={cn(
+          "rounded-xl md:rounded-2xl p-4 md:p-5 mb-6 md:mb-8",
+          "bg-card border border-border",
+          "shadow-[0_4px_16px_-4px_hsl(30_20%_20%/0.08)]"
+        )}>
+          {/* 已上传的图片预览 */}
+          {imagePreview && (
+            <div className="mb-4 flex items-start gap-3">
+              <div className="relative group">
+                <img
+                  src={imagePreview}
+                  alt="参考图"
+                  className="h-16 w-16 md:h-20 md:w-20 object-cover rounded-xl border border-border shadow-sm"
+                />
+                <button
+                  onClick={clearImage}
+                  className={cn(
+                    "absolute -top-2 -right-2 w-6 h-6",
+                    "bg-foreground/80 text-background rounded-full",
+                    "flex items-center justify-center",
+                    "md:opacity-0 md:group-hover:opacity-100",
+                    "transition-all duration-200",
+                    "hover:bg-destructive hover:scale-110"
+                  )}
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <span className="text-xs text-muted-foreground mt-2">参考图片</span>
+            </div>
+          )}
+
+          {/* 输入区域 */}
+          <textarea
+            ref={textareaRef}
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="描述你想要的海报内容，如：双十一促销海报，主推运动鞋，红色背景..."
+            rows={3}
+            enterKeyHint="send"
+            className={cn(
+              "w-full bg-transparent resize-none",
+              "text-foreground text-base leading-relaxed",
+              "placeholder:text-muted-foreground/50",
+              "focus:outline-none"
+            )}
+          />
+
+          {/* 分隔线 */}
+          <div className="divider-gradient my-3 md:my-4" />
+
+          {/* 工具栏 - 移动端优化布局 */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-2">
+            {/* 上排：选项按钮 */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* 模板选择 */}
+              <div className="relative" onClick={(e) => e.stopPropagation()}>
+                <Button
+                  variant="tag"
+                  size="sm"
+                  active={true}
+                  onClick={() => {
+                    setShowTemplateMenu(!showTemplateMenu);
+                    setShowStyleMenu(false);
+                    setShowSizeMenu(false);
+                  }}
+                  className="gap-1.5 md:gap-2 text-xs md:text-sm"
+                >
+                  <span>{selectedTemplate.icon}</span>
+                  <span className="max-w-[60px] md:max-w-none truncate">{selectedTemplate.name}</span>
+                  <ChevronDown className={cn(
+                    "w-3 h-3 md:w-3.5 md:h-3.5 transition-transform duration-200",
+                    showTemplateMenu && "rotate-180"
+                  )} />
+                </Button>
+                {showTemplateMenu && (
+                  <div className={cn(
+                    "absolute top-full left-0 mt-2 z-20",
+                    "bg-card border border-border rounded-xl",
+                    "shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)]",
+                    "py-2 min-w-[200px] md:min-w-[220px]",
+                    "animate-dropdown",
+                    "max-h-[60vh] overflow-y-auto"
+                  )}>
+                    {posterTemplates.map((template, index) => (
+                      <button
+                        key={template.id}
+                        onClick={() => {
+                          setSelectedTemplate(template);
+                          setShowTemplateMenu(false);
+                        }}
+                        className={cn(
+                          "w-full flex items-start gap-3 px-4 py-2.5",
+                          "text-left transition-all duration-150",
+                          "hover:bg-secondary/50 active:bg-secondary",
+                          selectedTemplate.id === template.id && "bg-primary/10"
+                        )}
+                        style={{ animationDelay: `${index * 30}ms` }}
+                      >
+                        <span className="text-lg">{template.icon}</span>
+                        <div>
+                          <div className={cn(
+                            "text-sm font-medium",
+                            selectedTemplate.id === template.id ? "text-primary" : "text-foreground"
+                          )}>
+                            {template.name}
+                          </div>
+                          <div className="text-xs text-muted-foreground">{template.description}</div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* 风格选择 */}
+              <div className="relative" onClick={(e) => e.stopPropagation()}>
+                <Button
+                  variant="tag"
+                  size="sm"
+                  active={!!selectedStyle}
+                  onClick={() => {
+                    setShowStyleMenu(!showStyleMenu);
+                    setShowTemplateMenu(false);
+                    setShowSizeMenu(false);
+                  }}
+                  className="gap-1 md:gap-1.5 text-xs md:text-sm"
+                >
+                  <Type className="w-3 h-3 md:w-3.5 md:h-3.5" />
+                  <span className="max-w-[50px] md:max-w-none truncate">
+                    {stylePresets.find(s => s.id === selectedStyle)?.name || "风格"}
+                  </span>
+                </Button>
+                {showStyleMenu && (
+                  <div className={cn(
+                    "absolute top-full left-0 mt-2 z-20",
+                    "bg-card border border-border rounded-xl",
+                    "shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)]",
+                    "py-1 min-w-[140px] md:min-w-[150px]",
+                    "animate-dropdown"
+                  )}>
+                    {stylePresets.map((style) => (
+                      <button
+                        key={style.id}
+                        onClick={() => {
+                          setSelectedStyle(style.id);
+                          setShowStyleMenu(false);
+                        }}
+                        className={cn(
+                          "w-full flex items-center gap-2 px-3 py-2.5 md:py-2",
+                          "text-sm transition-all duration-150",
+                          "hover:bg-secondary/50 active:bg-secondary",
+                          selectedStyle === style.id && "bg-primary/10 text-primary"
+                        )}
+                      >
+                        <span>{style.icon}</span>
+                        <span>{style.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* 尺寸选择 */}
+              <div className="relative" onClick={(e) => e.stopPropagation()}>
+                <Button
+                  variant="tag"
+                  size="sm"
+                  onClick={() => {
+                    setShowSizeMenu(!showSizeMenu);
+                    setShowTemplateMenu(false);
+                    setShowStyleMenu(false);
+                  }}
+                  className="gap-1 md:gap-1.5 text-xs md:text-sm"
+                >
+                  <Ratio className="w-3 h-3 md:w-3.5 md:h-3.5" />
+                  <span>{selectedSize.ratio}</span>
+                </Button>
+                {showSizeMenu && (
+                  <div className={cn(
+                    "absolute top-full left-0 mt-2 z-20",
+                    "bg-card border border-border rounded-xl",
+                    "shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)]",
+                    "py-1 min-w-[130px] md:min-w-[140px]",
+                    "animate-dropdown"
+                  )}>
+                    {sizeOptions.map((size) => (
+                      <button
+                        key={size.id}
+                        onClick={() => {
+                          setSelectedSize(size);
+                          setShowSizeMenu(false);
+                        }}
+                        className={cn(
+                          "w-full px-3 py-2.5 md:py-2 text-sm text-left",
+                          "transition-all duration-150",
+                          "hover:bg-secondary/50 active:bg-secondary",
+                          selectedSize.id === size.id && "bg-primary/10 text-primary"
+                        )}
+                      >
+                        {size.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* 分隔符 - 移动端隐藏 */}
+              <div className="hidden md:block w-px h-5 bg-border mx-1" />
+
+              {/* 上传图片按钮 */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => fileInputRef.current?.click()}
+                title="上传参考图"
+                className="touch-target"
+              >
+                <Image className="w-4 h-4" />
+              </Button>
+
+              {/* 上传素材到素材库 */}
+              <input
+                ref={materialInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleMaterialUpload}
+                className="hidden"
+              />
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => materialInputRef.current?.click()}
+                title="上传素材到素材库"
+                className="touch-target"
+              >
+                <FolderUp className="w-4 h-4" />
+              </Button>
+            </div>
+
+            {/* 下排：操作按钮 */}
+            <div className="flex items-center justify-end gap-2">
+              {/* 一键优化 */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={optimizePrompt}
+                disabled={!prompt.trim()}
+                className="gap-1.5 text-xs md:text-sm"
+              >
+                <Wand2 className="w-3.5 h-3.5" />
+                <span>一键优化</span>
+              </Button>
+
+              {/* 发送按钮 */}
+              <Button
+                variant="send"
+                size="icon"
+                onClick={handleGenerate}
+                disabled={(!prompt.trim() && !imagePreview) || isGenerating}
+                className="rounded-xl w-10 h-10 md:w-10 md:h-10"
+              >
+                {isGenerating ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Send className="w-5 h-5" />
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* 生成结果区域 */}
+        {(isGenerating || generatedImage) && (
+          <div className={cn(
+            "rounded-xl md:rounded-2xl p-4 md:p-6",
+            "bg-card border border-border",
+            "shadow-[0_4px_16px_-4px_hsl(30_20%_20%/0.08)]",
+            "animate-fade-in"
+          )}>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4 md:mb-5">
+              <h2 className="text-base md:text-lg font-semibold text-foreground flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-primary" />
+                生成结果
+              </h2>
+              {generatedImage && !isGenerating && (
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={handleGenerate} className="flex-1 md:flex-none">
+                    <RefreshCw className="w-4 h-4 mr-1.5" />
+                    重新生成
+                  </Button>
+                  <Button variant="default" size="sm" className="flex-1 md:flex-none">
+                    <Download className="w-4 h-4 mr-1.5" />
+                    下载
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {isGenerating ? (
+              <div className="flex flex-col items-center justify-center py-16 md:py-20">
+                <div className="relative">
+                  <Loader2 className="w-12 h-12 text-primary animate-spin" />
+                  <span className="absolute inset-0 rounded-full animate-ping bg-primary/20" />
+                </div>
+                <p className="text-muted-foreground mt-6">正在生成海报...</p>
+              </div>
+            ) : generatedImage ? (
+              <div className="rounded-xl overflow-hidden bg-secondary/30 p-2 md:p-4">
+                <img
+                  src={generatedImage}
+                  alt="生成结果"
+                  className="max-h-[400px] md:max-h-[500px] mx-auto rounded-lg object-contain shadow-lg"
+                />
+              </div>
+            ) : null}
+          </div>
+        )}
+
+        {/* 空状态提示 */}
+        {!isGenerating && !generatedImage && (
+          <div className="text-center py-12 md:py-20 opacity-0 animate-fade-in" style={{ animationDelay: '300ms' }}>
+            <div className={cn(
+              "w-16 h-16 md:w-20 md:h-20 rounded-xl md:rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-5",
+              "bg-secondary/50"
+            )}>
+              <Sparkles className="w-8 h-8 md:w-10 md:h-10 text-muted-foreground/40" />
+            </div>
+            <p className="text-muted-foreground mb-2">选择模板，输入需求开始设计</p>
+            <p className="text-sm text-muted-foreground/60">支持上传产品图、logo等素材作为参考</p>
+          </div>
+        )}
       </div>
-    </div>
+    </PageLayout>
   );
 };
 

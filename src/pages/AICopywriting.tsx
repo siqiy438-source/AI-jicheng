@@ -1,6 +1,5 @@
 import { useState, useRef } from "react";
-import { Sidebar } from "@/components/Sidebar";
-import { Header } from "@/components/Header";
+import { PageLayout } from "@/components/PageLayout";
 import {
   ArrowLeft,
   FileText,
@@ -278,300 +277,293 @@ const AICopywriting = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-main">
-      <Sidebar />
-      <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-y-auto">
-          <div className="max-w-4xl mx-auto px-6 py-8">
-            {/* 返回按钮 */}
-            <button
-              onClick={() => navigate("/")}
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
+    <PageLayout className="py-4 md:py-8">
+      {/* 返回按钮 */}
+      <button
+        onClick={() => navigate("/")}
+        className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4 md:mb-6 transition-colors touch-target"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        <span className="text-sm">返回首页</span>
+      </button>
+
+      {/* 页面标题 */}
+      <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
+        <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center">
+          <FileText className="w-6 h-6 md:w-7 md:h-7 text-orange-600" />
+        </div>
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold text-foreground">AI 文案</h1>
+          <p className="text-muted-foreground text-xs md:text-sm">选择智能体，上传素材，智能生成文案</p>
+        </div>
+      </div>
+
+      {/* 聊天消息区域 */}
+      {messages.length > 0 && (
+        <div className="space-y-4 md:space-y-6 mb-4 md:mb-6">
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={cn(
+                "flex gap-3 md:gap-4",
+                message.role === "user" ? "flex-row-reverse" : ""
+              )}
             >
-              <ArrowLeft className="w-4 h-4" />
-              <span>返回首页</span>
-            </button>
-
-            {/* 页面标题 */}
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center">
-                <FileText className="w-7 h-7 text-orange-600" />
+              {/* 头像 */}
+              <div
+                className={cn(
+                  "w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0",
+                  message.role === "user"
+                    ? "bg-gradient-to-br from-orange-500 to-orange-600"
+                    : "bg-gradient-to-br from-purple-100 to-purple-50"
+                )}
+              >
+                {message.role === "user" ? (
+                  <span className="text-white text-xs md:text-sm font-medium">我</span>
+                ) : (
+                  <Bot className="w-4 h-4 md:w-5 md:h-5 text-purple-600" />
+                )}
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">AI 文案</h1>
-                <p className="text-muted-foreground text-sm">选择智能体，上传素材，智能生成文案</p>
-              </div>
-            </div>
 
-            {/* 聊天消息区域 */}
-            {messages.length > 0 && (
-              <div className="space-y-6 mb-6">
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={cn(
-                      "flex gap-4",
-                      message.role === "user" ? "flex-row-reverse" : ""
-                    )}
-                  >
-                    {/* 头像 */}
-                    <div
-                      className={cn(
-                        "w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0",
-                        message.role === "user"
-                          ? "bg-gradient-to-br from-orange-500 to-orange-600"
-                          : "bg-gradient-to-br from-purple-100 to-purple-50"
-                      )}
-                    >
-                      {message.role === "user" ? (
-                        <span className="text-white text-sm font-medium">我</span>
-                      ) : (
-                        <Bot className="w-5 h-5 text-purple-600" />
-                      )}
-                    </div>
-
-                    {/* 消息内容 */}
-                    <div
-                      className={cn(
-                        "flex-1 max-w-[80%]",
-                        message.role === "user" ? "flex flex-col items-end" : ""
-                      )}
-                    >
-                      {/* 附件显示 */}
-                      {message.files && message.files.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mb-2">
-                          {message.files.map((file, index) => (
-                            <div
-                              key={index}
-                              className="flex items-center gap-1.5 px-2.5 py-1.5 bg-secondary/50 rounded-lg text-sm text-muted-foreground"
-                            >
-                              {getFileIcon(file.type)}
-                              <span className="max-w-[120px] truncate">{file.name}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* 文本内容 */}
+              {/* 消息内容 */}
+              <div
+                className={cn(
+                  "flex-1 max-w-[85%] md:max-w-[80%]",
+                  message.role === "user" ? "flex flex-col items-end" : ""
+                )}
+              >
+                {/* 附件显示 */}
+                {message.files && message.files.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {message.files.map((file, index) => (
                       <div
-                        className={cn(
-                          "rounded-2xl px-4 py-3",
-                          message.role === "user"
-                            ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white"
-                            : "glass-card"
-                        )}
+                        key={index}
+                        className="flex items-center gap-1.5 px-2 py-1 md:px-2.5 md:py-1.5 bg-secondary/50 rounded-lg text-xs md:text-sm text-muted-foreground"
                       >
-                        <div
-                          className={cn(
-                            "whitespace-pre-wrap text-sm leading-relaxed",
-                            message.role === "assistant" && "prose prose-sm max-w-none"
-                          )}
-                        >
-                          {message.content}
-                        </div>
-
-                        {/* AI 回复的操作按钮 */}
-                        {message.role === "assistant" && (
-                          <div className="flex justify-end mt-3 pt-3 border-t border-border/50">
-                            <button
-                              onClick={() => copyContent(message.id, message.content)}
-                              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs text-muted-foreground hover:bg-secondary/50 transition-colors"
-                            >
-                              {copiedId === message.id ? (
-                                <>
-                                  <Check className="w-3.5 h-3.5 text-green-500" />
-                                  <span className="text-green-500">已复制</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Copy className="w-3.5 h-3.5" />
-                                  <span>复制</span>
-                                </>
-                              )}
-                            </button>
-                          </div>
-                        )}
+                        {getFileIcon(file.type)}
+                        <span className="max-w-[80px] md:max-w-[120px] truncate">{file.name}</span>
                       </div>
-                    </div>
-                  </div>
-                ))}
-
-                {/* 生成中状态 */}
-                {isGenerating && (
-                  <div className="flex gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center flex-shrink-0">
-                      <Bot className="w-5 h-5 text-purple-600" />
-                    </div>
-                    <div className="glass-card rounded-2xl px-4 py-3">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span className="text-sm">正在生成文案...</span>
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 )}
 
-                <div ref={messagesEndRef} />
-              </div>
-            )}
-
-            {/* 输入卡片 */}
-            <div className="glass-card rounded-2xl p-5 shadow-lg">
-              {/* 已上传的文件预览 */}
-              {uploadedFiles.length > 0 && (
-                <div className="mb-4 flex flex-wrap gap-2">
-                  {uploadedFiles.map((file, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-2 px-3 py-2 bg-secondary/50 rounded-xl text-sm group"
-                    >
-                      {getFileIcon(file.type)}
-                      <span className="max-w-[150px] truncate text-foreground">{file.name}</span>
-                      <button
-                        onClick={() => removeFile(index)}
-                        className="w-4 h-4 rounded-full bg-black/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="w-2.5 h-2.5" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* 输入区域 */}
-              <textarea
-                ref={textareaRef}
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="描述你需要的文案内容..."
-                rows={3}
-                className="w-full bg-transparent text-foreground placeholder:text-muted-foreground resize-none focus:outline-none text-base leading-relaxed"
-              />
-
-              {/* 分隔线 */}
-              <div className="border-t border-border/50 my-3" />
-
-              {/* 工具栏 */}
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <div className="flex items-center gap-2 flex-wrap">
-                  {/* 智能体选择 */}
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowAgentMenu(!showAgentMenu)}
-                      className={cn(
-                        "flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-all border",
-                        "bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
-                      )}
-                    >
-                      <span>{selectedAgent.icon}</span>
-                      <span>{selectedAgent.name}</span>
-                      <ChevronDown className={cn("w-4 h-4 transition-transform", showAgentMenu && "rotate-180")} />
-                    </button>
-                    {showAgentMenu && (
-                      <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-2 z-10 min-w-[200px]">
-                        {agentOptions.map((agent) => (
-                          <button
-                            key={agent.id}
-                            onClick={() => {
-                              setSelectedAgent(agent);
-                              setShowAgentMenu(false);
-                            }}
-                            className={cn(
-                              "w-full flex items-start gap-3 px-4 py-2.5 hover:bg-secondary/50 transition-colors text-left",
-                              selectedAgent.id === agent.id && "bg-purple-50"
-                            )}
-                          >
-                            <span className="text-lg">{agent.icon}</span>
-                            <div>
-                              <div className={cn(
-                                "text-sm font-medium",
-                                selectedAgent.id === agent.id ? "text-purple-700" : "text-foreground"
-                              )}>
-                                {agent.name}
-                              </div>
-                              <div className="text-xs text-muted-foreground">{agent.description}</div>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
+                {/* 文本内容 */}
+                <div
+                  className={cn(
+                    "rounded-xl md:rounded-2xl px-3 py-2 md:px-4 md:py-3",
+                    message.role === "user"
+                      ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white"
+                      : "glass-card"
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "whitespace-pre-wrap text-sm leading-relaxed",
+                      message.role === "assistant" && "prose prose-sm max-w-none"
                     )}
+                  >
+                    {message.content}
                   </div>
 
-                  {/* 分隔符 */}
-                  <div className="w-px h-5 bg-border mx-1" />
-
-                  {/* 上传文件按钮 */}
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".txt,.doc,.docx,.pdf,.png,.jpg,.jpeg,.csv,.xlsx"
-                    multiple
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center gap-1.5 p-2 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
-                    title="上传参考文件"
-                  >
-                    <Paperclip className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {/* 右侧按钮 */}
-                <div className="flex items-center gap-2">
-                  {/* 一键优化 */}
-                  <button
-                    onClick={optimizePrompt}
-                    disabled={!prompt.trim()}
-                    className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all border",
-                      prompt.trim()
-                        ? "bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
-                        : "bg-secondary/30 border-transparent text-muted-foreground/50 cursor-not-allowed"
-                    )}
-                  >
-                    <Wand2 className="w-4 h-4" />
-                    <span>一键优化</span>
-                  </button>
-
-                  {/* 发送按钮 */}
-                  <button
-                    onClick={handleSend}
-                    disabled={(!prompt.trim() && uploadedFiles.length === 0) || isGenerating}
-                    className={cn(
-                      "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
-                      (prompt.trim() || uploadedFiles.length > 0) && !isGenerating
-                        ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-md"
-                        : "bg-secondary/50 text-muted-foreground/50 cursor-not-allowed"
-                    )}
-                  >
-                    {isGenerating ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <Send className="w-5 h-5" />
-                    )}
-                  </button>
+                  {/* AI 回复的操作按钮 */}
+                  {message.role === "assistant" && (
+                    <div className="flex justify-end mt-3 pt-3 border-t border-border/50">
+                      <button
+                        onClick={() => copyContent(message.id, message.content)}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 md:py-1 rounded-lg text-xs text-muted-foreground hover:bg-secondary/50 transition-colors touch-target"
+                      >
+                        {copiedId === message.id ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-green-500" />
+                            <span className="text-green-500">已复制</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5" />
+                            <span>复制</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
+          ))}
 
-            {/* 空状态提示 */}
-            {messages.length === 0 && !isGenerating && (
-              <div className="text-center py-16">
-                <div className="w-20 h-20 rounded-full bg-secondary/50 flex items-center justify-center mx-auto mb-4">
-                  <Sparkles className="w-10 h-10 text-muted-foreground/50" />
-                </div>
-                <p className="text-muted-foreground mb-2">选择智能体，输入需求开始创作</p>
-                <p className="text-sm text-muted-foreground/70">支持上传文档、图片作为参考素材</p>
+          {/* 生成中状态 */}
+          {isGenerating && (
+            <div className="flex gap-3 md:gap-4">
+              <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center flex-shrink-0">
+                <Bot className="w-4 h-4 md:w-5 md:h-5 text-purple-600" />
               </div>
-            )}
+              <div className="glass-card rounded-xl md:rounded-2xl px-3 py-2 md:px-4 md:py-3">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="text-sm">正在生成文案...</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
+        </div>
+      )}
+
+      {/* 输入卡片 */}
+      <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5 shadow-lg">
+        {/* 已上传的文件预览 */}
+        {uploadedFiles.length > 0 && (
+          <div className="mb-3 md:mb-4 flex flex-wrap gap-2">
+            {uploadedFiles.map((file, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-2 px-2 py-1.5 md:px-3 md:py-2 bg-secondary/50 rounded-lg md:rounded-xl text-xs md:text-sm group"
+              >
+                {getFileIcon(file.type)}
+                <span className="max-w-[100px] md:max-w-[150px] truncate text-foreground">{file.name}</span>
+                <button
+                  onClick={() => removeFile(index)}
+                  className="w-5 h-5 md:w-4 md:h-4 rounded-full bg-black/10 flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                >
+                  <X className="w-3 h-3 md:w-2.5 md:h-2.5" />
+                </button>
+              </div>
+            ))}
           </div>
-        </main>
+        )}
+
+        {/* 输入区域 */}
+        <textarea
+          ref={textareaRef}
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="描述你需要的文案内容..."
+          rows={3}
+          enterKeyHint="send"
+          className="w-full bg-transparent text-foreground placeholder:text-muted-foreground resize-none focus:outline-none text-base leading-relaxed"
+        />
+
+        {/* 分隔线 */}
+        <div className="border-t border-border/50 my-3" />
+
+        {/* 工具栏 */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* 智能体选择 */}
+            <div className="relative">
+              <button
+                onClick={() => setShowAgentMenu(!showAgentMenu)}
+                className={cn(
+                  "flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-1.5 rounded-full text-xs md:text-sm transition-all border",
+                  "bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 active:bg-purple-100"
+                )}
+              >
+                <span>{selectedAgent.icon}</span>
+                <span className="max-w-[70px] md:max-w-none truncate">{selectedAgent.name}</span>
+                <ChevronDown className={cn("w-3.5 h-3.5 md:w-4 md:h-4 transition-transform", showAgentMenu && "rotate-180")} />
+              </button>
+              {showAgentMenu && (
+                <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-2 z-10 min-w-[180px] md:min-w-[200px] max-h-[60vh] overflow-y-auto">
+                  {agentOptions.map((agent) => (
+                    <button
+                      key={agent.id}
+                      onClick={() => {
+                        setSelectedAgent(agent);
+                        setShowAgentMenu(false);
+                      }}
+                      className={cn(
+                        "w-full flex items-start gap-3 px-3 md:px-4 py-2.5 hover:bg-secondary/50 active:bg-secondary transition-colors text-left",
+                        selectedAgent.id === agent.id && "bg-purple-50"
+                      )}
+                    >
+                      <span className="text-lg">{agent.icon}</span>
+                      <div>
+                        <div className={cn(
+                          "text-sm font-medium",
+                          selectedAgent.id === agent.id ? "text-purple-700" : "text-foreground"
+                        )}>
+                          {agent.name}
+                        </div>
+                        <div className="text-xs text-muted-foreground">{agent.description}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 分隔符 */}
+            <div className="hidden md:block w-px h-5 bg-border mx-1" />
+
+            {/* 上传文件按钮 */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".txt,.doc,.docx,.pdf,.png,.jpg,.jpeg,.csv,.xlsx"
+              multiple
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-1.5 p-2 md:p-2 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground active:bg-secondary transition-all touch-target"
+              title="上传参考文件"
+            >
+              <Paperclip className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* 右侧按钮 */}
+          <div className="flex items-center justify-end gap-2">
+            {/* 一键优化 */}
+            <button
+              onClick={optimizePrompt}
+              disabled={!prompt.trim()}
+              className={cn(
+                "flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 rounded-full text-xs md:text-sm transition-all border",
+                prompt.trim()
+                  ? "bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 active:bg-purple-100"
+                  : "bg-secondary/30 border-transparent text-muted-foreground/50 cursor-not-allowed"
+              )}
+            >
+              <Wand2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
+              <span>一键优化</span>
+            </button>
+
+            {/* 发送按钮 */}
+            <button
+              onClick={handleSend}
+              disabled={(!prompt.trim() && uploadedFiles.length === 0) || isGenerating}
+              className={cn(
+                "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
+                (prompt.trim() || uploadedFiles.length > 0) && !isGenerating
+                  ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 active:from-orange-700 active:to-orange-800 shadow-md"
+                  : "bg-secondary/50 text-muted-foreground/50 cursor-not-allowed"
+              )}
+            >
+              {isGenerating ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Send className="w-5 h-5" />
+              )}
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
+
+      {/* 空状态提示 */}
+      {messages.length === 0 && !isGenerating && (
+        <div className="text-center py-12 md:py-16">
+          <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-secondary/50 flex items-center justify-center mx-auto mb-4">
+            <Sparkles className="w-8 h-8 md:w-10 md:h-10 text-muted-foreground/50" />
+          </div>
+          <p className="text-muted-foreground mb-2">选择智能体，输入需求开始创作</p>
+          <p className="text-sm text-muted-foreground/70">支持上传文档、图片作为参考素材</p>
+        </div>
+      )}
+    </PageLayout>
   );
 };
 

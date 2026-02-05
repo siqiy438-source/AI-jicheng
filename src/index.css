@@ -18,6 +18,14 @@
 @layer base {
   :root {
     /* ═══════════════════════════════════════════════════════════════════════
+       安全区域变量（iPhone 刘海/底部横条）
+       ═══════════════════════════════════════════════════════════════════════ */
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-left: env(safe-area-inset-left, 0px);
+    --safe-area-right: env(safe-area-inset-right, 0px);
+
+    /* ═══════════════════════════════════════════════════════════════════════
        色彩系统 - 暖调工坊风格
        ═══════════════════════════════════════════════════════════════════════ */
 
@@ -165,6 +173,8 @@
 
   html {
     scroll-behavior: smooth;
+    /* 防止移动端过度滚动弹跳 */
+    overscroll-behavior: contain;
   }
 
   body {
@@ -172,6 +182,23 @@
     font-family: 'Outfit', 'LXGW WenKai', -apple-system, BlinkMacSystemFont, sans-serif;
     font-feature-settings: 'cv11', 'ss01';
     font-variation-settings: 'wght' 400;
+    /* 移动端触摸优化 */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    /* 防止文本选择时的高亮闪烁 */
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* 允许输入框和文本区域选择文本 */
+  input, textarea, [contenteditable="true"] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* 所有可交互元素的触摸优化 */
+  button, a, [role="button"], input, textarea, select {
+    touch-action: manipulation;
   }
 
   /* 标题使用 Fraunces 衬线体 */
@@ -682,4 +709,78 @@
 
 .dark .btn-craft::before {
   background: linear-gradient(180deg, hsl(0 0% 100% / 0.08) 0%, transparent 50%);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   移动端优化
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* 低端机性能降级 - 减少动画 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .glass,
+  .glass-card {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
+/* 移动端触摸滚动优化 */
+@media (max-width: 767px) {
+  .scrollbar-thin {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 隐藏移动端滚动条 */
+  .scrollbar-thin::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: none;
+  }
+}
+
+/* 移动端安全区域工具类 */
+@layer utilities {
+  .pt-safe {
+    padding-top: var(--safe-area-top);
+  }
+
+  .pb-safe {
+    padding-bottom: var(--safe-area-bottom);
+  }
+
+  .pl-safe {
+    padding-left: var(--safe-area-left);
+  }
+
+  .pr-safe {
+    padding-right: var(--safe-area-right);
+  }
+
+  /* 移动端最小触摸目标 */
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* 移动端底部导航栏空间 */
+  .pb-mobile-nav {
+    padding-bottom: calc(80px + var(--safe-area-bottom));
+  }
+
+  @media (min-width: 768px) {
+    .pb-mobile-nav {
+      padding-bottom: 0;
+    }
+  }
 }
