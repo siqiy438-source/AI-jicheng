@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import {
   ArrowLeft,
@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { generateCopywriting, continueConversation, isZenmuxConfigured, type ChatMessage } from "@/lib/zenmux";
 
 // 智能体选项
 const agentOptions = [
@@ -61,6 +62,8 @@ const AICopywriting = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<{ name: string; type: string; preview?: string }[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [streamingContent, setStreamingContent] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   // 处理文件上传
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -104,8 +107,10 @@ const AICopywriting = () => {
   };
 
   // 发送消息
-  const handleSend = () => {
+  const handleSend = useCallback(async () => {
     if (!prompt.trim() && uploadedFiles.length === 0) return;
+
+    setError(null);
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -116,157 +121,122 @@ const AICopywriting = () => {
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    const currentPrompt = prompt;
     setPrompt("");
     setUploadedFiles([]);
     setIsGenerating(true);
+    setStreamingContent("");
 
-    // 模拟 AI 响应
-    setTimeout(() => {
-      const responses: Record<string, string> = {
-        xiaohongshu: `# 🌟 ${prompt.slice(0, 20)}...
+    // 创建一个占位的 AI 消息用于流式更新
+    const assistantMessageId = (Date.now() + 1).toString();
 
-姐妹们！今天必须给你们安利这个宝藏好物！！！
-
-用了一周真的绝绝子～之前一直在纠结要不要入手，现在只恨自己没有早点发现它！
-
-✨ 亮点总结：
-1️⃣ 效果真的很惊艳
-2️⃣ 性价比超高
-3️⃣ 包装颜值在线
-
-💡 使用心得：
-刚开始用可能需要适应一下，但坚持下来真的会有惊喜！强烈建议大家试试～
-
-📌 小tips：建议搭配xxx一起使用，效果加倍！
-
-#好物分享 #真实测评 #种草`,
-        douyin: `【开头】
-"等等！先别划走！这个东西你一定要知道..."
-
-【正文】
-你有没有遇到过这种情况？（痛点描述）
-今天教你一招，轻松解决！
-
-第一步：xxx
-第二步：xxx
-第三步：xxx
-
-【结尾】
-学会了吗？赶紧试试吧！
-觉得有用的话，点个赞收藏一下～
-
-#${prompt.slice(0, 10)} #干货分享 #涨知识`,
-        weixin: `# ${prompt.slice(0, 15)}：一个值得深思的话题
-
-在这个快节奏的时代，我们似乎总是在追赶，却很少停下来思考真正重要的事情。
-
-## 现象观察
-
-最近，越来越多的人开始关注这个话题。数据显示...
-
-## 深度分析
-
-从表面上看，这似乎只是一个简单的问题。但如果我们深入挖掘，就会发现...
-
-## 解决方案
-
-基于以上分析，我认为可以从以下几个维度入手：
-
-1. **认知层面**：首先需要...
-2. **行动层面**：其次要...
-3. **习惯层面**：最后是...
-
-## 结语
-
-改变从来都不是一蹴而就的，但只要我们愿意迈出第一步，一切皆有可能。
-
----
-*如果这篇文章对你有启发，欢迎分享给更多需要的人。*`,
-        ad: `🔥【限时特惠】${prompt.slice(0, 10)}
-
-❌ 还在为xxx烦恼？
-❌ 还在花冤枉钱？
-❌ 还在走弯路？
-
-✅ 现在，一个方案帮你全搞定！
-
-🎯 核心优势：
-• 效果显著，已有10000+用户验证
-• 操作简单，小白也能轻松上手
-• 售后无忧，7天无理由退换
-
-⏰ 限时福利：
-原价 ¥299
-今日特惠 ¥99
-前100名再送价值¥50礼包！
-
-👇 点击下方立即抢购
-数量有限，售完即止！`,
-        product: `## ${prompt.slice(0, 15)} - 产品详情
-
-### 🎯 解决痛点
-- 痛点1：xxx → 我们的解决方案
-- 痛点2：xxx → 我们的解决方案
-
-### ✨ 核心卖点
-1. **卖点一**：具体描述...
-2. **卖点二**：具体描述...
-3. **卖点三**：具体描述...
-
-### 📊 数据支撑
-- 用户满意度：98.5%
-- 复购率：76%
-- 好评数：10000+
-
-### 🛡️ 品质保障
-✓ 正品保证
-✓ 7天无理由退换
-✓ 专业售后服务
-
-### 📦 规格参数
-| 参数 | 说明 |
-|------|------|
-| 规格 | xxx |
-| 材质 | xxx |
-| 产地 | xxx |`,
-        general: `# ${prompt}
-
-根据您的需求，我为您生成了以下内容：
-
-## 主要内容
-
-这是一段精心撰写的文案，围绕您提供的主题展开。文案注重以下几个方面：
-
-1. **清晰的表达**：确保读者能够快速理解核心信息
-2. **合理的结构**：层次分明，逻辑清晰
-3. **恰当的语气**：符合目标受众的阅读习惯
-
-## 建议优化方向
-
-- 可以根据具体使用场景调整语气
-- 添加更多具体案例或数据支撑
-- 根据平台特点进行针对性调整
-
----
-*如需调整或有其他要求，请告诉我，我会为您进一步优化。*`,
-      };
-
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: responses[selectedAgent.id] || responses.general,
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
-      setIsGenerating(false);
-
-      // 滚动到底部
+    // 检查是否配置了 ZenMux
+    if (!isZenmuxConfigured) {
+      // 未配置时使用模拟响应
       setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 100);
-    }, 2000);
-  };
+        const mockResponse = `# AI 文案生成
+
+您的 ZenMux API 尚未配置。请按以下步骤设置：
+
+1. 访问 [ZenMux](https://zenmux.ai) 并注册账号
+2. 在 User Console > API Keys 页面获取 API Key
+3. 在项目根目录的 \`.env.local\` 文件中设置：
+   \`\`\`
+   VITE_ZENMUX_API_KEY=你的API密钥
+   \`\`\`
+4. 重启开发服务器
+
+配置完成后，您就可以使用真正的 AI 生成文案了！`;
+
+        const assistantMessage: Message = {
+          id: assistantMessageId,
+          role: "assistant",
+          content: mockResponse,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, assistantMessage]);
+        setIsGenerating(false);
+      }, 500);
+      return;
+    }
+
+    // 构建历史消息（转换为 ChatMessage 格式）
+    const history: ChatMessage[] = messages
+      .filter(m => m.content.trim())
+      .map(m => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.content,
+      }));
+
+    // 判断是首次对话还是继续对话
+    const isFirstMessage = history.length === 0;
+
+    try {
+      let fullContent = "";
+
+      // 先添加一个空的 AI 消息占位
+      setMessages((prev) => [...prev, {
+        id: assistantMessageId,
+        role: "assistant",
+        content: "",
+        timestamp: new Date(),
+      }]);
+
+      const callbacks = {
+        onStart: () => {
+          setStreamingContent("");
+        },
+        onToken: (token: string) => {
+          fullContent += token;
+          setStreamingContent(fullContent);
+          // 实时更新消息内容
+          setMessages((prev) =>
+            prev.map(m =>
+              m.id === assistantMessageId
+                ? { ...m, content: fullContent }
+                : m
+            )
+          );
+        },
+        onComplete: (finalContent: string) => {
+          setMessages((prev) =>
+            prev.map(m =>
+              m.id === assistantMessageId
+                ? { ...m, content: finalContent }
+                : m
+            )
+          );
+          setIsGenerating(false);
+          setStreamingContent("");
+          // 滚动到底部
+          setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+          }, 100);
+        },
+        onError: (err: Error) => {
+          setError(err.message);
+          setIsGenerating(false);
+          // 更新消息显示错误
+          setMessages((prev) =>
+            prev.map(m =>
+              m.id === assistantMessageId
+                ? { ...m, content: `⚠️ 生成失败: ${err.message}` }
+                : m
+            )
+          );
+        },
+      };
+
+      if (isFirstMessage) {
+        await generateCopywriting(currentPrompt, selectedAgent.id, callbacks);
+      } else {
+        await continueConversation(history, currentPrompt, selectedAgent.id, callbacks);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "发生未知错误");
+      setIsGenerating(false);
+    }
+  }, [prompt, uploadedFiles, messages, selectedAgent.id]);
 
   // 处理键盘事件
   const handleKeyDown = (e: React.KeyboardEvent) => {
