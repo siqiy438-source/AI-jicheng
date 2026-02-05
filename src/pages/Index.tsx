@@ -27,12 +27,6 @@ const Index = () => {
       color: "purple" as const,
     },
     {
-      icon: Video,
-      title: "AI 视频",
-      description: "动一下，立刻拥有",
-      color: "green" as const,
-    },
-    {
       icon: FileText,
       title: "AI 文案",
       description: "智能写作，助力内容创造",
