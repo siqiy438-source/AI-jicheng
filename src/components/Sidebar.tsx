@@ -117,9 +117,7 @@
          <NavSection title="智能工具" collapsed={collapsed}>
            <NavItem icon={<ImageIcon className="w-5 h-5" />} label="AI 海报" badge="HOT" collapsed={collapsed} />
            <NavItem icon={<ImageIcon className="w-5 h-5" />} label="AI 绘图" badge="NEW" collapsed={collapsed} />
-           <NavItem icon={<Video className="w-5 h-5" />} label="AI 视频" collapsed={collapsed} />
            <NavItem icon={<FileText className="w-5 h-5" />} label="AI 文案" collapsed={collapsed} />
-           <NavItem icon={<Users className="w-5 h-5" />} label="数字人视频" collapsed={collapsed} />
            <NavItem icon={<Star className="w-5 h-5" />} label="更多功能" collapsed={collapsed} />
          </NavSection>
  
