@@ -8,6 +8,9 @@ import NotFound from "./pages/NotFound";
 import AIPoster from "./pages/AIPoster";
 import AIDrawing from "./pages/AIDrawing";
 import AICopywriting from "./pages/AICopywriting";
+import MyWorks from "./pages/MyWorks";
+import MyMaterials from "./pages/MyMaterials";
+import CreativeCenter from "./pages/CreativeCenter";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +25,9 @@ const App = () => (
           <Route path="/ai-poster" element={<AIPoster />} />
           <Route path="/ai-drawing" element={<AIDrawing />} />
           <Route path="/ai-copywriting" element={<AICopywriting />} />
+          <Route path="/my-works" element={<MyWorks />} />
+          <Route path="/my-materials" element={<MyMaterials />} />
+          <Route path="/creative-center" element={<CreativeCenter />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

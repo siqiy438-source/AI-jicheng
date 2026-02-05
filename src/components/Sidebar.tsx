@@ -129,7 +129,9 @@ export const Sidebar = () => {
           <NavItem
             icon={<Sparkles className="w-5 h-5" />}
             label="创作中心"
+            active={isActive("/creative-center")}
             collapsed={collapsed}
+            to="/creative-center"
           />
         </NavSection>
 
@@ -166,12 +168,16 @@ export const Sidebar = () => {
           <NavItem
             icon={<FolderOpen className="w-5 h-5" />}
             label="我的作品"
+            active={isActive("/my-works")}
             collapsed={collapsed}
+            to="/my-works"
           />
           <NavItem
             icon={<Upload className="w-5 h-5" />}
             label="我的素材"
+            active={isActive("/my-materials")}
             collapsed={collapsed}
+            to="/my-materials"
           />
         </NavSection>
       </nav>
