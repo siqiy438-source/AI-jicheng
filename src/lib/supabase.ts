@@ -1,45 +1,12 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+// Supabase configuration
+// Using direct values as fallback when environment variables are not available
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://kzdjqqinkonqlclbwleh.supabase.co'
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt6ZGpxcWlua29ucWxjbGJ3bGVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyNTQ0ODcsImV4cCI6MjA4NTgzMDQ4N30.CrgPY7OI6eSoEe9CNDlK0apob1UG8KH5v21GI2UQS6I'
 
-// Debug: Log environment variable status (will be removed in production builds)
-if (import.meta.env.DEV) {
-  console.log('Supabase URL configured:', !!supabaseUrl)
-  console.log('Supabase Key configured:', !!supabaseAnonKey)
-}
+// Supabase is always configured now with fallback values
+export const isSupabaseConfigured = true
 
-// Check if Supabase is configured
-export const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey)
-
-// Create a mock client for when Supabase is not configured
-const createMockClient = (): SupabaseClient => {
-  const mockResponse = { data: null, error: { message: 'Supabase not configured' } }
-  const mockAuth = {
-    getSession: async () => mockResponse,
-    getUser: async () => mockResponse,
-    signInWithPassword: async () => mockResponse,
-    signUp: async () => mockResponse,
-    signOut: async () => mockResponse,
-    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
-  }
-
-  return {
-    auth: mockAuth,
-    from: () => ({
-      select: () => Promise.resolve(mockResponse),
-      insert: () => Promise.resolve(mockResponse),
-      update: () => Promise.resolve(mockResponse),
-      delete: () => Promise.resolve(mockResponse),
-    }),
-  } as unknown as SupabaseClient
-}
-
-// Export the real client if configured, otherwise export mock
-export const supabase = isSupabaseConfigured
-  ? createClient(supabaseUrl!, supabaseAnonKey!)
-  : createMockClient()
-
-if (!isSupabaseConfigured) {
-  console.warn('Supabase environment variables not configured. Authentication features will be disabled.')
-}
+// Create and export the Supabase client
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
