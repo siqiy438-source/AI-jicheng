@@ -160,7 +160,9 @@ export const Sidebar = () => {
           <NavItem
             icon={<Star className="w-5 h-5" />}
             label="更多功能"
+            active={isActive("/more-features")}
             collapsed={collapsed}
+            to="/more-features"
           />
         </NavSection>
 
@@ -184,7 +186,13 @@ export const Sidebar = () => {
 
       {/* Footer */}
       <div className="p-3 border-t border-sidebar-border">
-        <NavItem icon={<Settings className="w-5 h-5" />} label="设置" collapsed={collapsed} />
+        <NavItem
+          icon={<Settings className="w-5 h-5" />}
+          label="设置"
+          active={isActive("/settings")}
+          collapsed={collapsed}
+          to="/settings"
+        />
       </div>
     </aside>
   );

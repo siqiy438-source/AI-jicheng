@@ -11,6 +11,8 @@ import AICopywriting from "./pages/AICopywriting";
 import MyWorks from "./pages/MyWorks";
 import MyMaterials from "./pages/MyMaterials";
 import CreativeCenter from "./pages/CreativeCenter";
+import MoreFeatures from "./pages/MoreFeatures";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +30,8 @@ const App = () => (
           <Route path="/my-works" element={<MyWorks />} />
           <Route path="/my-materials" element={<MyMaterials />} />
           <Route path="/creative-center" element={<CreativeCenter />} />
+          <Route path="/more-features" element={<MoreFeatures />} />
+          <Route path="/settings" element={<Settings />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

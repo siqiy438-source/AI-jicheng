@@ -38,6 +38,7 @@ const Index = () => {
       title: "更多功能",
       description: "持续更新中",
       color: "pink" as const,
+      to: "/more-features",
     },
   ];
 
@@ -61,18 +62,6 @@ const Index = () => {
             {/* Search Bar */}
             <div className="mb-12">
               <SearchBar />
-            </div>
-
-            {/* Quick Tags */}
-            <div className="flex flex-wrap justify-center gap-2 mb-12 opacity-0 animate-fade-in" style={{ animationDelay: "100ms" }}>
-              {["素材创作", "创意视频", "文案编辑", "品牌创作"].map((tag) => (
-                <button
-                  key={tag}
-                  className="px-4 py-2 text-sm text-muted-foreground bg-secondary/60 hover:bg-secondary rounded-full transition-colors"
-                >
-                  {tag}
-                </button>
-              ))}
             </div>
 
             {/* Feature Cards */}
