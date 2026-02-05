@@ -21,9 +21,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // 获取初始 session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setUser(session?.user ?? null)
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data?.session ?? null)
+      setUser(data?.session?.user ?? null)
       setLoading(false)
     })
 
