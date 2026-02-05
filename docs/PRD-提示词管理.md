@@ -259,6 +259,7 @@ User requirement: {user_prompt}
 | handdrawn | 手绘风格 | 艺术手绘效果 |
 | anime | 动漫风格 | 二次元风格 |
 | realistic | 写实风格 | 照片级真实感 |
+| fashion-outfit | 女装搭配 | 平铺搭配图，自动补充配饰和鞋子 |
 
 ### 4.2 优化提示词
 
@@ -289,6 +290,37 @@ Anime style illustration, Japanese animation aesthetic, vibrant colors, expressi
 Photorealistic rendering, ultra-realistic, professional photography quality, {user_prompt}, high resolution, rich details, excellent lighting, 8K
 ```
 
+#### 女装搭配 (fashion-outfit)
+```
+Create a professional flat lay fashion outfit image.
+
+【CRITICAL LAYOUT RULES - MUST FOLLOW】
+- Each clothing item must be displayed SEPARATELY and INDEPENDENTLY
+- Items should be arranged in a grid-like layout with CLEAR GAPS between them
+- NO overlapping, NO layering, NO stacking of items
+- Each piece should be laid flat and fully visible from top to bottom
+- Layout reference: Like a magazine lookbook or Pinterest outfit grid
+
+【Female Fashion Requirements】
+- Accessories: elegant and feminine (pearl earrings, delicate necklace, silk scarf, dainty watch, stylish sunglasses)
+- Shoes: feminine style (heels, ballet flats, pointed toe, elegant sandals, white sneakers)
+- Overall style: elegant, refined, feminine, fashionable
+
+【Technical Requirements】
+1. Analyze the uploaded clothing colors and style, choose a harmonious solid background (soft, premium tone like cream, light gray, or blush)
+2. Based on the clothing style, intelligently ADD:
+   - One feminine accessory (choose what best elevates the look)
+   - One pair of women's shoes (choose what best completes the outfit)
+3. Arrange ALL items in a SPREAD OUT flat lay with clear separation between each piece
+4. Each item should have soft natural shadows, professional product photography quality
+5. No text, no watermarks, no models, no mannequins
+6. Vertical 9:16 aspect ratio
+
+Style reference: Pinterest outfit flat lay, fashion magazine product spreads, lookbook styling
+
+User uploaded clothing: {user_prompt}
+```
+
 ---
 
 ## 5. 提示词最佳实践
@@ -315,6 +347,7 @@ Photorealistic rendering, ultra-realistic, professional photography quality, {us
 | 版本 | 日期 | 变更说明 |
 |---|---|---|
 | v1.0 | 2026-02-05 | 初始版本，整理现有提示词 |
+| v1.1 | 2026-02-05 | 新增「女装搭配」风格提示词 |
 
 ---
 
