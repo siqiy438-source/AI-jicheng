@@ -3,6 +3,12 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
+// Debug: Log environment variable status (will be removed in production builds)
+if (import.meta.env.DEV) {
+  console.log('Supabase URL configured:', !!supabaseUrl)
+  console.log('Supabase Key configured:', !!supabaseAnonKey)
+}
+
 // Check if Supabase is configured
 export const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey)
 
