@@ -146,30 +146,46 @@ const AIPoster = () => {
       <Sidebar />
       <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto scrollbar-thin">
           <div className="max-w-4xl mx-auto px-6 py-8">
             {/* 返回按钮 */}
             <button
               onClick={() => navigate("/")}
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
+              className={cn(
+                "flex items-center gap-2 mb-8",
+                "text-muted-foreground hover:text-foreground",
+                "transition-colors duration-200",
+                "group"
+              )}
             >
-              <ArrowLeft className="w-4 h-4" />
-              <span>返回首页</span>
+              <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+              <span className="text-sm">返回首页</span>
             </button>
 
             {/* 页面标题 */}
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center">
-                <Palette className="w-7 h-7 text-blue-600" />
+            <div className="flex items-center gap-4 mb-10">
+              {/* 图标容器 - 工艺感 */}
+              <div className={cn(
+                "relative w-14 h-14 rounded-2xl flex items-center justify-center",
+                "bg-gradient-to-br from-amber-100 to-orange-50",
+                "dark:from-amber-900/30 dark:to-orange-900/20",
+                "shadow-[inset_0_-2px_4px_hsl(0_0%_0%/0.05),0_2px_8px_hsl(28_80%_52%/0.15)]"
+              )}>
+                <Palette className="w-7 h-7 text-amber-600 dark:text-amber-400" />
+                <span className="absolute inset-0 rounded-2xl bg-gradient-to-b from-white/40 to-transparent dark:from-white/10 pointer-events-none" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">AI 海报</h1>
+                <h1 className="text-2xl font-bold text-foreground mb-1">AI 海报</h1>
                 <p className="text-muted-foreground text-sm">选择模板，描述需求，智能生成专业海报</p>
               </div>
             </div>
 
             {/* 输入卡片 */}
-            <div className="glass-card rounded-2xl p-5 mb-6 shadow-lg">
+            <div className={cn(
+              "rounded-2xl p-5 mb-8",
+              "bg-card border border-border",
+              "shadow-[0_4px_16px_-4px_hsl(30_20%_20%/0.08)]"
+            )}>
               {/* 已上传的图片预览 */}
               {imagePreview && (
                 <div className="mb-4 flex items-start gap-3">
@@ -177,16 +193,23 @@ const AIPoster = () => {
                     <img
                       src={imagePreview}
                       alt="参考图"
-                      className="h-20 w-20 object-cover rounded-xl border border-border"
+                      className="h-20 w-20 object-cover rounded-xl border border-border shadow-sm"
                     />
                     <button
                       onClick={clearImage}
-                      className="absolute -top-2 -right-2 w-5 h-5 bg-black/70 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      className={cn(
+                        "absolute -top-2 -right-2 w-6 h-6",
+                        "bg-foreground/80 text-background rounded-full",
+                        "flex items-center justify-center",
+                        "opacity-0 group-hover:opacity-100",
+                        "transition-all duration-200",
+                        "hover:bg-destructive hover:scale-110"
+                      )}
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                  <span className="text-xs text-muted-foreground mt-1">参考图片</span>
+                  <span className="text-xs text-muted-foreground mt-2">参考图片</span>
                 </div>
               )}
 
@@ -198,35 +221,49 @@ const AIPoster = () => {
                 onKeyDown={handleKeyDown}
                 placeholder="描述你想要的海报内容，如：双十一促销海报，主推运动鞋，红色背景..."
                 rows={3}
-                className="w-full bg-transparent text-foreground placeholder:text-muted-foreground resize-none focus:outline-none text-base leading-relaxed"
+                className={cn(
+                  "w-full bg-transparent resize-none",
+                  "text-foreground text-base leading-relaxed",
+                  "placeholder:text-muted-foreground/50",
+                  "focus:outline-none"
+                )}
               />
 
               {/* 分隔线 */}
-              <div className="border-t border-border/50 my-3" />
+              <div className="divider-gradient my-4" />
 
               {/* 工具栏 */}
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2 flex-wrap">
                   {/* 模板选择 */}
                   <div className="relative" onClick={(e) => e.stopPropagation()}>
-                    <button
+                    <Button
+                      variant="tag"
+                      size="sm"
+                      active={true}
                       onClick={() => {
                         setShowTemplateMenu(!showTemplateMenu);
                         setShowStyleMenu(false);
                         setShowSizeMenu(false);
                       }}
-                      className={cn(
-                        "flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-all border",
-                        "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
-                      )}
+                      className="gap-2"
                     >
                       <span>{selectedTemplate.icon}</span>
                       <span>{selectedTemplate.name}</span>
-                      <ChevronDown className={cn("w-4 h-4 transition-transform", showTemplateMenu && "rotate-180")} />
-                    </button>
+                      <ChevronDown className={cn(
+                        "w-3.5 h-3.5 transition-transform duration-200",
+                        showTemplateMenu && "rotate-180"
+                      )} />
+                    </Button>
                     {showTemplateMenu && (
-                      <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-2 z-10 min-w-[200px]">
-                        {posterTemplates.map((template) => (
+                      <div className={cn(
+                        "absolute top-full left-0 mt-2 z-20",
+                        "bg-card border border-border rounded-xl",
+                        "shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)]",
+                        "py-2 min-w-[220px]",
+                        "animate-dropdown"
+                      )}>
+                        {posterTemplates.map((template, index) => (
                           <button
                             key={template.id}
                             onClick={() => {
@@ -234,15 +271,18 @@ const AIPoster = () => {
                               setShowTemplateMenu(false);
                             }}
                             className={cn(
-                              "w-full flex items-start gap-3 px-4 py-2.5 hover:bg-secondary/50 transition-colors text-left",
-                              selectedTemplate.id === template.id && "bg-blue-50"
+                              "w-full flex items-start gap-3 px-4 py-2.5",
+                              "text-left transition-all duration-150",
+                              "hover:bg-secondary/50",
+                              selectedTemplate.id === template.id && "bg-primary/10"
                             )}
+                            style={{ animationDelay: `${index * 30}ms` }}
                           >
                             <span className="text-lg">{template.icon}</span>
                             <div>
                               <div className={cn(
                                 "text-sm font-medium",
-                                selectedTemplate.id === template.id ? "text-blue-700" : "text-foreground"
+                                selectedTemplate.id === template.id ? "text-primary" : "text-foreground"
                               )}>
                                 {template.name}
                               </div>
@@ -256,24 +296,28 @@ const AIPoster = () => {
 
                   {/* 风格选择 */}
                   <div className="relative" onClick={(e) => e.stopPropagation()}>
-                    <button
+                    <Button
+                      variant="tag"
+                      size="sm"
+                      active={!!selectedStyle}
                       onClick={() => {
                         setShowStyleMenu(!showStyleMenu);
                         setShowTemplateMenu(false);
                         setShowSizeMenu(false);
                       }}
-                      className={cn(
-                        "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all border",
-                        selectedStyle
-                          ? "bg-purple-50 border-purple-200 text-purple-700"
-                          : "bg-secondary/50 border-transparent text-muted-foreground hover:bg-secondary"
-                      )}
+                      className="gap-1.5"
                     >
-                      <Type className="w-4 h-4" />
+                      <Type className="w-3.5 h-3.5" />
                       <span>{stylePresets.find(s => s.id === selectedStyle)?.name || "选择风格"}</span>
-                    </button>
+                    </Button>
                     {showStyleMenu && (
-                      <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 min-w-[140px]">
+                      <div className={cn(
+                        "absolute top-full left-0 mt-2 z-20",
+                        "bg-card border border-border rounded-xl",
+                        "shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)]",
+                        "py-1 min-w-[150px]",
+                        "animate-dropdown"
+                      )}>
                         {stylePresets.map((style) => (
                           <button
                             key={style.id}
@@ -282,8 +326,10 @@ const AIPoster = () => {
                               setShowStyleMenu(false);
                             }}
                             className={cn(
-                              "w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-secondary/50 transition-colors",
-                              selectedStyle === style.id && "bg-purple-50 text-purple-700"
+                              "w-full flex items-center gap-2 px-3 py-2",
+                              "text-sm transition-all duration-150",
+                              "hover:bg-secondary/50",
+                              selectedStyle === style.id && "bg-primary/10 text-primary"
                             )}
                           >
                             <span>{style.icon}</span>
@@ -296,19 +342,27 @@ const AIPoster = () => {
 
                   {/* 尺寸选择 */}
                   <div className="relative" onClick={(e) => e.stopPropagation()}>
-                    <button
+                    <Button
+                      variant="tag"
+                      size="sm"
                       onClick={() => {
                         setShowSizeMenu(!showSizeMenu);
                         setShowTemplateMenu(false);
                         setShowStyleMenu(false);
                       }}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm bg-secondary/50 text-muted-foreground hover:bg-secondary transition-all border border-transparent"
+                      className="gap-1.5"
                     >
-                      <Ratio className="w-4 h-4" />
+                      <Ratio className="w-3.5 h-3.5" />
                       <span>{selectedSize.ratio}</span>
-                    </button>
+                    </Button>
                     {showSizeMenu && (
-                      <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 min-w-[130px]">
+                      <div className={cn(
+                        "absolute top-full left-0 mt-2 z-20",
+                        "bg-card border border-border rounded-xl",
+                        "shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)]",
+                        "py-1 min-w-[140px]",
+                        "animate-dropdown"
+                      )}>
                         {sizeOptions.map((size) => (
                           <button
                             key={size.id}
@@ -317,8 +371,10 @@ const AIPoster = () => {
                               setShowSizeMenu(false);
                             }}
                             className={cn(
-                              "w-full px-3 py-2 text-sm hover:bg-secondary/50 transition-colors text-left",
-                              selectedSize.id === size.id && "bg-blue-50 text-blue-700"
+                              "w-full px-3 py-2 text-sm text-left",
+                              "transition-all duration-150",
+                              "hover:bg-secondary/50",
+                              selectedSize.id === size.id && "bg-primary/10 text-primary"
                             )}
                           >
                             {size.name}
@@ -339,13 +395,14 @@ const AIPoster = () => {
                     onChange={handleFileChange}
                     className="hidden"
                   />
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
                     onClick={() => fileInputRef.current?.click()}
-                    className="p-2 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
                     title="上传参考图"
                   >
                     <Image className="w-4 h-4" />
-                  </button>
+                  </Button>
 
                   {/* 上传素材到素材库 */}
                   <input
@@ -356,69 +413,69 @@ const AIPoster = () => {
                     onChange={handleMaterialUpload}
                     className="hidden"
                   />
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
                     onClick={() => materialInputRef.current?.click()}
-                    className="p-2 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
                     title="上传素材到素材库"
                   >
                     <FolderUp className="w-4 h-4" />
-                  </button>
+                  </Button>
                 </div>
 
                 {/* 右侧按钮 */}
                 <div className="flex items-center gap-2">
                   {/* 一键优化 */}
-                  <button
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={optimizePrompt}
                     disabled={!prompt.trim()}
-                    className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all border",
-                      prompt.trim()
-                        ? "bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
-                        : "bg-secondary/30 border-transparent text-muted-foreground/50 cursor-not-allowed"
-                    )}
+                    className="gap-1.5"
                   >
-                    <Wand2 className="w-4 h-4" />
+                    <Wand2 className="w-3.5 h-3.5" />
                     <span>一键优化</span>
-                  </button>
+                  </Button>
 
                   {/* 发送按钮 */}
-                  <button
+                  <Button
+                    variant="send"
+                    size="icon"
                     onClick={handleGenerate}
                     disabled={(!prompt.trim() && !imagePreview) || isGenerating}
-                    className={cn(
-                      "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
-                      (prompt.trim() || imagePreview) && !isGenerating
-                        ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-md"
-                        : "bg-secondary/50 text-muted-foreground/50 cursor-not-allowed"
-                    )}
+                    className="rounded-xl"
                   >
                     {isGenerating ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
                     ) : (
                       <Send className="w-5 h-5" />
                     )}
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
 
             {/* 生成结果区域 */}
             {(isGenerating || generatedImage) && (
-              <div className="glass-card rounded-2xl p-6">
-                <div className="flex items-center justify-between mb-4">
+              <div className={cn(
+                "rounded-2xl p-6",
+                "bg-card border border-border",
+                "shadow-[0_4px_16px_-4px_hsl(30_20%_20%/0.08)]",
+                "animate-fade-in"
+              )}>
+                <div className="flex items-center justify-between mb-5">
                   <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-blue-500" />
+                    <Sparkles className="w-5 h-5 text-primary" />
                     生成结果
                   </h2>
                   {generatedImage && !isGenerating && (
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" onClick={handleGenerate}>
-                        <RefreshCw className="w-4 h-4 mr-1" />
+                        <RefreshCw className="w-4 h-4 mr-1.5" />
                         重新生成
                       </Button>
-                      <Button variant="outline" size="sm">
-                        <Download className="w-4 h-4 mr-1" />
+                      <Button variant="default" size="sm">
+                        <Download className="w-4 h-4 mr-1.5" />
                         下载
                       </Button>
                     </div>
@@ -426,16 +483,19 @@ const AIPoster = () => {
                 </div>
 
                 {isGenerating ? (
-                  <div className="flex flex-col items-center justify-center py-16">
-                    <Loader2 className="w-12 h-12 text-blue-500 animate-spin mb-4" />
-                    <p className="text-muted-foreground">正在生成海报...</p>
+                  <div className="flex flex-col items-center justify-center py-20">
+                    <div className="relative">
+                      <Loader2 className="w-12 h-12 text-primary animate-spin" />
+                      <span className="absolute inset-0 rounded-full animate-ping bg-primary/20" />
+                    </div>
+                    <p className="text-muted-foreground mt-6">正在生成海报...</p>
                   </div>
                 ) : generatedImage ? (
                   <div className="rounded-xl overflow-hidden bg-secondary/30 p-4">
                     <img
                       src={generatedImage}
                       alt="生成结果"
-                      className="max-h-[500px] mx-auto rounded-lg object-contain"
+                      className="max-h-[500px] mx-auto rounded-lg object-contain shadow-lg"
                     />
                   </div>
                 ) : null}
@@ -444,12 +504,15 @@ const AIPoster = () => {
 
             {/* 空状态提示 */}
             {!isGenerating && !generatedImage && (
-              <div className="text-center py-16">
-                <div className="w-20 h-20 rounded-full bg-secondary/50 flex items-center justify-center mx-auto mb-4">
-                  <Sparkles className="w-10 h-10 text-muted-foreground/50" />
+              <div className="text-center py-20 opacity-0 animate-fade-in" style={{ animationDelay: '300ms' }}>
+                <div className={cn(
+                  "w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-5",
+                  "bg-secondary/50"
+                )}>
+                  <Sparkles className="w-10 h-10 text-muted-foreground/40" />
                 </div>
                 <p className="text-muted-foreground mb-2">选择模板，输入需求开始设计</p>
-                <p className="text-sm text-muted-foreground/70">支持上传产品图、logo等素材作为参考</p>
+                <p className="text-sm text-muted-foreground/60">支持上传产品图、logo等素材作为参考</p>
               </div>
             )}
           </div>

@@ -38,20 +38,49 @@ const NavItem = ({ icon, label, active, collapsed, to, onClick }: NavItemProps) 
     <button
       onClick={handleClick}
       className={cn(
-        "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200",
-        "hover:bg-sidebar-accent group",
-        active && "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+        // 基础样式
+        "relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl",
+        "transition-all duration-200 ease-out",
+        "group",
+        // 左侧指示条
+        "before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2",
+        "before:w-[3px] before:rounded-r-full before:transition-all before:duration-200",
+        // 默认状态
+        "text-muted-foreground",
+        "hover:bg-sidebar-accent/60 hover:text-foreground",
+        // 激活状态
+        active ? [
+          "bg-sidebar-accent text-foreground font-medium",
+          "before:h-[55%] before:bg-primary",
+        ].join(" ") : "before:h-0 before:bg-transparent"
       )}
     >
+      {/* 图标 */}
       <span
         className={cn(
-          "flex-shrink-0 transition-colors",
-          active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+          "flex-shrink-0 transition-all duration-200",
+          active
+            ? "text-primary scale-110"
+            : "text-muted-foreground group-hover:text-primary group-hover:scale-105"
         )}
       >
         {icon}
       </span>
-      {!collapsed && <span className="flex-1 text-left text-sm">{label}</span>}
+
+      {/* 标签 */}
+      {!collapsed && (
+        <span className={cn(
+          "flex-1 text-left text-sm transition-colors duration-200",
+          active ? "text-foreground" : "group-hover:text-foreground"
+        )}>
+          {label}
+        </span>
+      )}
+
+      {/* 悬停光效 */}
+      {active && (
+        <span className="absolute inset-0 rounded-xl bg-primary/5 pointer-events-none" />
+      )}
     </button>
   );
 };
@@ -63,11 +92,14 @@ interface NavSectionProps {
 }
 
 const NavSection = ({ title, children, collapsed }: NavSectionProps) => (
-  <div className="mb-4">
+  <div className="mb-6">
     {!collapsed && (
-      <h3 className="px-3 mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-        {title}
-      </h3>
+      <div className="flex items-center gap-2 px-3 mb-3">
+        <span className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest">
+          {title}
+        </span>
+        <span className="flex-1 h-px bg-gradient-to-r from-border to-transparent" />
+      </div>
     )}
     <div className="space-y-1">{children}</div>
   </div>
@@ -82,52 +114,77 @@ export const Sidebar = () => {
   return (
     <aside
       className={cn(
-        "h-screen glass border-r border-sidebar-border flex flex-col transition-all duration-300",
+        "h-screen flex flex-col",
+        "bg-sidebar-background border-r border-sidebar-border",
+        "transition-all duration-300 ease-out",
         collapsed ? "w-[72px]" : "w-[240px]"
       )}
     >
-      {/* Logo */}
+      {/* Logo 区域 */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border">
-        {!collapsed && (
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-primary-foreground" />
+        {!collapsed ? (
+          <div className="flex items-center gap-3">
+            {/* Logo 图标 - 工艺感设计 */}
+            <div className={cn(
+              "relative w-9 h-9 rounded-xl flex items-center justify-center",
+              "bg-gradient-to-br from-primary to-[hsl(32_85%_48%)]",
+              "shadow-[inset_0_1px_0_hsl(0_0%_100%/0.2),0_2px_8px_hsl(28_80%_52%/0.3)]",
+            )}>
+              <Sparkles className="w-4.5 h-4.5 text-primary-foreground" />
+              {/* 光泽效果 */}
+              <span className="absolute inset-0 rounded-xl bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
             </div>
-            <span className="font-semibold text-foreground">AI 创作</span>
+            <div className="flex flex-col">
+              <span className="font-semibold text-foreground text-[15px] leading-tight">
+                AI 创作
+              </span>
+              <span className="text-[10px] text-muted-foreground/60 tracking-wide">
+                CREATIVE STUDIO
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div className={cn(
+            "relative w-9 h-9 rounded-xl flex items-center justify-center mx-auto",
+            "bg-gradient-to-br from-primary to-[hsl(32_85%_48%)]",
+            "shadow-[inset_0_1px_0_hsl(0_0%_100%/0.2),0_2px_8px_hsl(28_80%_52%/0.3)]",
+          )}>
+            <Sparkles className="w-4.5 h-4.5 text-primary-foreground" />
+            <span className="absolute inset-0 rounded-xl bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
           </div>
         )}
-        {collapsed && (
-          <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center mx-auto">
-            <Sparkles className="w-4 h-4 text-primary-foreground" />
-          </div>
-        )}
+
+        {/* 收起/展开按钮 */}
         <button
           onClick={() => setCollapsed(!collapsed)}
           className={cn(
-            "p-1.5 rounded-lg hover:bg-sidebar-accent transition-colors",
-            collapsed && "mx-auto mt-2"
+            "p-1.5 rounded-lg transition-all duration-200",
+            "text-muted-foreground hover:text-foreground",
+            "hover:bg-sidebar-accent",
+            "active:scale-95",
+            collapsed && "mx-auto mt-3"
           )}
         >
           {collapsed ? (
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            <ChevronRight className="w-4 h-4" />
           ) : (
-            <ChevronLeft className="w-4 h-4 text-muted-foreground" />
+            <ChevronLeft className="w-4 h-4" />
           )}
         </button>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto p-3">
+      {/* 导航区域 */}
+      <nav className="flex-1 overflow-y-auto p-3 scrollbar-thin">
         <NavSection title="工作台" collapsed={collapsed}>
           <NavItem
-            icon={<LayoutDashboard className="w-5 h-5" />}
+            icon={<LayoutDashboard className="w-[18px] h-[18px]" />}
             label="工作台"
             active={isActive("/")}
             collapsed={collapsed}
             to="/"
           />
           <NavItem
-            icon={<Sparkles className="w-5 h-5" />}
+            icon={<Sparkles className="w-[18px] h-[18px]" />}
             label="创作中心"
             active={isActive("/creative-center")}
             collapsed={collapsed}
@@ -137,28 +194,28 @@ export const Sidebar = () => {
 
         <NavSection title="智能工具" collapsed={collapsed}>
           <NavItem
-            icon={<Palette className="w-5 h-5" />}
+            icon={<Palette className="w-[18px] h-[18px]" />}
             label="AI 海报"
             active={isActive("/ai-poster")}
             collapsed={collapsed}
             to="/ai-poster"
           />
           <NavItem
-            icon={<ImageIcon className="w-5 h-5" />}
+            icon={<ImageIcon className="w-[18px] h-[18px]" />}
             label="AI 绘图"
             active={isActive("/ai-drawing")}
             collapsed={collapsed}
             to="/ai-drawing"
           />
           <NavItem
-            icon={<FileText className="w-5 h-5" />}
+            icon={<FileText className="w-[18px] h-[18px]" />}
             label="AI 文案"
             active={isActive("/ai-copywriting")}
             collapsed={collapsed}
             to="/ai-copywriting"
           />
           <NavItem
-            icon={<Star className="w-5 h-5" />}
+            icon={<Star className="w-[18px] h-[18px]" />}
             label="更多功能"
             active={isActive("/more-features")}
             collapsed={collapsed}
@@ -168,14 +225,14 @@ export const Sidebar = () => {
 
         <NavSection title="素材" collapsed={collapsed}>
           <NavItem
-            icon={<FolderOpen className="w-5 h-5" />}
+            icon={<FolderOpen className="w-[18px] h-[18px]" />}
             label="我的作品"
             active={isActive("/my-works")}
             collapsed={collapsed}
             to="/my-works"
           />
           <NavItem
-            icon={<Upload className="w-5 h-5" />}
+            icon={<Upload className="w-[18px] h-[18px]" />}
             label="我的素材"
             active={isActive("/my-materials")}
             collapsed={collapsed}
@@ -184,10 +241,10 @@ export const Sidebar = () => {
         </NavSection>
       </nav>
 
-      {/* Footer */}
+      {/* 底部设置 */}
       <div className="p-3 border-t border-sidebar-border">
         <NavItem
-          icon={<Settings className="w-5 h-5" />}
+          icon={<Settings className="w-[18px] h-[18px]" />}
           label="设置"
           active={isActive("/settings")}
           collapsed={collapsed}
