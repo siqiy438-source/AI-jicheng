@@ -225,6 +225,77 @@ const AIDrawing = () => {
     }
   };
 
+  // 添加水印并生成最终图片
+  const addWatermark = (imageSrc: string): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new window.Image();
+      img.crossOrigin = 'anonymous';
+
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('无法创建 canvas context'));
+          return;
+        }
+
+        // 设置 canvas 尺寸与图片一致
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        // 绘制原图
+        ctx.drawImage(img, 0, 0);
+
+        // 加载 logo
+        const logo = new window.Image();
+        logo.crossOrigin = 'anonymous';
+
+        logo.onload = () => {
+          // 计算 logo 尺寸（宽度为图片宽度的 15%，保持比例）
+          const logoWidth = img.width * 0.15;
+          const logoHeight = (logo.height / logo.width) * logoWidth;
+
+          // 计算位置（顶部正中间，留一点边距）
+          const x = (img.width - logoWidth) / 2;
+          const y = img.height * 0.02; // 距离顶部 2%
+
+          // 绘制 logo（半透明效果）
+          ctx.globalAlpha = 0.7;
+          ctx.drawImage(logo, x, y, logoWidth, logoHeight);
+          ctx.globalAlpha = 1;
+
+          // 导出为 blob
+          canvas.toBlob((blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(new Error('无法生成图片'));
+            }
+          }, 'image/png');
+        };
+
+        logo.onerror = () => {
+          // 如果 logo 加载失败，直接导出原图
+          canvas.toBlob((blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(new Error('无法生成图片'));
+            }
+          }, 'image/png');
+        };
+
+        logo.src = '/logo-watermark.png';
+      };
+
+      img.onerror = () => {
+        reject(new Error('图片加载失败'));
+      };
+
+      img.src = imageSrc;
+    });
+  };
+
   // 下载生成的图片
   const handleDownload = async () => {
     if (!generatedImage) return;
@@ -232,12 +303,10 @@ const AIDrawing = () => {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
     try {
-      let blob: Blob;
       const filename = `ai-drawing-${Date.now()}.png`;
 
-      // 获取图片 blob
-      const response = await fetch(generatedImage);
-      blob = await response.blob();
+      // 添加水印
+      const blob = await addWatermark(generatedImage);
 
       // 手机端：使用 Web Share API（如果支持）或打开新窗口让用户长按保存
       if (isMobile) {
