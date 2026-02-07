@@ -225,83 +225,6 @@ const AIDrawing = () => {
     }
   };
 
-  // 添加水印并生成最终图片
-  const addWatermark = (imageSrc: string): Promise<Blob> => {
-    return new Promise((resolve, reject) => {
-      const img = new window.Image();
-      img.crossOrigin = 'anonymous';
-
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error('无法创建 canvas context'));
-          return;
-        }
-
-        // 加载 logo
-        const logo = new window.Image();
-        logo.crossOrigin = 'anonymous';
-
-        logo.onload = () => {
-          // 计算 logo 尺寸（宽度为图片宽度的 20%，保持比例）
-          const logoWidth = img.width * 0.20;
-          const logoHeight = (logo.height / logo.width) * logoWidth;
-
-          // 顶部留出空间放 logo（logo 高度 + 上下边距）
-          const headerHeight = logoHeight + img.height * 0.04;
-
-          // 设置 canvas 尺寸（原图高度 + 顶部区域）
-          canvas.width = img.width;
-          canvas.height = img.height + headerHeight;
-
-          // 填充顶部背景色（使用浅米色，与图片风格协调）
-          ctx.fillStyle = '#FDF8F3';
-          ctx.fillRect(0, 0, canvas.width, headerHeight);
-
-          // 绘制 logo（顶部区域正中间）
-          const logoX = (img.width - logoWidth) / 2;
-          const logoY = (headerHeight - logoHeight) / 2;
-          ctx.drawImage(logo, logoX, logoY, logoWidth, logoHeight);
-
-          // 绘制原图（在顶部区域下方）
-          ctx.drawImage(img, 0, headerHeight);
-
-          // 导出为 blob
-          canvas.toBlob((blob) => {
-            if (blob) {
-              resolve(blob);
-            } else {
-              reject(new Error('无法生成图片'));
-            }
-          }, 'image/png');
-        };
-
-        logo.onerror = () => {
-          // 如果 logo 加载失败，直接导出原图
-          canvas.width = img.width;
-          canvas.height = img.height;
-          ctx.drawImage(img, 0, 0);
-          canvas.toBlob((blob) => {
-            if (blob) {
-              resolve(blob);
-            } else {
-              reject(new Error('无法生成图片'));
-            }
-          }, 'image/png');
-        };
-
-        logo.src = '/logo-watermark.png';
-      };
-
-      img.onerror = () => {
-        reject(new Error('图片加载失败'));
-      };
-
-      img.src = imageSrc;
-    });
-  };
-
   // 下载生成的图片
   const handleDownload = async () => {
     if (!generatedImage) return;
@@ -311,8 +234,9 @@ const AIDrawing = () => {
     try {
       const filename = `ai-drawing-${Date.now()}.png`;
 
-      // 添加水印
-      const blob = await addWatermark(generatedImage);
+      // 获取图片 blob
+      const response = await fetch(generatedImage);
+      const blob = await response.blob();
 
       // 手机端：使用 Web Share API（如果支持）或打开新窗口让用户长按保存
       if (isMobile) {
