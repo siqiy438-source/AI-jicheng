@@ -3,7 +3,7 @@
  * 使用 Gemini 2.5 Flash Image (Nano Banana) 模型
  */
 
-import { supabase } from './supabase';
+import { supabase, supabaseAnonKey } from './supabase';
 
 // 图像生成参数
 export interface ImageGenerationParams {
@@ -41,12 +41,11 @@ export async function generateImage(params: ImageGenerationParams): Promise<Imag
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
+      apikey: supabaseAnonKey,
     };
 
     // 如果用户已登录，添加认证头
-    if (session?.access_token) {
-      headers['Authorization'] = `Bearer ${session.access_token}`;
-    }
+    headers['Authorization'] = `Bearer ${session?.access_token || supabaseAnonKey}`;
 
     const response = await fetch(getEdgeFunctionUrl(), {
       method: 'POST',
