@@ -1,0 +1,8 @@
+{
+  "build": {
+    "output": "dist"
+  },
+  "routes": [
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
+}
