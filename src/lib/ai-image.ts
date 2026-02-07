@@ -3,7 +3,7 @@
  * 使用 Gemini 2.5 Flash Image (Nano Banana) 模型
  */
 
-import { supabase, supabaseAnonKey } from './supabase';
+import { supabaseAnonKey } from './supabase';
 
 // 图像生成参数
 export interface ImageGenerationParams {
@@ -37,15 +37,13 @@ const getEdgeFunctionUrl = () => {
 export async function generateImage(params: ImageGenerationParams): Promise<ImageGenerationResult> {
   try {
     // 获取当前用户的 session（用于认证）
-    const { data: { session } } = await supabase.auth.getSession();
-
+    // 注意：如果 session token 过期，Supabase 会返回 401
+    // 所以我们总是使用 anon key，这样更稳定
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       apikey: supabaseAnonKey,
+      'Authorization': `Bearer ${supabaseAnonKey}`,
     };
-
-    // 如果用户已登录，添加认证头
-    headers['Authorization'] = `Bearer ${session?.access_token || supabaseAnonKey}`;
 
     const response = await fetch(getEdgeFunctionUrl(), {
       method: 'POST',
