@@ -251,8 +251,8 @@ const AIDrawing = () => {
         logo.crossOrigin = 'anonymous';
 
         logo.onload = () => {
-          // 计算 logo 尺寸（宽度为图片宽度的 30%，保持比例）
-          const logoWidth = img.width * 0.30;
+          // 计算 logo 尺寸（宽度为图片宽度的 45%，保持比例）
+          const logoWidth = img.width * 0.45;
           const logoHeight = (logo.height / logo.width) * logoWidth;
 
           // 计算位置（顶部正中间，留一点边距）
