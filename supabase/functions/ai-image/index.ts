@@ -56,6 +56,24 @@ serve(async (req) => {
       fullPrompt = `${style} style: ${prompt}`
     }
 
+    // 如果有上传图片，添加智能背景匹配指令
+    if (images && Array.isArray(images) && images.length > 0) {
+      const backgroundInstruction = `
+重要背景设计要求：
+1. 分析上传服装的颜色、风格和季节感
+2. 根据服装特点自动选择最协调的背景：
+   - 暖色系服装（红、橙、黄、棕）→ 使用暖色调背景（米色、浅棕、暖灰、奶油色）
+   - 冷色系服装（蓝、绿、紫）→ 使用冷色调背景（浅蓝、薄荷绿、淡紫、冷灰）
+   - 黑白灰服装 → 使用简洁纯色背景或轻微渐变
+   - 花色/印花服装 → 使用纯色简洁背景，避免喧宾夺主
+   - 春夏服装 → 清新明亮的背景色
+   - 秋冬服装 → 温暖沉稳的背景色
+3. 背景要干净、专业，突出服装本身
+4. 可以添加轻微的阴影或光影效果增加层次感
+`
+      fullPrompt = backgroundInstruction + '\n\n' + (fullPrompt || '请根据上传的服装图片生成搭配展示图')
+    }
+
     if (!fullPrompt) {
       throw new Error('prompt or styleId is required')
     }
