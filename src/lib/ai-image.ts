@@ -7,10 +7,13 @@ import { supabase } from './supabase';
 
 // 图像生成参数
 export interface ImageGenerationParams {
-  prompt: string;
+  prompt?: string;
   style?: string;
   aspectRatio?: string;
   negativePrompt?: string;
+  styleId?: string;
+  images?: string[];
+  line?: "standard" | "premium";
 }
 
 // 图像生成结果

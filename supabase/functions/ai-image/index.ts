@@ -5,6 +5,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+import { buildGenerateContentUrl, getImageProvider, getProviderConfig } from "./provider.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -18,22 +19,21 @@ serve(async (req) => {
   }
 
   try {
-    const ZENMUX_API_KEY = Deno.env.get('ZENMUX_API_KEY')
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
     const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
-    // ZenMux Vertex AI 端点和 Gemini 3 Pro Image 模型
-    const VERTEX_AI_BASE_URL = 'https://zenmux.ai/api/vertex-ai'
-    const IMAGE_MODEL = 'google/gemini-3-pro-image-preview'
+    const { prompt, style, aspectRatio, negativePrompt, styleId, images, line } = await req.json()
+    const resolvedLine = getImageProvider(line)
+    const providerConfig = getProviderConfig(resolvedLine)
+    const providerApiKey = Deno.env.get(providerConfig.apiKeyEnv)
 
-    if (!ZENMUX_API_KEY) {
-      throw new Error('ZENMUX_API_KEY not configured')
+    if (!providerApiKey) {
+      throw new Error(`${providerConfig.apiKeyEnv} not configured`)
     }
-
-    const { prompt, style, aspectRatio, negativePrompt, styleId, images } = await req.json()
 
     // 构建图像生成提示词
     let fullPrompt = prompt || ''
+    let hasStylePrompt = false
 
     // 如果有 styleId，从数据库获取预设提示词
     if (styleId && SUPABASE_URL && SUPABASE_SERVICE_KEY) {
@@ -47,31 +47,56 @@ serve(async (req) => {
         .single()
 
       if (!error && promptData?.prompt) {
-        // 用预设提示词，用户输入作为补充
-        fullPrompt = prompt
-          ? `${promptData.prompt}\n\n用户补充说明：${prompt}`
-          : promptData.prompt
+        hasStylePrompt = true
+        // 替换 {user_prompt} 占位符，或直接拼接用户补充说明
+        if (prompt) {
+          fullPrompt = promptData.prompt.replace('{user_prompt}', prompt)
+          // 如果没有占位符，追加用户说明
+          if (fullPrompt === promptData.prompt) {
+            fullPrompt = `${promptData.prompt}\n\nAdditional user notes: ${prompt}`
+          }
+        } else {
+          // 无用户输入时，替换占位符为通用描述
+          fullPrompt = promptData.prompt.replace(
+            /User uploaded clothing:?\s*\{user_prompt\}/i,
+            'User uploaded clothing is shown in the reference images below.'
+          )
+        }
       }
     } else if (style) {
       fullPrompt = `${style} style: ${prompt}`
     }
 
-    // 如果有上传图片，添加智能背景匹配指令
-    if (images && Array.isArray(images) && images.length > 0) {
+    // 如果有上传图片但没有专用风格提示词，添加通用背景匹配指令（英文）
+    // 有专用风格提示词（如 fashion-outfit）时跳过，避免指令冲突
+    if (images && Array.isArray(images) && images.length > 0 && !hasStylePrompt) {
+      const imageCount = images.length
       const backgroundInstruction = `
-重要背景设计要求：
-1. 分析上传服装的颜色、风格和季节感
-2. 根据服装特点自动选择最协调的背景：
-   - 暖色系服装（红、橙、黄、棕）→ 使用暖色调背景（米色、浅棕、暖灰、奶油色）
-   - 冷色系服装（蓝、绿、紫）→ 使用冷色调背景（浅蓝、薄荷绿、淡紫、冷灰）
-   - 黑白灰服装 → 使用简洁纯色背景或轻微渐变
-   - 花色/印花服装 → 使用纯色简洁背景，避免喧宾夺主
-   - 春夏服装 → 清新明亮的背景色
-   - 秋冬服装 → 温暖沉稳的背景色
-3. 背景要干净、专业，突出服装本身
-4. 可以添加轻微的阴影或光影效果增加层次感
+IMPORTANT INSTRUCTIONS - Please read carefully:
+
+${imageCount > 1
+  ? `You are provided with ${imageCount} reference images of clothing. These show the SAME clothing items from different angles or in different conditions.
+
+CRITICAL: DO NOT create multiple copies of the same item (e.g., do not show two pairs of pants side by side).
+INSTEAD: Create ONE professional flat-lay product showcase image combining all the clothing items shown in the references.`
+  : 'You are provided with 1 reference image of clothing item(s).'}
+
+Flat-lay product showcase requirements:
+1. Create a professional flat-lay product image with clothing laid flat on a surface (NOT on a model or mannequin).
+2. Arrange the clothing items neatly with proper spacing - DO NOT stack or overlap items. Each piece should be clearly visible and separated.
+3. Analyze the clothing colors and style, then choose a harmonious background:
+   - Warm-toned clothing (red, orange, yellow, brown) → warm backgrounds (beige, light brown, warm gray, cream)
+   - Cool-toned clothing (blue, green, purple) → cool backgrounds (light blue, mint green, light purple, cool gray)
+   - Black/white/gray clothing → clean solid backgrounds or subtle gradients
+   - Patterned/printed clothing → solid clean backgrounds to avoid visual competition
+   - Spring/summer items → fresh and bright background colors
+   - Fall/winter items → warm and sophisticated background colors
+4. Background should be clean, professional, and highlight the clothing.
+5. Add subtle shadows and natural lighting for depth and dimension.
+6. The image should look like a professional e-commerce or Instagram flat-lay photo.
+7. Show each clothing type ONCE only - no duplicates.
 `
-      fullPrompt = backgroundInstruction + '\n\n' + (fullPrompt || '请根据上传的服装图片生成搭配展示图')
+      fullPrompt = backgroundInstruction + '\n\n' + (fullPrompt || 'Generate a professional flat-lay product showcase image based on the uploaded clothing photos.')
     }
 
     if (!fullPrompt) {
@@ -109,15 +134,25 @@ serve(async (req) => {
       }
     }
 
-    // 调用 ZenMux Vertex AI API 生成图像
-    // 使用 models/{model}:generateContent 端点格式
-    const apiUrl = `${VERTEX_AI_BASE_URL}/v1/models/${IMAGE_MODEL}:generateContent`
+    // 调用对应线路 API 生成图像
+    const apiUrl = buildGenerateContentUrl(providerConfig)
+    const generationConfig =
+      resolvedLine === "standard"
+        ? {
+          responseModalities: ['IMAGE'],
+          imageConfig: aspectRatio ? { aspectRatio } : undefined,
+        }
+        : {
+          responseModalities: ['TEXT', 'IMAGE'],
+          temperature: 1,
+          maxOutputTokens: 8192,
+        }
 
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${ZENMUX_API_KEY}`,
+        'Authorization': `Bearer ${providerApiKey}`,
       },
       body: JSON.stringify({
         contents: [
@@ -126,17 +161,14 @@ serve(async (req) => {
             parts
           }
         ],
-        generationConfig: {
-          responseModalities: ['TEXT', 'IMAGE'],
-          temperature: 1,
-          maxOutputTokens: 8192,
-        },
+        generationConfig,
       }),
     })
 
     if (!response.ok) {
       const errorText = await response.text()
-      throw new Error(`ZenMux API error: ${response.status} - ${errorText}`)
+      const providerName = resolvedLine === "premium" ? "ZenMux" : "BLTCY"
+      throw new Error(`${providerName} API error: ${response.status} - ${errorText}`)
     }
 
     const data = await response.json()

@@ -17,8 +17,10 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
+import { generateImage } from "@/lib/ai-image";
 
 // 提示词类型
 interface PromptPreset {
@@ -45,6 +47,12 @@ const ratioOptions = [
   { id: "9:16", name: "9:16" },
 ];
 
+// 线路选项
+const lineOptions = [
+  { id: "premium", name: "优质线路" },
+  { id: "standard", name: "普通线路" },
+];
+
 // 语言选项
 const languageOptions = [
   { id: "zh", name: "简体中文", flag: "🇨🇳" },
@@ -68,6 +76,7 @@ const AIDrawing = () => {
   const [showRatioMenu, setShowRatioMenu] = useState(false);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState("zh");
+  const [selectedLine, setSelectedLine] = useState<"standard" | "premium">("standard");
   const materialInputRef = useRef<HTMLInputElement>(null);
 
   // 风格预设列表（从数据库加载）
@@ -188,25 +197,15 @@ const AIDrawing = () => {
     setGeneratedImage(null);
 
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://kzdjqqinkonqlclbwleh.supabase.co';
-
-      const response = await fetch(`${supabaseUrl}/functions/v1/ai-image`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt: prompt || undefined,
-          styleId: currentStyleHasPrompt ? selectedStyle : undefined,
-          aspectRatio: selectedRatio,
-          // 如果有图片，将 base64 图片作为参考描述
-          images: imagePreviews.length > 0 ? imagePreviews : undefined,
-        }),
+      const data = await generateImage({
+        prompt: prompt || "",
+        styleId: currentStyleHasPrompt ? selectedStyle : undefined,
+        aspectRatio: selectedRatio,
+        images: imagePreviews.length > 0 ? imagePreviews : undefined,
+        line: selectedLine,
       });
 
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
+      if (!data.success) {
         throw new Error(data.error || '生成失败');
       }
 
@@ -471,6 +470,31 @@ const AIDrawing = () => {
                 )}
               </div>
 
+              {/* 线路选择 */}
+              <ToggleGroup
+                type="single"
+                variant="outline"
+                size="sm"
+                value={selectedLine}
+                onValueChange={(value) => {
+                  if (value) {
+                    setSelectedLine(value as "standard" | "premium");
+                  }
+                }}
+                className="rounded-full bg-secondary/50 p-0.5"
+                aria-label="线路选择"
+              >
+                {lineOptions.map((line) => (
+                  <ToggleGroupItem
+                    key={line.id}
+                    value={line.id}
+                    className="rounded-full text-xs md:text-sm"
+                  >
+                    {line.name}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+
               {/* 分隔符 */}
               <div className="w-px h-5 bg-border mx-0.5 md:mx-1 hidden sm:block" />
 
@@ -571,6 +595,7 @@ const AIDrawing = () => {
                     ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-md"
                     : "bg-secondary/50 text-muted-foreground/50 cursor-not-allowed"
                 )}
+                aria-label="开始生成"
               >
                 {isGenerating ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
