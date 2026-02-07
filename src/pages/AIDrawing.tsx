@@ -259,10 +259,8 @@ const AIDrawing = () => {
           const x = (img.width - logoWidth) / 2;
           const y = img.height * 0.02; // 距离顶部 2%
 
-          // 绘制 logo（半透明效果）
-          ctx.globalAlpha = 0.7;
+          // 绘制 logo（使用原始透明度）
           ctx.drawImage(logo, x, y, logoWidth, logoHeight);
-          ctx.globalAlpha = 1;
 
           // 导出为 blob
           canvas.toBlob((blob) => {
