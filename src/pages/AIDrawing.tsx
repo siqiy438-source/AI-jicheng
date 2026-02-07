@@ -239,28 +239,33 @@ const AIDrawing = () => {
           return;
         }
 
-        // 设置 canvas 尺寸与图片一致
-        canvas.width = img.width;
-        canvas.height = img.height;
-
-        // 绘制原图
-        ctx.drawImage(img, 0, 0);
-
         // 加载 logo
         const logo = new window.Image();
         logo.crossOrigin = 'anonymous';
 
         logo.onload = () => {
-          // 计算 logo 尺寸（宽度为图片宽度的 45%，保持比例）
-          const logoWidth = img.width * 0.45;
+          // 计算 logo 尺寸（宽度为图片宽度的 20%，保持比例）
+          const logoWidth = img.width * 0.20;
           const logoHeight = (logo.height / logo.width) * logoWidth;
 
-          // 计算位置（顶部正中间，留一点边距）
-          const x = (img.width - logoWidth) / 2;
-          const y = img.height * 0.02; // 距离顶部 2%
+          // 顶部留出空间放 logo（logo 高度 + 上下边距）
+          const headerHeight = logoHeight + img.height * 0.04;
 
-          // 绘制 logo（使用原始透明度）
-          ctx.drawImage(logo, x, y, logoWidth, logoHeight);
+          // 设置 canvas 尺寸（原图高度 + 顶部区域）
+          canvas.width = img.width;
+          canvas.height = img.height + headerHeight;
+
+          // 填充顶部背景色（使用浅米色，与图片风格协调）
+          ctx.fillStyle = '#FDF8F3';
+          ctx.fillRect(0, 0, canvas.width, headerHeight);
+
+          // 绘制 logo（顶部区域正中间）
+          const logoX = (img.width - logoWidth) / 2;
+          const logoY = (headerHeight - logoHeight) / 2;
+          ctx.drawImage(logo, logoX, logoY, logoWidth, logoHeight);
+
+          // 绘制原图（在顶部区域下方）
+          ctx.drawImage(img, 0, headerHeight);
 
           // 导出为 blob
           canvas.toBlob((blob) => {
@@ -274,6 +279,9 @@ const AIDrawing = () => {
 
         logo.onerror = () => {
           // 如果 logo 加载失败，直接导出原图
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
           canvas.toBlob((blob) => {
             if (blob) {
               resolve(blob);
