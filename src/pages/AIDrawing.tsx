@@ -225,6 +225,40 @@ const AIDrawing = () => {
     }
   };
 
+  // 下载生成的图片
+  const handleDownload = async () => {
+    if (!generatedImage) return;
+
+    try {
+      let blob: Blob;
+      let filename = `ai-drawing-${Date.now()}.png`;
+
+      if (generatedImage.startsWith('data:')) {
+        // Base64 格式
+        const response = await fetch(generatedImage);
+        blob = await response.blob();
+      } else {
+        // URL 格式
+        const response = await fetch(generatedImage);
+        blob = await response.blob();
+      }
+
+      // 创建下载链接
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('下载失败:', error);
+      // 如果 fetch 失败（可能是跨域问题），尝试直接打开图片
+      window.open(generatedImage, '_blank');
+    }
+  };
+
   // 处理键盘事件
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -528,7 +562,7 @@ const AIDrawing = () => {
                     <RefreshCw className="w-4 h-4 mr-1" />
                     <span className="hidden sm:inline">重新生成</span>
                   </Button>
-                  <Button variant="outline" size="sm" className="touch-target">
+                  <Button variant="outline" size="sm" className="touch-target" onClick={handleDownload}>
                     <Download className="w-4 h-4 mr-1" />
                     <span className="hidden sm:inline">下载</span>
                   </Button>
