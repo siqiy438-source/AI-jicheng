@@ -742,6 +742,15 @@ const AIDrawing = () => {
                     <Download className="w-4 h-4 mr-1" />
                     <span className="hidden sm:inline">下载</span>
                   </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="touch-target"
+                    onClick={() => setGeneratedImage(null)}
+                    title="关闭"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
                 </div>
               )}
             </div>
@@ -756,7 +765,7 @@ const AIDrawing = () => {
                 <img
                   src={generatedImage}
                   alt="生成结果"
-                  className="max-h-[400px] md:max-h-[500px] w-full mx-auto rounded-lg object-contain"
+                  className="max-h-[300px] md:max-h-[400px] w-full mx-auto rounded-lg object-contain"
                 />
               </div>
             ) : null}
