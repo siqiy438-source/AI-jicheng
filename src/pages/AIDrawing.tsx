@@ -112,8 +112,11 @@ const AIDrawing = () => {
         }
 
         if (data && data.length > 0) {
-          // 合并默认选项和数据库选项
-          const dbPresets: PromptPreset[] = data.map(item => ({
+          // 合并默认选项和数据库选项（去重，避免重复 key）
+          const defaultIds = new Set(defaultStylePresets.map(s => s.id));
+          const dbPresets: PromptPreset[] = data
+            .filter(item => !defaultIds.has(item.id))
+            .map(item => ({
             id: item.id,
             name: item.name,
             icon: item.icon || '🎨',
@@ -436,7 +439,7 @@ const AIDrawing = () => {
 
           {/* 工具栏 */}
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1 md:gap-1.5 overflow-x-auto scrollbar-none flex-1 min-w-0">
+            <div className="flex items-center gap-1 md:gap-1.5 flex-1 min-w-0 flex-wrap overflow-visible">
               {/* 风格/模式选择 */}
               <div className="relative flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                 <button
