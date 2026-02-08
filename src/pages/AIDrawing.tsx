@@ -61,8 +61,9 @@ const languageOptions = [
 
 // 手绘子风格选项
 const sketchSubStyles = [
-  { id: "cute", name: "可爱风", icon: "🎀", prompt: "cute kawaii style, adorable, soft colors, rounded shapes" },
-  { id: "chibi", name: "Q版", icon: "🧸", prompt: "chibi style, super deformed, big head small body, playful" },
+  { id: "cute", name: "可爱风", icon: "🎀", prompt: "kawaii aesthetic, pastel colors, soft lighting, gentle features, dreamy atmosphere, delicate details, sweet and tender mood" },
+  { id: "chibi", name: "Q版", icon: "🧸", prompt: "chibi proportions, oversized head 2:1 ratio, tiny body, exaggerated expressions, cartoon style, bold outlines, simplified features" },
+  { id: "infographic", name: "图文并茂", icon: "📊", prompt: "infographic style with clear text labels, readable typography, well-organized layout, text and graphics combined, informative design, clean fonts, proper text hierarchy" },
   { id: "minimalist", name: "简约风", icon: "✨", prompt: "minimalist clean style, simple lines, elegant, less is more" },
   { id: "watercolor", name: "水彩风", icon: "🎨", prompt: "watercolor style, soft washes, flowing colors, artistic" },
   { id: "vintage", name: "复古风", icon: "📜", prompt: "vintage retro style, nostalgic, warm tones, classic feel" },
