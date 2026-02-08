@@ -353,7 +353,7 @@ const AIDrawing = () => {
   };
 
   return (
-    <PageLayout className="py-4 md:py-8">
+    <PageLayout className="py-2 md:py-8">
       <div onClick={closeAllMenus}>
         {/* 返回按钮 - 仅桌面端显示 */}
         <button
@@ -365,18 +365,18 @@ const AIDrawing = () => {
         </button>
 
         {/* 页面标题 */}
-        <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
-          <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center flex-shrink-0">
-            <ImageIcon className="w-6 h-6 md:w-7 md:h-7 text-purple-600" />
+        <div className="flex items-center gap-2.5 md:gap-4 mb-4 md:mb-8">
+          <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center flex-shrink-0">
+            <ImageIcon className="w-5 h-5 md:w-7 md:h-7 text-purple-600" />
           </div>
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-foreground">AI 绘图</h1>
-            <p className="text-muted-foreground text-sm">描述你想要的画面，AI 帮你实现</p>
+            <h1 className="text-lg md:text-2xl font-bold text-foreground">AI 绘图</h1>
+            <p className="text-muted-foreground text-xs md:text-sm">描述你想要的画面，AI 帮你实现</p>
           </div>
         </div>
 
         {/* 输入卡片 */}
-        <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5 mb-4 md:mb-6 shadow-lg">
+        <div className="glass-card rounded-xl md:rounded-2xl p-3 md:p-5 mb-4 md:mb-6 shadow-lg">
           {/* 已上传的图片预览 */}
           {imagePreviews.length > 0 && (
             <div className="mb-4">
@@ -426,19 +426,19 @@ const AIDrawing = () => {
             onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={currentStyleHasPrompt ? "已选择预设风格，直接上传图片即可（也可输入补充说明）" : "输入你想要可视化的内容..."}
-            rows={3}
+            rows={2}
             enterKeyHint="send"
-            className="w-full bg-transparent text-foreground placeholder:text-muted-foreground resize-none focus:outline-none text-sm md:text-base leading-relaxed"
+            className="w-full bg-transparent text-foreground placeholder:text-muted-foreground resize-none focus:outline-none text-xs md:text-base leading-relaxed"
           />
 
           {/* 分隔线 */}
-          <div className="border-t border-border/50 my-3" />
+          <div className="border-t border-border/50 my-2 md:my-3" />
 
           {/* 工具栏 */}
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-1.5 md:gap-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1 md:gap-1.5 overflow-x-auto scrollbar-none flex-1 min-w-0">
               {/* 风格/模式选择 */}
-              <div className="relative" onClick={(e) => e.stopPropagation()}>
+              <div className="relative flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => {
                     setShowStyleMenu(!showStyleMenu);
@@ -447,15 +447,15 @@ const AIDrawing = () => {
                     setShowLanguageMenu(false);
                   }}
                   className={cn(
-                    "flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 rounded-full text-sm transition-all duration-200 border touch-target",
+                    "flex items-center gap-1 md:gap-1.5 px-2.5 md:px-3 py-1.5 rounded-full text-xs md:text-sm transition-all duration-200 border touch-target",
                     selectedStyle === "free"
                       ? "bg-secondary/50 text-muted-foreground hover:bg-secondary border-transparent"
                       : "bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100"
                   )}
                 >
                   <span>{stylePresets.find(s => s.id === selectedStyle)?.icon || "✍️"}</span>
-                  <span>{stylePresets.find(s => s.id === selectedStyle)?.name || "自由模式"}</span>
-                  <ChevronDown className={cn("w-3.5 h-3.5 transition-transform duration-200", showStyleMenu && "rotate-180")} />
+                  <span className="hidden sm:inline">{stylePresets.find(s => s.id === selectedStyle)?.name || "自由模式"}</span>
+                  <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showStyleMenu && "rotate-180")} />
                 </button>
                 {showStyleMenu && (
                   <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 min-w-[140px] animate-dropdown">
@@ -480,7 +480,7 @@ const AIDrawing = () => {
               </div>
 
               {/* 设计风格选择 - 所有模式都显示 */}
-              <div className="relative" onClick={(e) => e.stopPropagation()}>
+              <div className="relative flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => {
                     setShowSketchSubStyleMenu(!showSketchSubStyleMenu);
@@ -490,15 +490,15 @@ const AIDrawing = () => {
                     setShowLanguageMenu(false);
                   }}
                   className={cn(
-                    "flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 rounded-full text-sm transition-all duration-200 border touch-target",
+                    "flex items-center gap-1 md:gap-1.5 px-2.5 md:px-3 py-1.5 rounded-full text-xs md:text-sm transition-all duration-200 border touch-target",
                     selectedSketchSubStyle
                       ? "bg-pink-50 border-pink-200 text-pink-700 hover:bg-pink-100"
                       : "bg-secondary/50 text-muted-foreground hover:bg-secondary border-transparent"
                   )}
                 >
                   <span>{sketchSubStyles.find(s => s.id === selectedSketchSubStyle)?.icon || "🎭"}</span>
-                  <span>{sketchSubStyles.find(s => s.id === selectedSketchSubStyle)?.name || "设计风格"}</span>
-                  <ChevronDown className={cn("w-3.5 h-3.5 transition-transform duration-200", showSketchSubStyleMenu && "rotate-180")} />
+                  <span className="hidden sm:inline">{sketchSubStyles.find(s => s.id === selectedSketchSubStyle)?.name || "设计风格"}</span>
+                  <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showSketchSubStyleMenu && "rotate-180")} />
                 </button>
                 {showSketchSubStyleMenu && (
                   <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 min-w-[140px] animate-dropdown">
@@ -536,7 +536,7 @@ const AIDrawing = () => {
               </div>
 
               {/* 比例选择 */}
-              <div className="relative" onClick={(e) => e.stopPropagation()}>
+              <div className="relative flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => {
                     setShowRatioMenu(!showRatioMenu);
@@ -544,11 +544,11 @@ const AIDrawing = () => {
                     setShowLineMenu(false);
                     setShowLanguageMenu(false);
                   }}
-                  className="flex items-center gap-1 md:gap-1.5 px-2.5 md:px-3 py-2 rounded-full text-sm bg-secondary/50 text-muted-foreground hover:bg-secondary transition-all duration-200 border border-transparent touch-target"
+                  className="flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-full text-xs md:text-sm bg-secondary/50 text-muted-foreground hover:bg-secondary transition-all duration-200 border border-transparent touch-target"
                 >
-                  <Ratio className="w-4 h-4" />
+                  <Ratio className="w-3.5 h-3.5" />
                   <span>{selectedRatio}</span>
-                  <ChevronDown className={cn("w-3.5 h-3.5 transition-transform duration-200", showRatioMenu && "rotate-180")} />
+                  <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showRatioMenu && "rotate-180")} />
                 </button>
                 {showRatioMenu && (
                   <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 min-w-[100px] animate-dropdown">
@@ -572,7 +572,7 @@ const AIDrawing = () => {
               </div>
 
               {/* 线路选择 */}
-              <div className="relative" onClick={(e) => e.stopPropagation()}>
+              <div className="relative flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => {
                     setShowLineMenu(!showLineMenu);
@@ -580,11 +580,11 @@ const AIDrawing = () => {
                     setShowRatioMenu(false);
                     setShowLanguageMenu(false);
                   }}
-                  className="flex items-center gap-1 md:gap-1.5 px-2.5 md:px-3 py-2 rounded-full text-sm bg-secondary/50 text-muted-foreground hover:bg-secondary transition-all duration-200 border border-transparent touch-target"
+                  className="flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-full text-xs md:text-sm bg-secondary/50 text-muted-foreground hover:bg-secondary transition-all duration-200 border border-transparent touch-target"
                 >
-                  <Zap className="w-4 h-4" />
-                  <span>{lineOptions.find(l => l.id === selectedLine)?.name}</span>
-                  <ChevronDown className={cn("w-3.5 h-3.5 transition-transform duration-200", showLineMenu && "rotate-180")} />
+                  <Zap className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">{lineOptions.find(l => l.id === selectedLine)?.name}</span>
+                  <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showLineMenu && "rotate-180")} />
                 </button>
                 {showLineMenu && (
                   <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 min-w-[110px] animate-dropdown">
@@ -608,7 +608,7 @@ const AIDrawing = () => {
               </div>
 
               {/* 分隔符 */}
-              <div className="w-px h-5 bg-border mx-0.5 md:mx-1 hidden sm:block" />
+              <div className="w-px h-4 bg-border mx-0.5 hidden sm:block" />
 
               {/* 上传图片按钮 */}
               <input
@@ -621,10 +621,10 @@ const AIDrawing = () => {
               />
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2.5 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground transition-all duration-200 touch-target"
+                className="p-2 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground transition-all duration-200 touch-target flex-shrink-0"
                 title="上传参考图"
               >
-                <Image className="w-4 h-4" />
+                <Image className="w-3.5 h-3.5" />
               </button>
 
               {/* 上传素材到素材库 */}
@@ -638,14 +638,14 @@ const AIDrawing = () => {
               />
               <button
                 onClick={() => materialInputRef.current?.click()}
-                className="p-2.5 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground transition-all duration-200 touch-target"
+                className="p-2 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground transition-all duration-200 touch-target flex-shrink-0"
                 title="上传素材到素材库"
               >
-                <FolderUp className="w-4 h-4" />
+                <FolderUp className="w-3.5 h-3.5" />
               </button>
 
               {/* 语言选择 */}
-              <div className="relative" onClick={(e) => e.stopPropagation()}>
+              <div className="relative flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => {
                     setShowLanguageMenu(!showLanguageMenu);
@@ -653,10 +653,10 @@ const AIDrawing = () => {
                     setShowRatioMenu(false);
                     setShowLineMenu(false);
                   }}
-                  className="p-2.5 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground transition-all duration-200 touch-target"
+                  className="p-2 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground transition-all duration-200 touch-target"
                   title="选择语言"
                 >
-                  <Languages className="w-4 h-4" />
+                  <Languages className="w-3.5 h-3.5" />
                 </button>
                 {showLanguageMenu && (
                   <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 min-w-[120px] animate-dropdown">
@@ -682,19 +682,19 @@ const AIDrawing = () => {
             </div>
 
             {/* 右侧按钮 */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               {/* 一键优化 */}
               <button
                 onClick={optimizePrompt}
                 disabled={!prompt.trim()}
                 className={cn(
-                  "hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-full text-sm transition-all duration-200 border touch-target",
+                  "hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs md:text-sm transition-all duration-200 border touch-target",
                   prompt.trim()
                     ? "bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
                     : "bg-secondary/30 border-transparent text-muted-foreground/50 cursor-not-allowed"
                 )}
               >
-                <Wand2 className="w-4 h-4" />
+                <Wand2 className="w-3.5 h-3.5" />
                 <span>一键优化</span>
               </button>
 
@@ -703,7 +703,7 @@ const AIDrawing = () => {
                 onClick={handleGenerate}
                 disabled={(!prompt.trim() && imagePreviews.length === 0 && !currentStyleHasPrompt) || isGenerating}
                 className={cn(
-                  "w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 touch-target flex-shrink-0",
+                  "w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all duration-200 touch-target flex-shrink-0",
                   ((prompt.trim() || imagePreviews.length > 0 || currentStyleHasPrompt) && !isGenerating)
                     ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)]"
                     : "bg-secondary/50 text-muted-foreground/50 cursor-not-allowed"
@@ -711,9 +711,9 @@ const AIDrawing = () => {
                 aria-label="开始生成"
               >
                 {isGenerating ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
                 ) : (
-                  <Send className="w-5 h-5" />
+                  <Send className="w-4 h-4 md:w-5 md:h-5" />
                 )}
               </button>
             </div>
@@ -722,9 +722,9 @@ const AIDrawing = () => {
 
         {/* 生成结果区域 */}
         {(isGenerating || generatedImage) && (
-          <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-6">
-            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-              <h2 className="text-base md:text-lg font-semibold text-foreground flex items-center gap-2">
+          <div className="glass-card rounded-xl md:rounded-2xl p-3 md:p-6">
+            <div className="flex items-center justify-between mb-3 md:mb-4 flex-wrap gap-2">
+              <h2 className="text-sm md:text-lg font-semibold text-foreground flex items-center gap-1.5 md:gap-2">
                 <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-purple-500" />
                 生成结果
               </h2>
@@ -743,9 +743,9 @@ const AIDrawing = () => {
             </div>
 
             {isGenerating ? (
-              <div className="flex flex-col items-center justify-center py-12 md:py-16">
-                <Loader2 className="w-10 h-10 md:w-12 md:h-12 text-purple-500 animate-spin mb-4" />
-                <p className="text-muted-foreground text-sm md:text-base">正在生成中...</p>
+              <div className="flex flex-col items-center justify-center py-8 md:py-16">
+                <Loader2 className="w-8 h-8 md:w-12 md:h-12 text-purple-500 animate-spin mb-3 md:mb-4" />
+                <p className="text-muted-foreground text-xs md:text-base">正在生成中...</p>
               </div>
             ) : generatedImage ? (
               <div className="rounded-lg md:rounded-xl overflow-hidden bg-secondary/30 p-2 md:p-4">
@@ -761,11 +761,11 @@ const AIDrawing = () => {
 
         {/* 空状态提示 */}
         {!isGenerating && !generatedImage && (
-          <div className="text-center py-12 md:py-16">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-secondary/50 flex items-center justify-center mx-auto mb-4">
-              <Sparkles className="w-8 h-8 md:w-10 md:h-10 text-muted-foreground/50" />
+          <div className="text-center py-8 md:py-16">
+            <div className="w-14 h-14 md:w-20 md:h-20 rounded-full bg-secondary/50 flex items-center justify-center mx-auto mb-3 md:mb-4">
+              <Sparkles className="w-7 h-7 md:w-10 md:h-10 text-muted-foreground/50" />
             </div>
-            <p className="text-muted-foreground text-sm md:text-base">输入描述或上传参考图片开始创作</p>
+            <p className="text-muted-foreground text-xs md:text-base">输入描述或上传参考图片开始创作</p>
           </div>
         )}
       </div>
