@@ -21,6 +21,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { generateImage } from "@/lib/ai-image";
+import { compressImage } from "@/lib/image-utils";
 
 // 提示词类型
 interface PromptPreset {
@@ -141,24 +142,37 @@ const AIDrawing = () => {
   // 获取当前风格是否有预设提示词（需要上传图片模式）
   const currentStyleHasPrompt = stylePresets.find(s => s.id === selectedStyle)?.prompt;
 
-  // 处理图片上传（支持多张）
-  const handleImageUpload = (files: FileList | null) => {
+  // 处理图片上传（支持多张，自动压缩）
+  const handleImageUpload = async (files: FileList | null) => {
     if (!files) return;
 
     const maxImages = 5;
     const remainingSlots = maxImages - imagePreviews.length;
     const filesToProcess = Array.from(files).slice(0, remainingSlots);
 
-    filesToProcess.forEach(file => {
+    for (const file of filesToProcess) {
       if (file.type.startsWith("image/")) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          setImagePreviews(prev => [...prev, e.target?.result as string]);
+        try {
+          // 压缩图片：最大 1024px，质量 80%
+          const compressedBase64 = await compressImage(file, {
+            maxWidth: 1024,
+            maxHeight: 1024,
+            quality: 0.8,
+          });
+          setImagePreviews(prev => [...prev, compressedBase64]);
           setGeneratedImage(null);
-        };
-        reader.readAsDataURL(file);
+        } catch (err) {
+          console.error('图片压缩失败:', err);
+          // 压缩失败时使用原图
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            setImagePreviews(prev => [...prev, e.target?.result as string]);
+            setGeneratedImage(null);
+          };
+          reader.readAsDataURL(file);
+        }
       }
-    });
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

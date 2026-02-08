@@ -45,14 +45,25 @@ export async function generateImage(params: ImageGenerationParams): Promise<Imag
       'Authorization': `Bearer ${supabaseAnonKey}`,
     };
 
+    // 设置 120 秒超时（AI 图像生成可能需要较长时间）
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 120000);
+
     const response = await fetch(getEdgeFunctionUrl(), {
       method: 'POST',
       headers,
       body: JSON.stringify(params),
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: response.statusText }));
+      // 处理 504 Gateway Timeout
+      if (response.status === 504) {
+        throw new Error('请求超时，AI 服务响应过慢。请切换到高级线路或稍后重试');
+      }
       throw new Error(errorData.error || `请求失败: ${response.status}`);
     }
 
@@ -60,6 +71,13 @@ export async function generateImage(params: ImageGenerationParams): Promise<Imag
     return result;
 
   } catch (error) {
+    // 处理 AbortError（前端超时）
+    if (error instanceof Error && error.name === 'AbortError') {
+      return {
+        success: false,
+        error: '请求超时，AI 服务响应过慢。请切换到高级线路或稍后重试',
+      };
+    }
     return {
       success: false,
       error: error instanceof Error ? error.message : '生成图像失败',

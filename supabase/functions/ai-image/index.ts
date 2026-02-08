@@ -26,9 +26,11 @@ serve(async (req) => {
     const resolvedLine = getImageProvider(line)
     const providerConfig = getProviderConfig(resolvedLine)
     const providerApiKey = Deno.env.get(providerConfig.apiKeyEnv)
+    const providerName = resolvedLine === "premium" ? "ZenMux" : "BLTCY"
 
     if (!providerApiKey) {
-      throw new Error(`${providerConfig.apiKeyEnv} not configured`)
+      console.error(`[ai-image] Missing API key: ${providerConfig.apiKeyEnv} for ${providerName} provider`)
+      throw new Error(`图像服务配置错误：${providerName} API Key 未配置，请联系管理员`)
     }
 
     // 构建图像生成提示词
@@ -167,8 +169,22 @@ Flat-lay product showcase requirements:
 
     if (!response.ok) {
       const errorText = await response.text()
-      const providerName = resolvedLine === "premium" ? "ZenMux" : "BLTCY"
-      throw new Error(`${providerName} API error: ${response.status} - ${errorText}`)
+      console.error(`[ai-image] ${providerName} API error: ${response.status} - ${errorText}`)
+
+      // 区分不同的错误类型，提供更友好的错误信息
+      if (response.status === 401) {
+        throw new Error(`${providerName} 认证失败：API Key 无效或已过期，请联系管理员更新`)
+      } else if (response.status === 403) {
+        throw new Error(`${providerName} 访问被拒绝：API Key 权限不足`)
+      } else if (response.status === 429) {
+        throw new Error(`${providerName} 请求过于频繁，请稍后再试`)
+      } else if (response.status === 546) {
+        throw new Error(`BLTCY 服务暂时不可用（错误码 546），请切换到高级线路或稍后重试`)
+      } else if (response.status >= 500) {
+        throw new Error(`${providerName} 服务暂时不可用，请稍后再试`)
+      } else {
+        throw new Error(`${providerName} API 错误: ${response.status} - ${errorText}`)
+      }
     }
 
     const data = await response.json()
