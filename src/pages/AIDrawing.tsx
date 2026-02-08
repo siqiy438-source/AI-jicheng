@@ -33,10 +33,96 @@ interface PromptPreset {
   description?: string;
 }
 
-// 默认风格选项（本地）- 自由模式放第一个
-const defaultStylePresets = [
-  { id: "free", name: "自由模式", icon: "✍️" },
-  { id: "sketch", name: "手绘风格", icon: "🖌️" },
+// 内容框架选项（第一栏）- 定义内容的组织结构
+const contentFrameworks = [
+  {
+    id: "free",
+    name: "自由模式",
+    icon: "✍️",
+    prompt: "" // 无框架限制
+  },
+  {
+    id: "sketch",
+    name: "手绘风格",
+    icon: "🖌️",
+    prompt: "Create a hand-drawn style poster illustration.\n\n【STYLE - Hand-drawn Journal Aesthetic】\n- Hand-drawn illustration style, like a cute travel journal or planner\n- Clean sketch aesthetic with soft pastel colors\n- Doodle icons and decorative elements\n- Whimsical hand-lettering for titles and text\n- Cozy, warm illustration style\n- White or light cream background\n\n【COMPOSITION】\n- Clear visual hierarchy with main title at top\n- Organized sections with cute dividers\n- Small illustrated icons and doodles scattered throughout\n- Balance between text areas and illustrations\n- Easy to read layout\n\n【TECHNICAL REQUIREMENTS】\n1. Soft, harmonious color palette (pastels preferred)\n2. Clean lines, not messy or over-sketched\n3. Include relevant illustrated elements based on the topic\n4. Professional but approachable hand-drawn look\n5. NO photorealistic elements\n6. NO AI-generated perfection - keep it warm and human\n\nUser request: {user_prompt}"
+  },
+  {
+    id: "comic-story",
+    name: "漫画故事",
+    icon: "📖",
+    prompt: "manga/comic story narrative layout with SEQUENTIAL PANELS: 1) 4-8 comic panels arranged in reading order (left-to-right, top-to-bottom), 2) each panel tells part of the story with characters, scenes, and actions, 3) speech bubbles and thought bubbles with dialogue/narration, 4) expressive character faces showing emotions, 5) dynamic poses and action lines for movement, 6) panel transitions showing story progression, 7) sound effects text (e.g., 'BOOM', 'whoosh'), 8) varied panel sizes for pacing and emphasis, 9) clear narrative flow that tells a complete mini-story about the topic."
+  },
+  {
+    id: "flowchart",
+    name: "流程图",
+    icon: "🔄",
+    prompt: "professional flowchart diagram structure: 1) MULTIPLE BOXES with clear directional arrows showing flow and relationships, 2) central main topic box, 3) varied box shapes and sizes for visual hierarchy, 4) mix of solid and dashed connecting lines, 5) color-coded sections, 6) organized layout showing step-by-step process or relationships."
+  },
+  {
+    id: "mindmap",
+    name: "思维导图",
+    icon: "🧠",
+    prompt: "comprehensive mind map structure: 1) central concept box with large emphasis, 2) radiating branches where each node connects to related concepts, 3) visual connections using arrows and lines (solid and dashed), 4) color coding for different branches, 5) varied sizes for hierarchy, 6) dense information layout showing relationships and connections."
+  },
+  {
+    id: "infographic",
+    name: "图文并茂",
+    icon: "📊",
+    prompt: "detailed infographic layout: 1) MULTIPLE BOXES each containing BOTH relevant illustrations/icons AND concise text descriptions (60% images, 40% text), 2) clear hierarchical structure with main title at top, 3) various sized rectangular frames connected by arrows, 4) visual hierarchy using different box sizes and colors, 5) proper visual labels and annotations, 6) organized layout showing relationships and flow."
+  },
+  {
+    id: "fashion-outfit",
+    name: "女装搭配",
+    icon: "👗",
+    prompt: "创建一张专业的女装平铺搭配图(flat lay)。\n\n【关键布局规则 - 必须遵守】\n- 每件服装单品必须单独、独立展示\n- 所有单品按网格布局排列，单品之间必须有清晰的间隔\n- 禁止重叠、禁止层叠、禁止堆叠\n- 每件单品平铺展示，从上到下完整可见\n- 布局参考：杂志lookbook风格、Pinterest穿搭网格图\n\n【女装风格要求】\n- 配饰：精致优雅（珍珠耳环、细链项链、丝巾、精致手表、时尚墨镜等）\n- 鞋子：女性化风格（高跟鞋、芭蕾平底鞋、尖头鞋、优雅凉鞋、小白鞋等）\n- 整体风格：优雅、精致、女人味、时髦感\n\n【技术要求】\n1. 分析上传服装的颜色和风格，选择和谐的纯色背景（柔和高级色调如奶油色、浅灰色、淡粉色）\n2. 根据服装风格，智能添加：\n   - 一件女性配饰（选择最能提升整体精致感的）\n   - 一双女鞋（选择最能完善整套look的）\n3. 所有单品分散平铺排列，每件单品之间保持清晰间隔\n4. 每件单品带柔和自然投影，专业产品摄影质感\n5. 无文字、无水印、无模特、无人台\n6. 竖版 9:16 比例\n\n风格参考：Pinterest穿搭平铺图、时尚杂志单品展示、lookbook造型图"
+  },
+  {
+    id: "outfit-model",
+    name: "女装搭配模特图",
+    icon: "👗",
+    prompt: "Create a professional flat-lay fashion outfit image in elegant layered style.\n\n【LAYOUT - CRITICAL - Follow the reference image style exactly】\n- Jacket/Outerwear: Open and spread wide at the TOP, showing inner lining if any\n- Inner top/T-shirt: Positioned UNDER the jacket, centered, partially visible\n- Pants: Laid BELOW, with the waistband slightly tucked under the inner top\n- Shoes: ONE pair placed at the bottom corner, angled naturally\n- Accessory: Add ONE small accessory (watch, bracelet, or sunglasses) near the shoes\n\n【COMPOSITION STYLE】\n- Items should OVERLAP naturally like a styled flat-lay, NOT separated in a grid\n- Create visual depth with layering: outer > inner > bottom\n- Overall aesthetic: Pinterest outfit inspo, fashion blogger style, Instagram flatlay\n\n【COLOR & BACKGROUND】\n- Analyze uploaded clothing colors and choose a harmonious SOLID background\n- Background options: warm beige, soft cream, light gray, or muted blush\n- The background should complement the clothing palette\n\n【TECHNICAL REQUIREMENTS】\n1. Based on the uploaded clothing style, intelligently ADD:\n   - ONE pair of matching shoes (sneakers, loafers, heels - whatever fits the vibe)\n   - ONE small accessory that elevates the look\n2. Soft natural shadows for depth and dimension\n3. Professional product photography quality, clean and polished\n4. NO text, NO watermarks, NO models, NO mannequins\n5. Vertical 9:16 aspect ratio\n\nUser uploaded clothing items: {user_prompt}"
+  },
+];
+
+// 视觉风格选项（第二栏）- 定义视觉呈现风格
+const visualStyles = [
+  {
+    id: "default",
+    name: "默认风格",
+    icon: "🎭",
+    prompt: "" // 无特殊风格
+  },
+  {
+    id: "cute",
+    name: "可爱风",
+    icon: "🎀",
+    prompt: "Visual style: kawaii cute aesthetic with 1) pastel colors (pink, lavender, mint, peach), 2) rounded shapes and soft edges, 3) cute decorative elements (hearts, stars, sparkles), 4) soft lighting and gentle features, 5) dreamy atmosphere, 6) playful and friendly appearance."
+  },
+  {
+    id: "chibi",
+    name: "Q版",
+    icon: "🧸",
+    prompt: "Visual style: chibi Q-version cartoon style with 1) bold outlines and simplified features, 2) oversized heads and small bodies, 3) exaggerated expressions, 4) bright vibrant colors, 5) playful and cute character representations, 6) cartoon aesthetic with rounded shapes."
+  },
+  {
+    id: "minimalist",
+    name: "简约风",
+    icon: "✨",
+    prompt: "Visual style: minimalist clean aesthetic with 1) simple elegant lines and geometric shapes, 2) monochromatic or limited color palette (black, white, one accent color), 3) plenty of white space for clarity, 4) clean straight lines, 5) 'less is more' principle, 6) modern and sophisticated look."
+  },
+  {
+    id: "watercolor",
+    name: "水彩风",
+    icon: "🎨",
+    prompt: "Visual style: watercolor artistic aesthetic with 1) soft watercolor washes and flowing colors, 2) artistic color blending and gradients, 3) watercolor splashes and organic textures, 4) soft edges and natural flow, 5) painted artistic quality, 6) gentle and artistic appearance."
+  },
+  {
+    id: "vintage",
+    name: "复古风",
+    icon: "📜",
+    prompt: "Visual style: vintage retro aesthetic with 1) nostalgic warm tones (sepia, cream, brown, muted colors), 2) ornate decorative borders and flourishes, 3) aged paper texture, 4) classic typography, 5) retro ornamental elements, 6) nostalgic and timeless appearance."
+  },
 ];
 
 // 比例选项
@@ -59,18 +145,6 @@ const languageOptions = [
   { id: "en", name: "English", flag: "🇺🇸" },
 ];
 
-// 手绘子风格选项
-const sketchSubStyles = [
-  { id: "cute", name: "可爱风", icon: "🎀", prompt: "kawaii cute aesthetic infographic flowchart with IMAGES AND TEXT COMBINED: 1) MULTIPLE BOXES each containing BOTH relevant illustrations/icons AND concise text descriptions (60% images, 40% text), 2) pastel colors (pink, lavender, mint, peach), 3) main title box with cute character illustration related to the topic, 4) each box must include topic-related cute drawings alongside brief text, 5) rounded rectangular frames connected by cute arrows with hearts or stars, 6) soft lighting and gentle features, 7) dreamy atmosphere with sparkles, 8) visual hierarchy using different box sizes, 9) thematic decorative elements in cute style matching the subject matter (e.g., bamboo for pandas, gears for tech, books for education), 10) organized layout showing relationships. CRITICAL: Balance images with text - every box needs relevant illustrations that match the topic, not generic decorations" },
-  { id: "chibi", name: "Q版", icon: "🧸", prompt: "chibi Q-version style infographic flowchart with IMAGES AND TEXT COMBINED: 1) MULTIPLE BOXES each containing BOTH chibi character illustrations/icons AND brief text (60% images, 40% text), 2) cartoon style with bold outlines, 3) main title box with large chibi character related to the topic, 4) each box must include topic-related Q-version drawings alongside concise text, 5) various sized boxes connected by playful arrows, 6) oversized decorative elements and simplified features, 7) bright vibrant colors for visual hierarchy, 8) cute chibi representations of the actual subject matter (e.g., chibi pandas for animal topics, chibi robots for tech topics), 9) organized layout showing flow and relationships, 10) comprehensive visual information structure. CRITICAL: Balance images with text - every box needs relevant chibi illustrations that match the topic" },
-  { id: "infographic", name: "图文并茂", icon: "📊", prompt: "detailed infographic flowchart with IMAGES AND TEXT COMBINED: 1) MULTIPLE BOXES each containing BOTH relevant illustrations/icons AND concise text descriptions (60% images, 40% text), 2) clear hierarchical structure with main title and illustration at top, 3) various sized rectangular frames connected by arrows (solid and dashed lines), 4) each box must include topic-related drawings alongside brief explanatory text, 5) visual hierarchy using different box sizes and colors, 6) hand-drawn vintage aesthetic with decorative elements naturally matching the theme (e.g., bamboo and compass for nature/travel, circuits for tech, books for education), 7) proper visual labels and annotations, 8) organized layout showing relationships and flow, 9) key points highlighted with special illustrations and borders, 10) comprehensive visual mind map structure. CRITICAL: Balance images with text - every box needs relevant illustrations that match the specific topic, not generic decorations" },
-  { id: "flowchart", name: "流程图", icon: "🔄", prompt: "professional flowchart diagram with IMAGES AND TEXT COMBINED: 1) MULTIPLE BOXES each containing BOTH relevant icons/illustrations AND brief text (60% images, 40% text), 2) central main topic box with prominent illustration, 3) each box must include topic-related drawings alongside concise descriptions, 4) clear directional arrows showing flow and relationships, 5) mix of solid and dashed connecting lines, 6) varied box shapes and sizes for visual hierarchy, 7) color-coded sections with matching icons, 8) decorative thematic illustrations naturally integrated and matching the subject, 9) hand-drawn sketch aesthetic with clean readable text, 10) comprehensive visual information architecture. CRITICAL: Balance images with text - every box needs relevant illustrations that match the topic" },
-  { id: "mindmap", name: "思维导图", icon: "🧠", prompt: "comprehensive mind map with IMAGES AND TEXT COMBINED: 1) MULTIPLE BOXES each containing BOTH relevant illustrations/icons AND brief text (60% images, 40% text), 2) central concept box with large emphasized illustration, 3) radiating branches where each node includes topic-related drawings alongside concise text, 4) visual connections using arrows and lines (solid and dashed), 5) color coding for different branches with matching illustrations, 6) decorative elements naturally matching the subject matter, 7) hand-drawn artistic style with vintage feel, 8) varied illustration sizes for hierarchy, 9) visual annotations and labels throughout, 10) dense visual information layout showing relationships. CRITICAL: Balance images with text - every box needs relevant illustrations that match the topic" },
-  { id: "minimalist", name: "简约风", icon: "✨", prompt: "minimalist clean infographic flowchart with IMAGES AND TEXT COMBINED: 1) MULTIPLE BOXES each containing BOTH simple icons/illustrations AND brief text (60% images, 40% text), 2) simple elegant lines and geometric shapes, 3) main title box with minimalist icon at top, 4) each box must include topic-related simple line drawings or icons alongside concise text, 5) various sized boxes connected by clean straight arrows, 6) monochromatic or limited color palette (black, white, one accent color), 7) plenty of white space for clarity, 8) visual hierarchy through size and spacing, 9) subtle simple icons naturally matching the subject following 'less is more' principle, 10) organized layout showing relationships. CRITICAL: Balance images with text - every box needs relevant simple illustrations or icons that match the topic" },
-  { id: "watercolor", name: "水彩风", icon: "🎨", prompt: "watercolor artistic infographic flowchart with IMAGES AND TEXT COMBINED: 1) MULTIPLE BOXES each containing BOTH watercolor illustrations AND brief text (60% images, 40% text), 2) soft watercolor washes and flowing colors, 3) main title box with artistic watercolor illustration, 4) each box must include topic-related watercolor paintings alongside concise text, 5) various sized frames with watercolor borders connected by flowing arrows, 6) artistic color blending and gradients, 7) watercolor splashes and decorative illustrations naturally matching the theme, 8) visual hierarchy using color intensity and box sizes, 9) organic shapes and soft edges with painted elements, 10) organized layout showing relationships. CRITICAL: Balance images with text - every box needs relevant watercolor illustrations that match the topic" },
-  { id: "vintage", name: "复古风", icon: "📜", prompt: "vintage retro infographic flowchart with IMAGES AND TEXT COMBINED: 1) MULTIPLE BOXES each containing BOTH vintage-style illustrations AND brief text (60% images, 40% text), 2) nostalgic warm tones (sepia, cream, brown, muted colors), 3) main title box with ornate vintage illustration at top, 4) each box must include topic-related vintage drawings alongside concise text, 5) various sized decorative frames connected by classic arrows, 6) vintage ornamental borders and flourishes, 7) aged paper texture and classic typography, 8) visual hierarchy using ornate illustrations and box sizes, 9) retro themed illustrations naturally matching the subject matter (e.g., old compass for travel, vintage stamps for mail, antique objects for history), 10) organized layout showing relationships. CRITICAL: Balance images with text - every box needs relevant vintage-style illustrations that match the topic" },
-];
-
 
 const AIDrawing = () => {
   const navigate = useNavigate();
@@ -81,8 +155,10 @@ const AIDrawing = () => {
   // 状态管理
   const [prompt, setPrompt] = useState("");
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [selectedStyle, setSelectedStyle] = useState<string | null>("free");
-  const [showStyleMenu, setShowStyleMenu] = useState(false);
+  const [selectedFramework, setSelectedFramework] = useState<string>("free"); // 内容框架
+  const [selectedVisualStyle, setSelectedVisualStyle] = useState<string>("default"); // 视觉风格
+  const [showFrameworkMenu, setShowFrameworkMenu] = useState(false);
+  const [showVisualStyleMenu, setShowVisualStyleMenu] = useState(false);
   const [selectedRatio, setSelectedRatio] = useState("4:3");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
@@ -91,15 +167,11 @@ const AIDrawing = () => {
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [selectedLine, setSelectedLine] = useState<"standard" | "premium">("standard");
   const [selectedLanguage, setSelectedLanguage] = useState("zh");
-  const [selectedSketchSubStyle, setSelectedSketchSubStyle] = useState<string | null>(null);
-  const [showSketchSubStyleMenu, setShowSketchSubStyleMenu] = useState(false);
 
-  // 风格预设列表（从数据库加载）
-  const [stylePresets, setStylePresets] = useState<PromptPreset[]>(
-    defaultStylePresets.map(s => ({ ...s, prompt: '' }))
-  );
+  // 风格预设列表（从数据库加载）- 保留用于兼容性
+  const [stylePresets, setStylePresets] = useState<PromptPreset[]>([]);
 
-  // 从 Supabase 加载提示词
+  // 从 Supabase 加载提示词（保留用于兼容性）
   useEffect(() => {
     const loadPrompts = async () => {
       try {
@@ -115,21 +187,14 @@ const AIDrawing = () => {
         }
 
         if (data && data.length > 0) {
-          // 合并默认选项和数据库选项（去重，避免重复 key）
-          const defaultIds = new Set(defaultStylePresets.map(s => s.id));
-          const dbPresets: PromptPreset[] = data
-            .filter(item => !defaultIds.has(item.id))
-            .map(item => ({
+          const dbPresets: PromptPreset[] = data.map(item => ({
             id: item.id,
             name: item.name,
             icon: item.icon || '🎨',
             prompt: item.prompt,
             description: item.description,
           }));
-
-          // 默认选项放前面，数据库选项放后面
-          const defaultWithPrompt = defaultStylePresets.map(s => ({ ...s, prompt: '' }));
-          setStylePresets([...defaultWithPrompt, ...dbPresets]);
+          setStylePresets(dbPresets);
         }
       } catch (err) {
         console.error('加载提示词出错:', err);
@@ -138,25 +203,6 @@ const AIDrawing = () => {
 
     loadPrompts();
   }, []);
-
-  // 处理风格选择
-  const handleStyleSelect = (styleId: string) => {
-    setSelectedStyle(styleId);
-
-    // 如果选中的风格有预设提示词（来自数据库），清空输入框并设置提示
-    const selected = stylePresets.find(s => s.id === styleId);
-    if (selected?.prompt) {
-      // 不填充提示词，保持输入框为空或显示提示
-      setPrompt('');
-      // 如果是女装搭配类风格，自动设置比例为 9:16
-      if (styleId === 'fashion-outfit' || styleId === 'outfit-model') {
-        setSelectedRatio('9:16');
-      }
-    }
-  };
-
-  // 获取当前风格是否有预设提示词（需要上传图片模式）
-  const currentStyleHasPrompt = stylePresets.find(s => s.id === selectedStyle)?.prompt;
 
   // 处理图片上传（支持多张，自动压缩）
   const handleImageUpload = async (files: FileList | null) => {
@@ -222,20 +268,24 @@ const AIDrawing = () => {
 
   // 调用 AI 生成
   const handleGenerate = async () => {
-    if (!prompt.trim() && imagePreviews.length === 0 && !currentStyleHasPrompt) return;
+    if (!prompt.trim() && imagePreviews.length === 0) return;
     setIsGenerating(true);
     setGeneratedImage(null);
 
     try {
-      // 构建最终提示词，包含子风格和语言要求
+      // 构建最终提示词：组合内容框架 + 视觉风格
       let finalPrompt = prompt || "";
-      if (selectedSketchSubStyle) {
-        const subStyle = sketchSubStyles.find(s => s.id === selectedSketchSubStyle);
-        if (subStyle) {
-          finalPrompt = finalPrompt
-            ? `${subStyle.prompt}, ${finalPrompt}`
-            : subStyle.prompt;
-        }
+
+      // 添加内容框架提示词
+      const framework = contentFrameworks.find(f => f.id === selectedFramework);
+      if (framework && framework.prompt) {
+        finalPrompt = framework.prompt + (finalPrompt ? ` Content: ${finalPrompt}` : "");
+      }
+
+      // 添加视觉风格提示词
+      const visualStyle = visualStyles.find(s => s.id === selectedVisualStyle);
+      if (visualStyle && visualStyle.prompt) {
+        finalPrompt = finalPrompt + " " + visualStyle.prompt;
       }
 
       // 添加语言要求
@@ -245,13 +295,25 @@ const AIDrawing = () => {
 
       finalPrompt = `${languageInstruction} ${finalPrompt}`;
 
+      // 调试信息
+      console.log('=== AI 绘图调试信息 ===');
+      console.log('内容框架:', selectedFramework);
+      console.log('视觉风格:', selectedVisualStyle);
+      console.log('最终提示词长度:', finalPrompt.length);
+      console.log('最终提示词:', finalPrompt);
+      console.log('比例:', selectedRatio);
+      console.log('线路:', selectedLine);
+      console.log('图片数量:', imagePreviews.length);
+
       const data = await generateImage({
         prompt: finalPrompt,
-        styleId: currentStyleHasPrompt ? selectedStyle : undefined,
+        styleId: undefined, // 不再使用 styleId，完全由提示词控制
         aspectRatio: selectedRatio,
         images: imagePreviews.length > 0 ? imagePreviews : undefined,
         line: selectedLine,
       });
+
+      console.log('API 返回结果:', data);
 
       if (!data.success) {
         throw new Error(data.error || '生成失败');
@@ -352,9 +414,9 @@ const AIDrawing = () => {
   const closeAllMenus = () => {
     setShowRatioMenu(false);
     setShowLineMenu(false);
-    setShowStyleMenu(false);
+    setShowFrameworkMenu(false);
+    setShowVisualStyleMenu(false);
     setShowLanguageMenu(false);
-    setShowSketchSubStyleMenu(false);
   };
 
   // 处理素材上传
@@ -438,7 +500,7 @@ const AIDrawing = () => {
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={currentStyleHasPrompt ? "已选择预设风格，直接上传图片即可（也可输入补充说明）" : "输入你想要可视化的内容..."}
+            placeholder="输入你想要可视化的内容..."
             rows={2}
             enterKeyHint="send"
             className="w-full bg-transparent text-foreground placeholder:text-muted-foreground resize-none focus:outline-none text-base leading-relaxed"
@@ -450,98 +512,90 @@ const AIDrawing = () => {
           {/* 工具栏 */}
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1 md:gap-1.5 flex-1 min-w-0 flex-wrap overflow-visible">
-              {/* 风格/模式选择 */}
+              {/* 内容框架选择（第一栏） */}
               <div className="relative flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => {
-                    setShowStyleMenu(!showStyleMenu);
+                    setShowFrameworkMenu(!showFrameworkMenu);
+                    setShowVisualStyleMenu(false);
                     setShowRatioMenu(false);
                     setShowLineMenu(false);
                     setShowLanguageMenu(false);
                   }}
                   className={cn(
                     "flex items-center gap-1 md:gap-1.5 px-2.5 md:px-3 py-1.5 rounded-full text-xs md:text-sm transition-all duration-200 border touch-target",
-                    selectedStyle === "free"
+                    selectedFramework === "free"
                       ? "bg-secondary/50 text-muted-foreground hover:bg-secondary border-transparent"
                       : "bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100"
                   )}
                 >
-                  <span>{stylePresets.find(s => s.id === selectedStyle)?.icon || "✍️"}</span>
-                  <span className="hidden sm:inline">{stylePresets.find(s => s.id === selectedStyle)?.name || "自由模式"}</span>
-                  <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showStyleMenu && "rotate-180")} />
+                  <span>{contentFrameworks.find(f => f.id === selectedFramework)?.icon || "✍️"}</span>
+                  <span className="hidden sm:inline">{contentFrameworks.find(f => f.id === selectedFramework)?.name || "自由模式"}</span>
+                  <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showFrameworkMenu && "rotate-180")} />
                 </button>
-                {showStyleMenu && (
+                {showFrameworkMenu && (
                   <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 min-w-[140px] animate-dropdown">
-                    {stylePresets.map((style) => (
+                    {contentFrameworks.map((framework) => (
                       <button
-                        key={style.id}
+                        key={framework.id}
                         onClick={() => {
-                          handleStyleSelect(style.id);
-                          setShowStyleMenu(false);
+                          setSelectedFramework(framework.id);
+                          setShowFrameworkMenu(false);
+                          // 如果是女装搭配类框架，自动设置比例为 9:16
+                          if (framework.id === 'fashion-outfit' || framework.id === 'outfit-model') {
+                            setSelectedRatio('9:16');
+                          }
                         }}
                         className={cn(
                           "w-full flex items-center gap-2 px-3 py-2.5 text-sm hover:bg-secondary/50 transition-all duration-200 text-left touch-target",
-                          selectedStyle === style.id && "bg-orange-50 text-orange-700"
+                          selectedFramework === framework.id && "bg-orange-50 text-orange-700"
                         )}
                       >
-                        <span>{style.icon}</span>
-                        <span>{style.name}</span>
+                        <span>{framework.icon}</span>
+                        <span>{framework.name}</span>
                       </button>
                     ))}
                   </div>
                 )}
               </div>
 
-              {/* 设计风格选择 - 所有模式都显示 */}
+              {/* 视觉风格选择（第二栏） */}
               <div className="relative flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => {
-                    setShowSketchSubStyleMenu(!showSketchSubStyleMenu);
-                    setShowStyleMenu(false);
+                    setShowVisualStyleMenu(!showVisualStyleMenu);
+                    setShowFrameworkMenu(false);
                     setShowRatioMenu(false);
                     setShowLineMenu(false);
                     setShowLanguageMenu(false);
                   }}
                   className={cn(
                     "flex items-center gap-1 md:gap-1.5 px-2.5 md:px-3 py-1.5 rounded-full text-xs md:text-sm transition-all duration-200 border touch-target",
-                    selectedSketchSubStyle
-                      ? "bg-pink-50 border-pink-200 text-pink-700 hover:bg-pink-100"
-                      : "bg-secondary/50 text-muted-foreground hover:bg-secondary border-transparent"
+                    selectedVisualStyle === "default"
+                      ? "bg-secondary/50 text-muted-foreground hover:bg-secondary border-transparent"
+                      : "bg-pink-50 border-pink-200 text-pink-700 hover:bg-pink-100"
                   )}
                 >
-                  <span>{sketchSubStyles.find(s => s.id === selectedSketchSubStyle)?.icon || "🎭"}</span>
-                  <span className="hidden sm:inline">{sketchSubStyles.find(s => s.id === selectedSketchSubStyle)?.name || "设计风格"}</span>
-                  <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showSketchSubStyleMenu && "rotate-180")} />
+                  <span>{visualStyles.find(s => s.id === selectedVisualStyle)?.icon || "🎭"}</span>
+                  <span className="hidden sm:inline">{visualStyles.find(s => s.id === selectedVisualStyle)?.name || "默认风格"}</span>
+                  <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showVisualStyleMenu && "rotate-180")} />
                 </button>
-                {showSketchSubStyleMenu && (
+                {showVisualStyleMenu && (
                   <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 min-w-[140px] animate-dropdown">
-                    <button
-                      onClick={() => {
-                        setSelectedSketchSubStyle(null);
-                        setShowSketchSubStyleMenu(false);
-                      }}
-                      className={cn(
-                        "w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-secondary/50 transition-all duration-200 text-left touch-target",
-                        !selectedSketchSubStyle && "bg-pink-50 text-pink-700"
-                      )}
-                    >
-                      <span>🎭</span>
-                      <span>默认风格</span>
-                    </button>
-                    {sketchSubStyles.map((subStyle) => (
+                    {visualStyles.map((style) => (
                       <button
-                        key={subStyle.id}
+                        key={style.id}
                         onClick={() => {
-                          setSelectedSketchSubStyle(subStyle.id);
-                          setShowSketchSubStyleMenu(false);
+                          setSelectedVisualStyle(style.id);
+                          setShowVisualStyleMenu(false);
                         }}
                         className={cn(
-                          "w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-secondary/50 transition-all duration-200 text-left touch-target",
-                          selectedSketchSubStyle === subStyle.id && "bg-pink-50 text-pink-700"
+                          "w-full flex items-center gap-2 px-3 py-2.5 text-sm hover:bg-secondary/50 transition-all duration-200 text-left touch-target",
+                          selectedVisualStyle === style.id && "bg-pink-50 text-pink-700"
                         )}
                       >
-                        <span>{subStyle.icon}</span>
-                        <span>{subStyle.name}</span>
+                        <span>{style.icon}</span>
+                        <span>{style.name}</span>
                       </button>
                     ))}
                   </div>
@@ -714,10 +768,10 @@ const AIDrawing = () => {
               {/* 发送按钮 */}
               <button
                 onClick={handleGenerate}
-                disabled={(!prompt.trim() && imagePreviews.length === 0 && !currentStyleHasPrompt) || isGenerating}
+                disabled={(!prompt.trim() && imagePreviews.length === 0) || isGenerating}
                 className={cn(
                   "w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all duration-200 touch-target flex-shrink-0",
-                  ((prompt.trim() || imagePreviews.length > 0 || currentStyleHasPrompt) && !isGenerating)
+                  ((prompt.trim() || imagePreviews.length > 0) && !isGenerating)
                     ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)]"
                     : "bg-secondary/50 text-muted-foreground/50 cursor-not-allowed"
                 )}
