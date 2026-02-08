@@ -432,7 +432,7 @@ const AIDrawing = () => {
             placeholder={currentStyleHasPrompt ? "已选择预设风格，直接上传图片即可（也可输入补充说明）" : "输入你想要可视化的内容..."}
             rows={2}
             enterKeyHint="send"
-            className="w-full bg-transparent text-foreground placeholder:text-muted-foreground resize-none focus:outline-none text-xs md:text-base leading-relaxed"
+            className="w-full bg-transparent text-foreground placeholder:text-muted-foreground resize-none focus:outline-none text-base leading-relaxed"
           />
 
           {/* 分隔线 */}

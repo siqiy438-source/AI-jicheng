@@ -1,21 +1,34 @@
 /**
  * 图片压缩工具
  * 用于在上传前压缩图片，避免超出 API 请求大小限制
+ * 支持根据设备性能自动调整压缩参数
  */
 
+import { getRecommendedImageQuality, getRecommendedImageSize } from './device-detection';
+
 export interface CompressOptions {
-  maxWidth?: number;      // 最大宽度，默认 1024
-  maxHeight?: number;     // 最大高度，默认 1024
-  quality?: number;       // 压缩质量 0-1，默认 0.8
+  maxWidth?: number;      // 最大宽度，默认根据设备性能
+  maxHeight?: number;     // 最大高度，默认根据设备性能
+  quality?: number;       // 压缩质量 0-1，默认根据设备性能
   mimeType?: string;      // 输出格式，默认 image/jpeg
+  autoOptimize?: boolean; // 是否根据设备性能自动优化，默认 true
 }
 
-const DEFAULT_OPTIONS: Required<CompressOptions> = {
-  maxWidth: 1024,
-  maxHeight: 1024,
-  quality: 0.8,
-  mimeType: 'image/jpeg',
-};
+/**
+ * 获取默认压缩选项（根据设备性能）
+ */
+function getDefaultOptions(): Required<CompressOptions> {
+  const recommendedSize = getRecommendedImageSize();
+  const recommendedQuality = getRecommendedImageQuality();
+
+  return {
+    maxWidth: recommendedSize,
+    maxHeight: recommendedSize,
+    quality: recommendedQuality,
+    mimeType: 'image/jpeg',
+    autoOptimize: true,
+  };
+}
 
 /**
  * 压缩图片
@@ -27,7 +40,8 @@ export async function compressImage(
   file: File,
   options: CompressOptions = {}
 ): Promise<string> {
-  const opts = { ...DEFAULT_OPTIONS, ...options };
+  const defaultOpts = getDefaultOptions();
+  const opts = { ...defaultOpts, ...options };
 
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -54,11 +68,20 @@ export async function compressImage(
           canvas.width = width;
           canvas.height = height;
 
-          const ctx = canvas.getContext('2d');
+          const ctx = canvas.getContext('2d', {
+            alpha: opts.mimeType === 'image/png',
+            // 低端设备使用更快的渲染
+            willReadFrequently: false,
+          });
+
           if (!ctx) {
             reject(new Error('无法创建 canvas context'));
             return;
           }
+
+          // 使用更好的图像平滑算法（高端设备）
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
 
           // 绘制图片
           ctx.drawImage(img, 0, 0, width, height);
