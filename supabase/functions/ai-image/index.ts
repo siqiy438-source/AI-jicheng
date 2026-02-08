@@ -59,10 +59,16 @@ serve(async (req) => {
           }
         } else {
           // 无用户输入时，替换占位符为通用描述
-          fullPrompt = promptData.prompt.replace(
-            /User uploaded clothing:?\s*\{user_prompt\}/i,
-            'User uploaded clothing is shown in the reference images below.'
-          )
+          fullPrompt = promptData.prompt
+            .replace(
+              /User uploaded clothing:?\s*\{user_prompt\}/i,
+              'User uploaded clothing is shown in the reference images below.'
+            )
+            .replace(
+              /User request:?\s*\{user_prompt\}/i,
+              'Please create an example illustration showcasing this style.'
+            )
+            .replace('{user_prompt}', '')
         }
       }
     } else if (style) {

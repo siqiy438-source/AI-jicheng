@@ -136,10 +136,6 @@ const AIDrawing = () => {
   // 处理风格选择
   const handleStyleSelect = (styleId: string) => {
     setSelectedStyle(styleId);
-    // 切换风格时重置子风格
-    if (styleId !== 'sketch') {
-      setSelectedSketchSubStyle(null);
-    }
 
     // 如果选中的风格有预设提示词（来自数据库），清空输入框并设置提示
     const selected = stylePresets.find(s => s.id === styleId);
@@ -227,7 +223,7 @@ const AIDrawing = () => {
     try {
       // 构建最终提示词，包含子风格
       let finalPrompt = prompt || "";
-      if (selectedStyle === 'sketch' && selectedSketchSubStyle) {
+      if (selectedSketchSubStyle) {
         const subStyle = sketchSubStyles.find(s => s.id === selectedSketchSubStyle);
         if (subStyle) {
           finalPrompt = finalPrompt
@@ -483,63 +479,61 @@ const AIDrawing = () => {
                 )}
               </div>
 
-              {/* 手绘子风格选择 - 仅在选择手绘风格时显示 */}
-              {selectedStyle === 'sketch' && (
-                <div className="relative" onClick={(e) => e.stopPropagation()}>
-                  <button
-                    onClick={() => {
-                      setShowSketchSubStyleMenu(!showSketchSubStyleMenu);
-                      setShowStyleMenu(false);
-                      setShowRatioMenu(false);
-                      setShowLineMenu(false);
-                      setShowLanguageMenu(false);
-                    }}
-                    className={cn(
-                      "flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 rounded-full text-sm transition-all duration-200 border touch-target",
-                      selectedSketchSubStyle
-                        ? "bg-pink-50 border-pink-200 text-pink-700 hover:bg-pink-100"
-                        : "bg-secondary/50 text-muted-foreground hover:bg-secondary border-transparent"
-                    )}
-                  >
-                    <span>{sketchSubStyles.find(s => s.id === selectedSketchSubStyle)?.icon || "🎭"}</span>
-                    <span>{sketchSubStyles.find(s => s.id === selectedSketchSubStyle)?.name || "设计风格"}</span>
-                    <ChevronDown className={cn("w-3.5 h-3.5 transition-transform duration-200", showSketchSubStyleMenu && "rotate-180")} />
-                  </button>
-                  {showSketchSubStyleMenu && (
-                    <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 min-w-[120px] animate-dropdown">
+              {/* 设计风格选择 - 所有模式都显示 */}
+              <div className="relative" onClick={(e) => e.stopPropagation()}>
+                <button
+                  onClick={() => {
+                    setShowSketchSubStyleMenu(!showSketchSubStyleMenu);
+                    setShowStyleMenu(false);
+                    setShowRatioMenu(false);
+                    setShowLineMenu(false);
+                    setShowLanguageMenu(false);
+                  }}
+                  className={cn(
+                    "flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 rounded-full text-sm transition-all duration-200 border touch-target",
+                    selectedSketchSubStyle
+                      ? "bg-pink-50 border-pink-200 text-pink-700 hover:bg-pink-100"
+                      : "bg-secondary/50 text-muted-foreground hover:bg-secondary border-transparent"
+                  )}
+                >
+                  <span>{sketchSubStyles.find(s => s.id === selectedSketchSubStyle)?.icon || "🎭"}</span>
+                  <span>{sketchSubStyles.find(s => s.id === selectedSketchSubStyle)?.name || "设计风格"}</span>
+                  <ChevronDown className={cn("w-3.5 h-3.5 transition-transform duration-200", showSketchSubStyleMenu && "rotate-180")} />
+                </button>
+                {showSketchSubStyleMenu && (
+                  <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 min-w-[140px] animate-dropdown">
+                    <button
+                      onClick={() => {
+                        setSelectedSketchSubStyle(null);
+                        setShowSketchSubStyleMenu(false);
+                      }}
+                      className={cn(
+                        "w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-secondary/50 transition-all duration-200 text-left touch-target",
+                        !selectedSketchSubStyle && "bg-pink-50 text-pink-700"
+                      )}
+                    >
+                      <span>🎭</span>
+                      <span>默认风格</span>
+                    </button>
+                    {sketchSubStyles.map((subStyle) => (
                       <button
+                        key={subStyle.id}
                         onClick={() => {
-                          setSelectedSketchSubStyle(null);
+                          setSelectedSketchSubStyle(subStyle.id);
                           setShowSketchSubStyleMenu(false);
                         }}
                         className={cn(
-                          "w-full flex items-center gap-2 px-3 py-2.5 text-sm hover:bg-secondary/50 transition-all duration-200 text-left touch-target",
-                          !selectedSketchSubStyle && "bg-pink-50 text-pink-700"
+                          "w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-secondary/50 transition-all duration-200 text-left touch-target",
+                          selectedSketchSubStyle === subStyle.id && "bg-pink-50 text-pink-700"
                         )}
                       >
-                        <span>🎭</span>
-                        <span>默认</span>
+                        <span>{subStyle.icon}</span>
+                        <span>{subStyle.name}</span>
                       </button>
-                      {sketchSubStyles.map((subStyle) => (
-                        <button
-                          key={subStyle.id}
-                          onClick={() => {
-                            setSelectedSketchSubStyle(subStyle.id);
-                            setShowSketchSubStyleMenu(false);
-                          }}
-                          className={cn(
-                            "w-full flex items-center gap-2 px-3 py-2.5 text-sm hover:bg-secondary/50 transition-all duration-200 text-left touch-target",
-                            selectedSketchSubStyle === subStyle.id && "bg-pink-50 text-pink-700"
-                          )}
-                        >
-                          <span>{subStyle.icon}</span>
-                          <span>{subStyle.name}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
+              </div>
 
               {/* 比例选择 */}
               <div className="relative" onClick={(e) => e.stopPropagation()}>
