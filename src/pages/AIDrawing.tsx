@@ -72,6 +72,12 @@ const contentFrameworks = [
     prompt: "detailed infographic layout: 1) MULTIPLE BOXES each containing BOTH relevant illustrations/icons AND concise text descriptions (60% images, 40% text), 2) clear hierarchical structure with main title at top, 3) various sized rectangular frames connected by arrows, 4) visual hierarchy using different box sizes and colors, 5) proper visual labels and annotations, 6) organized layout showing relationships and flow."
   },
   {
+    id: "comparison",
+    name: "对比分析",
+    icon: "⚖️",
+    prompt: "professional comparison analysis layout with SIDE-BY-SIDE structure: 1) TITLE at top center showing 'A vs B' or 'A 对比 B', 2) TWO MAIN COLUMNS divided by a vertical line or VS symbol in the middle, 3) LEFT COLUMN for Item A with icon/illustration at top, 4) RIGHT COLUMN for Item B with icon/illustration at top, 5) COMPARISON ROWS showing key dimensions (price, features, pros/cons, performance, design, etc.), 6) each row aligned horizontally across both columns for easy comparison, 7) use different background colors or borders to distinguish the two items (e.g., blue tint for left, orange tint for right), 8) include visual indicators like checkmarks ✓ for advantages, X marks for disadvantages, or star ratings, 9) summary section at bottom highlighting key differences, 10) clean table-like structure with clear labels. CRITICAL: Make it easy to scan and compare - align corresponding features horizontally, use consistent spacing, and maintain visual balance between both sides."
+  },
+  {
     id: "fashion-outfit",
     name: "女装搭配",
     icon: "👗",
