@@ -1,6 +1,6 @@
 # AI 绘图 PRD 文档
 
-> 产品需求文档 | 版本 1.0 | 最后更新：2026-02-08
+> 产品需求文档 | 版本 2.0 | 最后更新：2026-02-08
 
 ---
 
@@ -12,487 +12,633 @@
 
 **代码文件**：`src/pages/AIDrawing.tsx`
 
----
-
-## 2. 主要模式 (Main Modes)
-
-### 2.1 模式列表
-
-| ID | 名称 | 图标 | 说明 |
-|---|---|---|---|
-| free | 自由模式 | ✍️ | 无预设风格，完全自由创作 |
-| sketch | 手绘风格 | 🖌️ | 手绘艺术风格（可搭配子风格） |
-
-### 2.2 模式说明
-
-#### 自由模式 (free)
-- **用途**：用户完全自定义提示词，不添加任何预设风格
-- **提示词**：无预设，直接使用用户输入
-- **适用场景**：需要精确控制生成效果时使用
-
-#### 手绘风格 (sketch)
-- **用途**：生成手绘艺术风格的图像
-- **提示词**：无基础预设，但可搭配设计子风格使用
-- **适用场景**：需要艺术化、插画风格的图像
+**架构说明**：采用两层选择系统
+- **第一层（内容框架）**：定义内容的组织结构（如漫画故事、流程图、对比分析等）
+- **第二层（视觉风格）**：定义视觉呈现风格（如可爱风、Q版、水彩风等）
 
 ---
 
-## 3. 设计风格 (Design Sub-Styles)
+## 2. 内容框架 (Content Frameworks) - 第一层
+
+内容框架定义了内容的组织结构和布局方式，用户可以选择不同的框架来呈现内容。
+
+### 2.1 框架列表
+
+| ID | 名称 | 图标 | 说明 | 自动比例 |
+|---|---|---|---|---|
+| free | 自由模式 | ✍️ | 无框架限制，完全自由创作 | - |
+| sketch | 手绘风格 | 🖌️ | 手账风格海报插画 | - |
+| comic-story | 漫画故事 | 📖 | 分镜叙事，连续漫画格子 | - |
+| flowchart | 流程图 | 🔄 | 流程图结构，箭头连接 | - |
+| mindmap | 思维导图 | 🧠 | 中心辐射结构 | - |
+| infographic | 图文并茂 | 📊 | 信息图表，图文结合 | - |
+| comparison | 对比分析 | ⚖️ | 左右对比，VS 结构 | - |
+| fashion-outfit | 女装搭配 | 👗 | 网格平铺搭配图 | 9:16 |
+| outfit-model | 女装搭配模特图 | 👗 | 层叠式平铺搭配图 | 9:16 |
+
+### 2.2 框架详解
+
+#### ✍️ 自由模式 (free)
+**提示词**：无
+
+**说明**：
+- 没有任何框架限制
+- AI 会根据用户描述自由创作
+- 可能生成单张插图、场景图、人物肖像等任何形式
+
+**适用场景**：需要精确控制生成效果，或不需要特定结构时使用
+
+---
+
+#### 🖌️ 手绘风格 (sketch)
+**提示词**：
+```
+Create a hand-drawn style poster illustration.
+
+【STYLE - Hand-drawn Journal Aesthetic】
+- Hand-drawn illustration style, like a cute travel journal or planner
+- Clean sketch aesthetic with soft pastel colors
+- Doodle icons and decorative elements
+- Whimsical hand-lettering for titles and text
+- Cozy, warm illustration style
+- White or light cream background
+
+【COMPOSITION】
+- Clear visual hierarchy with main title at top
+- Organized sections with cute dividers
+- Small illustrated icons and doodles scattered throughout
+- Balance between text areas and illustrations
+- Easy to read layout
+
+【TECHNICAL REQUIREMENTS】
+1. Soft, harmonious color palette (pastels preferred)
+2. Clean lines, not messy or over-sketched
+3. Include relevant illustrated elements based on the topic
+4. Professional but approachable hand-drawn look
+5. NO photorealistic elements
+6. NO AI-generated perfection - keep it warm and human
+
+User request: {user_prompt}
+```
+
+**核心特点**：
+- 手账风格插画
+- 柔和的粉彩色调
+- 涂鸦图标和装饰元素
+- 手写字体标题
+- 温馨舒适的风格
+
+**适用场景**：旅游攻略、美食推荐、生活记录、手账风格海报
+
+---
+
+#### 📖 漫画故事 (comic-story)
+**提示词**：
+```
+manga/comic story narrative layout with SEQUENTIAL PANELS:
+1) 4-8 comic panels arranged in reading order (left-to-right, top-to-bottom),
+2) each panel tells part of the story with characters, scenes, and actions,
+3) speech bubbles and thought bubbles with dialogue/narration,
+4) expressive character faces showing emotions,
+5) dynamic poses and action lines for movement,
+6) panel transitions showing story progression,
+7) sound effects text (e.g., 'BOOM', 'whoosh'),
+8) varied panel sizes for pacing and emphasis,
+9) clear narrative flow that tells a complete mini-story about the topic.
+```
+
+**核心特点**：
+- 4-8 个连续的漫画分镜
+- 对话气泡和旁白
+- 表情丰富的角色
+- 动态姿势和动作线
+- 音效文字
+- 不同大小的分格控制节奏
+
+**适用场景**：故事讲述、教程说明、概念解释、读书笔记
+
+**与自由模式的区别**：
+- 自由模式：单张图片
+- 漫画故事：多格漫画，有故事情节
+
+---
+
+#### 🔄 流程图 (flowchart)
+**提示词**：
+```
+professional flowchart diagram structure:
+1) MULTIPLE BOXES with clear directional arrows showing flow and relationships,
+2) central main topic box,
+3) varied box shapes and sizes for visual hierarchy,
+4) mix of solid and dashed connecting lines,
+5) color-coded sections,
+6) organized layout showing step-by-step process or relationships.
+```
+
+**核心特点**：
+- 多个框图，箭头连接
+- 中心主题框
+- 不同形状和大小的框
+- 实线和虚线连接
+- 颜色编码分区
+
+**适用场景**：流程说明、步骤指南、决策树、系统架构
+
+---
+
+#### 🧠 思维导图 (mindmap)
+**提示词**：
+```
+comprehensive mind map structure:
+1) central concept box with large emphasis,
+2) radiating branches where each node connects to related concepts,
+3) visual connections using arrows and lines (solid and dashed),
+4) color coding for different branches,
+5) varied sizes for hierarchy,
+6) dense information layout showing relationships and connections.
+```
+
+**核心特点**：
+- 中心概念框
+- 辐射状分支
+- 节点连接相关概念
+- 颜色编码不同分支
+- 层级大小变化
+
+**适用场景**：知识整理、头脑风暴、概念关系、学习笔记
+
+---
+
+#### 📊 图文并茂 (infographic)
+**提示词**：
+```
+detailed infographic layout:
+1) MULTIPLE BOXES each containing BOTH relevant illustrations/icons AND concise text descriptions (60% images, 40% text),
+2) clear hierarchical structure with main title at top,
+3) various sized rectangular frames connected by arrows,
+4) visual hierarchy using different box sizes and colors,
+5) proper visual labels and annotations,
+6) organized layout showing relationships and flow.
+```
+
+**核心特点**：
+- 多个框图，图文结合（60% 图 + 40% 文字）
+- 清晰的层级结构
+- 不同大小的矩形框
+- 箭头连接
+- 视觉标签和注释
+
+**适用场景**：信息图表、数据可视化、知识卡片、教程说明
+
+---
+
+#### ⚖️ 对比分析 (comparison)
+**提示词**：
+```
+professional comparison analysis layout with SIDE-BY-SIDE structure:
+1) TITLE at top center showing 'A vs B' or 'A 对比 B',
+2) TWO MAIN COLUMNS divided by a vertical line or VS symbol in the middle,
+3) LEFT COLUMN for Item A with icon/illustration at top,
+4) RIGHT COLUMN for Item B with icon/illustration at top,
+5) COMPARISON ROWS showing key dimensions (price, features, pros/cons, performance, design, etc.),
+6) each row aligned horizontally across both columns for easy comparison,
+7) use different background colors or borders to distinguish the two items (e.g., blue tint for left, orange tint for right),
+8) include visual indicators like checkmarks ✓ for advantages, X marks for disadvantages, or star ratings,
+9) summary section at bottom highlighting key differences,
+10) clean table-like structure with clear labels.
+CRITICAL: Make it easy to scan and compare - align corresponding features horizontally, use consistent spacing, and maintain visual balance between both sides.
+```
+
+**核心特点**：
+- 左右分栏布局
+- 中间 VS 分隔符
+- 水平对齐的对比行
+- 不同背景色区分
+- 视觉指示器（✓ ✗ ⭐）
+- 底部总结关键差异
+
+**适用场景**：产品对比、概念对比、方案对比、技术对比、服务对比
+
+**示例**：
+- 苹果手机 vs 三星手机
+- React vs Vue
+- 方案A vs 方案B
+- iOS vs Android
+
+---
+
+#### 👗 女装搭配 (fashion-outfit)
+**提示词**：
+```
+创建一张专业的女装平铺搭配图(flat lay)。
+
+【关键布局规则 - 必须遵守】
+- 每件服装单品必须单独、独立展示
+- 所有单品按网格布局排列，单品之间必须有清晰的间隔
+- 禁止重叠、禁止层叠、禁止堆叠
+- 每件单品平铺展示，从上到下完整可见
+- 布局参考：杂志lookbook风格、Pinterest穿搭网格图
+
+【女装风格要求】
+- 配饰：精致优雅（珍珠耳环、细链项链、丝巾、精致手表、时尚墨镜等）
+- 鞋子：女性化风格（高跟鞋、芭蕾平底鞋、尖头鞋、优雅凉鞋、小白鞋等）
+- 整体风格：优雅、精致、女人味、时髦感
+
+【技术要求】
+1. 分析上传服装的颜色和风格，选择和谐的纯色背景（柔和高级色调如奶油色、浅灰色、淡粉色）
+2. 根据服装风格，智能添加：
+   - 一件女性配饰（选择最能提升整体精致感的）
+   - 一双女鞋（选择最能完善整套look的）
+3. 所有单品分散平铺排列，每件单品之间保持清晰间隔
+4. 每件单品带柔和自然投影，专业产品摄影质感
+5. 无文字、无水印、无模特、无人台
+6. 竖版 9:16 比例
+
+风格参考：Pinterest穿搭平铺图、时尚杂志单品展示、lookbook造型图
+```
+
+**核心特点**：
+- 网格平铺布局
+- 单品独立展示
+- 智能补充配饰和鞋子
+- 专业产品摄影质感
+- 自动设置 9:16 比例
+
+**适用场景**：女装搭配、服装展示、穿搭推荐
+
+---
+
+#### 👗 女装搭配模特图 (outfit-model)
+**提示词**：
+```
+Create a professional flat-lay fashion outfit image in elegant layered style.
+
+【LAYOUT - CRITICAL - Follow the reference image style exactly】
+- Jacket/Outerwear: Open and spread wide at the TOP, showing inner lining if any
+- Inner top/T-shirt: Positioned UNDER the jacket, centered, partially visible
+- Pants: Laid BELOW, with the waistband slightly tucked under the inner top
+- Shoes: ONE pair placed at the bottom corner, angled naturally
+- Accessory: Add ONE small accessory (watch, bracelet, or sunglasses) near the shoes
+
+【COMPOSITION STYLE】
+- Items should OVERLAP naturally like a styled flat-lay, NOT separated in a grid
+- Create visual depth with layering: outer > inner > bottom
+- Overall aesthetic: Pinterest outfit inspo, fashion blogger style, Instagram flatlay
+
+【COLOR & BACKGROUND】
+- Analyze uploaded clothing colors and choose a harmonious SOLID background
+- Background options: warm beige, soft cream, light gray, or muted blush
+- The background should complement the clothing palette
+
+【TECHNICAL REQUIREMENTS】
+1. Based on the uploaded clothing style, intelligently ADD:
+   - ONE pair of matching shoes (sneakers, loafers, heels - whatever fits the vibe)
+   - ONE small accessory that elevates the look
+2. Soft natural shadows for depth and dimension
+3. Professional product photography quality, clean and polished
+4. NO text, NO watermarks, NO models, NO mannequins
+5. Vertical 9:16 aspect ratio
+
+User uploaded clothing items: {user_prompt}
+```
+
+**核心特点**：
+- 层叠式平铺布局
+- 外套盖内搭的自然叠放
+- 智能补充鞋子和配饰
+- Pinterest/Instagram 风格
+- 自动设置 9:16 比例
+
+**适用场景**：女装搭配、时尚博主风格、穿搭灵感
+
+**与女装搭配的区别**：
+- 女装搭配：网格布局，单品独立
+- 女装搭配模特图：层叠布局，自然叠放
+
+---
+
+## 3. 视觉风格 (Visual Styles) - 第二层
+
+视觉风格定义了图像的视觉呈现方式，可以与任何内容框架组合使用。
 
 ### 3.1 风格列表
 
-所有模式下都可以选择以下设计风格，风格提示词会添加到用户输入的前面。
-
-| ID | 名称 | 图标 | 英文提示词 |
+| ID | 名称 | 图标 | 说明 |
 |---|---|---|---|
-| cute | 可爱风 | 🎀 | kawaii aesthetic, pastel colors, soft lighting, gentle features, dreamy atmosphere, delicate details, sweet and tender mood |
-| chibi | Q版 | 🧸 | chibi proportions, oversized head 2:1 ratio, tiny body, exaggerated expressions, cartoon style, bold outlines, simplified features |
-| infographic | 图文并茂 | 📊 | infographic style with clear text labels, readable typography, well-organized layout, text and graphics combined, informative design, clean fonts, proper text hierarchy |
-| minimalist | 简约风 | ✨ | minimalist clean style, simple lines, elegant, less is more |
-| watercolor | 水彩风 | 🎨 | watercolor style, soft washes, flowing colors, artistic |
-| vintage | 复古风 | 📜 | vintage retro style, nostalgic, warm tones, classic feel |
+| default | 默认风格 | 🎭 | 无特殊风格 |
+| cute | 可爱风 | 🎀 | 粉彩色调，柔和温馨 |
+| chibi | Q版 | 🧸 | 大头小身体，卡通风格 |
+| minimalist | 简约风 | ✨ | 简洁线条，留白艺术 |
+| watercolor | 水彩风 | 🎨 | 水彩晕染，艺术感 |
+| vintage | 复古风 | 📜 | 怀旧色调，经典质感 |
 
 ### 3.2 风格详解
 
-#### 🎀 可爱风 (Cute/Kawaii)
-**核心特点**：
-- 柔和的马卡龙色系（pastel colors）
-- 柔光效果（soft lighting）
-- 温柔细腻的特征（gentle features）
-- 梦幻氛围感（dreamy atmosphere）
-- 甜美温柔的情绪表达（sweet and tender mood）
+#### 🎭 默认风格 (default)
+**提示词**：无
 
-**适用场景**：少女风插画、温馨场景、治愈系作品
-
-**与 Q版 的区别**：可爱风注重整体氛围和色彩的柔和感，而非比例变形
+**说明**：不添加任何特殊视觉风格，保持内容框架的原始效果
 
 ---
 
-#### 🧸 Q版 (Chibi)
+#### 🎀 可爱风 (cute)
+**提示词**：
+```
+Visual style: kawaii cute aesthetic with
+1) pastel colors (pink, lavender, mint, peach),
+2) rounded shapes and soft edges,
+3) cute decorative elements (hearts, stars, sparkles),
+4) soft lighting and gentle features,
+5) dreamy atmosphere,
+6) playful and friendly appearance.
+```
+
 **核心特点**：
-- 夸张的头身比例（2:1 大头小身体）
-- 简化的五官特征（simplified features）
-- 夸张的表情（exaggerated expressions）
-- 卡通化风格（cartoon style）
-- 粗线条轮廓（bold outlines）
+- 粉彩色调（粉色、薰衣草、薄荷、桃色）
+- 圆润形状和柔和边缘
+- 可爱装饰元素（爱心、星星、闪光）
+- 柔光效果
+- 梦幻氛围
 
-**适用场景**：Q版人物、卡通形象、表情包、游戏角色、漫画故事
+**适用场景**：少女风、温馨场景、治愈系作品
 
-**与可爱风的区别**：Q版强调比例的夸张变形和卡通化，而非氛围营造
-
-**设计理念**：保持纯粹的可爱卡通风格，文字会自然融入画面（如对话框、标签等），无需强制添加
+**组合示例**：
+- 漫画故事 + 可爱风 = 粉色可爱的漫画分镜
+- 流程图 + 可爱风 = 粉彩色调的流程图
 
 ---
 
-#### 📊 图文并茂 (Infographic)
+#### 🧸 Q版 (chibi)
+**提示词**：
+```
+Visual style: chibi Q-version cartoon style with
+1) bold outlines and simplified features,
+2) oversized heads and small bodies,
+3) exaggerated expressions,
+4) bright vibrant colors,
+5) playful and cute character representations,
+6) cartoon aesthetic with rounded shapes.
+```
+
 **核心特点**：
-- 清晰的文字标签（clear text labels）
-- 易读的排版（readable typography）
-- 组织良好的布局（well-organized layout）
-- 图文结合（text and graphics combined）
-- 信息化设计（informative design）
-- 清晰的字体（clean fonts）
-- 合理的文字层级（proper text hierarchy）
+- 粗线条轮廓
+- 大头小身体（2:1 比例）
+- 夸张表情
+- 明亮鲜艳的颜色
+- 卡通化风格
 
-**适用场景**：旅游攻略、信息图表、教程说明、知识卡片、数据可视化
+**适用场景**：Q版人物、卡通形象、表情包、游戏角色
 
-**与 Q版 的区别**：
-- **Q版**：卡通漫画风格，文字自然融入画面（如对话框、场景标签）
-- **图文并茂**：信息图表风格，强调文字的清晰度和排版规范，适合需要大量文字说明的场景
-
-**使用建议**：
-- 在提示词中明确说明需要的文字内容
-- 例如："旅游攻略，包含标题、日期、景点名称、简短描述"
-- 例如："产品介绍图，包含产品名称、特点、价格"
+**组合示例**：
+- 漫画故事 + Q版 = Q版卡通风格的漫画
+- 对比分析 + Q版 = Q版角色对比图
 
 ---
 
-#### ✨ 简约风 (Minimalist)
-**核心特点**：
-- 简洁的线条（simple lines）
-- 优雅的设计（elegant）
-- 少即是多的理念（less is more）
-- 留白艺术
+#### ✨ 简约风 (minimalist)
+**提示词**：
+```
+Visual style: minimalist clean aesthetic with
+1) simple elegant lines and geometric shapes,
+2) monochromatic or limited color palette (black, white, one accent color),
+3) plenty of white space for clarity,
+4) clean straight lines,
+5) 'less is more' principle,
+6) modern and sophisticated look.
+```
 
-**适用场景**：现代设计、品牌视觉、极简插画
+**核心特点**：
+- 简洁优雅的线条
+- 单色或有限色彩（黑白+一个强调色）
+- 大量留白
+- 清晰直线
+- 少即是多
+- 现代精致感
+
+**适用场景**：现代设计、品牌视觉、极简插画、商务场景
+
+**组合示例**：
+- 流程图 + 简约风 = 极简风格的流程图
+- 对比分析 + 简约风 = 简洁清晰的对比图
 
 ---
 
-#### 🎨 水彩风 (Watercolor)
+#### 🎨 水彩风 (watercolor)
+**提示词**：
+```
+Visual style: watercolor artistic aesthetic with
+1) soft watercolor washes and flowing colors,
+2) artistic color blending and gradients,
+3) watercolor splashes and organic textures,
+4) soft edges and natural flow,
+5) painted artistic quality,
+6) gentle and artistic appearance.
+```
+
 **核心特点**：
-- 柔和的水彩晕染（soft washes）
-- 流动的色彩（flowing colors）
-- 艺术感（artistic）
-- 水彩纸质感
+- 柔和的水彩晕染
+- 艺术色彩混合和渐变
+- 水彩飞溅和有机质感
+- 柔和边缘
+- 绘画艺术质感
 
 **适用场景**：艺术插画、文艺作品、手绘风格
 
+**组合示例**：
+- 漫画故事 + 水彩风 = 水彩风格的漫画
+- 思维导图 + 水彩风 = 艺术感的思维导图
+
 ---
 
-#### 📜 复古风 (Vintage/Retro)
+#### 📜 复古风 (vintage)
+**提示词**：
+```
+Visual style: vintage retro aesthetic with
+1) nostalgic warm tones (sepia, cream, brown, muted colors),
+2) ornate decorative borders and flourishes,
+3) aged paper texture,
+4) classic typography,
+5) retro ornamental elements,
+6) nostalgic and timeless appearance.
+```
+
 **核心特点**：
-- 怀旧氛围（nostalgic）
-- 温暖色调（warm tones）
-- 经典感觉（classic feel）
-- 复古质感
+- 怀旧暖色调（棕褐色、奶油色、棕色）
+- 华丽装饰边框和花纹
+- 陈旧纸张质感
+- 经典字体
+- 复古装饰元素
 
 **适用场景**：复古海报、怀旧主题、年代感作品
 
+**组合示例**：
+- 手绘风格 + 复古风 = 复古手账风格
+- 对比分析 + 复古风 = 复古风格的对比图
+
 ---
 
-## 4. 图片比例 (Aspect Ratios)
+## 4. 组合使用示例
 
-### 4.1 比例选项
+### 4.1 组合逻辑
+
+**最终提示词 = 语言要求 + 内容框架提示词 + 用户输入 + 视觉风格提示词**
+
+### 4.2 组合示例
+
+| 内容框架 | 视觉风格 | 效果 |
+|---|---|---|
+| 漫画故事 | 可爱风 | 粉色可爱的漫画分镜 |
+| 漫画故事 | Q版 | Q版卡通风格的漫画 |
+| 漫画故事 | 水彩风 | 水彩艺术风格的漫画 |
+| 流程图 | 简约风 | 极简风格的流程图 |
+| 流程图 | 可爱风 | 粉彩色调的流程图 |
+| 对比分析 | 简约风 | 简洁清晰的对比图 |
+| 对比分析 | Q版 | Q版角色对比图 |
+| 思维导图 | 水彩风 | 艺术感的思维导图 |
+| 手绘风格 | 复古风 | 复古手账风格 |
+
+### 4.3 使用建议
+
+**想要单张精美插图**：
+- 自由模式 + 任意视觉风格
+
+**想要讲故事**：
+- 漫画故事 + 可爱风/Q版/水彩风
+
+**想要教程/步骤**：
+- 流程图/思维导图 + 简约风/可爱风
+
+**想要对比分析**：
+- 对比分析 + 简约风/Q版
+
+**想要信息图表**：
+- 图文并茂 + 简约风/可爱风
+
+---
+
+## 5. 图片比例 (Aspect Ratios)
+
+### 5.1 比例选项
 
 | ID | 名称 | 说明 | 适用场景 |
-|---|---|---|---|
-| 1:1 | 正方形 | 1:1 | 社交媒体头像、Instagram 帖子 |
+|---|---|---|---|\n| 1:1 | 正方形 | 1:1 | 社交媒体头像、Instagram 帖子 |
 | 4:3 | 横向标准 | 4:3 | 电脑壁纸、演示文稿（默认） |
 | 16:9 | 横向宽屏 | 16:9 | 视频封面、横版海报 |
 | 9:16 | 竖向全屏 | 9:16 | 手机壁纸、短视频、女装搭配图 |
 
-### 4.2 自动比例设置
+### 5.2 自动比例设置
 
-某些风格会自动设置推荐比例：
-- **女装搭配类风格**：自动设置为 `9:16`（竖向全屏）
+某些框架会自动设置推荐比例：
+- **女装搭配**：自动设置为 `9:16`
+- **女装搭配模特图**：自动设置为 `9:16`
 
-### 4.3 默认设置
+### 5.3 默认设置
 
 - **默认比例**：`4:3`（横向标准）
 
 ---
 
-## 5. 线路选择 (Line Options)
+## 6. 其他参数
 
-### 5.1 线路列表
+### 6.1 线路选择
 
 | ID | 名称 | 说明 |
 |---|---|---|
 | standard | 普通线路 | 标准生成速度和质量（默认） |
 | premium | 优质线路 | 更高质量，可能速度稍慢 |
 
-### 5.2 默认设置
+**默认线路**：`standard`
 
-- **默认线路**：`standard`（普通线路）
-
----
-
-## 6. 语言选择 (Language Options)
-
-### 6.1 语言列表
+### 6.2 语言选择
 
 | ID | 名称 | 图标 |
 |---|---|---|
 | zh | 中文 | 🇨🇳 |
 | en | English | 🇺🇸 |
 
-### 6.2 默认设置
+**默认语言**：`zh`（中文）
 
-- **默认语言**：`zh`（中文）
-
----
-
-## 7. 提示词优化
-
-### 7.1 一键优化功能
-
-用户点击「一键优化」按钮时，会在原有提示词后追加以下内容：
-
-```
-，高清，细节丰富，光影效果好
-```
-
-**代码位置**：`AIDrawing.tsx` 第 217 行
-
-### 7.2 优化效果
-
-- 提升图像清晰度
-- 增强细节表现
-- 改善光影效果
+**语言要求提示词**：
+- 中文：`IMPORTANT: ALL text in the image must be in Chinese (Simplified Chinese characters only). Do not mix English with Chinese. Use pure Chinese for all labels, titles, descriptions, and annotations.`
+- 英文：`IMPORTANT: ALL text in the image must be in English only. Do not mix Chinese with English. Use pure English for all labels, titles, descriptions, and annotations.`
 
 ---
 
-## 8. 数据库动态风格
-
-### 8.1 加载机制
-
-除了本地预设的风格外，系统还会从 Supabase 数据库动态加载更多风格。
-
-**数据库查询条件**：
-```sql
-SELECT id, name, icon, prompt, description
-FROM prompts
-WHERE category = 'drawing'
-  AND is_active = true
-```
-
-**代码位置**：`AIDrawing.tsx` 第 100-137 行
-
-### 8.2 数据库字段说明
-
-| 字段 | 类型 | 说明 |
-|---|---|---|
-| id | string | 风格唯一标识 |
-| name | string | 风格名称（中文） |
-| icon | string | 风格图标（emoji） |
-| prompt | string | 英文提示词 |
-| description | string | 风格描述（可选） |
-| category | string | 分类（固定为 'drawing'） |
-| is_active | boolean | 是否启用 |
-
-### 8.3 已知数据库风格
-
-根据现有 PRD 文档，数据库中可能包含以下风格：
-
-| ID | 名称 | 描述 |
-|---|---|---|
-| poster | 海报设计 | 适合营销海报 |
-| handdrawn | 手绘风格 | 艺术手绘效果 |
-| anime | 动漫风格 | 二次元风格 |
-| realistic | 写实风格 | 照片级真实感 |
-| fashion-outfit | 女装搭配 | 平铺搭配图，自动补充配饰和鞋子 |
-| outfit-model | 女装搭配模特图 | 层叠式平铺图，外套盖内搭 |
-
-**注意**：这些风格的具体提示词存储在数据库中，需要查询数据库获取。
-
----
-
-## 9. 图片上传功能
-
-### 9.1 上传限制
-
-- **最大数量**：5 张图片
-- **支持格式**：所有图片格式（`image/*`）
-- **自动压缩**：
-  - 最大宽度：1024px
-  - 最大高度：1024px
-  - 压缩质量：80%
-
-**代码位置**：`AIDrawing.tsx` 第 159-189 行
-
-### 9.2 使用场景
-
-- 上传参考图片进行风格迁移
-- 上传素材进行二次创作
-- 搭配预设风格使用（如女装搭配）
-
----
-
-## 10. 提示词组合逻辑
-
-### 10.1 最终提示词构建规则
-
-```javascript
-// 伪代码
-finalPrompt = [
-  selectedSketchSubStyle?.prompt,  // 设计风格提示词（如果选择）
-  userPrompt,                       // 用户输入的提示词
-  stylePreset?.prompt               // 数据库风格提示词（如果选择）
-].filter(Boolean).join(', ')
-```
-
-**代码位置**：`AIDrawing.tsx` 第 228-236 行
-
-### 10.2 优先级说明
-
-1. **设计风格提示词**（最前）：如可爱风、Q版等
-2. **用户输入**（中间）：用户自己写的描述
-3. **数据库风格提示词**（最后）：如海报设计、女装搭配等
-
-### 10.3 示例
-
-**场景**：用户选择「可爱风」+ 输入「一只小猫」
-
-**最终提示词**：
-```
-kawaii aesthetic, pastel colors, soft lighting, gentle features, dreamy atmosphere, delicate details, sweet and tender mood, 一只小猫
-```
-
----
-
-## 11. 技术参数
-
-### 11.1 API 调用参数
-
-```typescript
-interface GenerateImageParams {
-  prompt: string;              // 最终组合的提示词
-  styleId?: string;            // 风格 ID（如果有预设提示词）
-  aspectRatio: string;         // 图片比例（如 "4:3"）
-  images?: string[];           // 参考图片（base64 数组）
-  line: "standard" | "premium"; // 线路选择
-}
-```
-
-**代码位置**：`AIDrawing.tsx` 第 238-244 行
-
-### 11.2 相关代码文件
-
-| 功能 | 文件路径 | 说明 |
-|---|---|---|
-| 主页面 | `src/pages/AIDrawing.tsx` | AI 绘图主界面 |
-| 图片生成 | `src/lib/ai-image.ts` | API 调用逻辑 |
-| 图片压缩 | `src/lib/image-utils.ts` | 图片处理工具 |
-
----
-
-## 12. 用户交互流程
-
-### 12.1 基础流程
-
-1. 用户选择主要模式（自由模式 / 手绘风格）
-2. 用户选择设计风格（可爱风 / Q版 / 简约风等）
-3. 用户输入文字描述或上传参考图片
-4. 用户选择图片比例（1:1 / 4:3 / 16:9 / 9:16）
-5. 用户选择线路（普通 / 优质）
-6. 用户点击「一键优化」（可选）
-7. 用户点击发送按钮生成图片
-8. 系统显示生成结果
-9. 用户可以下载或重新生成
-
-### 12.2 快捷操作
-
-- **Enter 键**：发送生成（Shift+Enter 换行）
-- **多图上传**：一次可选择多张图片（最多5张）
-- **清除图片**：单张清除或全部清除
-
----
-
-## 13. 移动端适配
-
-### 13.1 触摸优化
-
-- 所有按钮添加 `touch-target` 类，确保触摸区域足够大
-- 下拉菜单支持触摸操作
-- 图片预览支持触摸缩放
-
-### 13.2 下载功能
-
-**桌面端**：
-- 直接下载到本地
-
-**移动端**：
-- 优先使用 Web Share API（支持保存到相册）
-- 降级方案：打开新窗口显示图片，提示用户长按保存
-
-**代码位置**：`AIDrawing.tsx` 第 266-331 行
-
----
-
-## 14. 素材库功能
-
-### 14.1 上传素材
-
-用户可以通过「上传素材到素材库」按钮上传图片到素材库。
-
-**代码位置**：`AIDrawing.tsx` 第 634-648 行
-
-### 14.2 当前状态
-
-- ⚠️ **待实现**：目前仅有 UI 按钮，实际上传逻辑待开发
-
----
-
-## 15. 版本迭代记录
+## 7. 版本迭代记录
 
 | 版本 | 日期 | 变更说明 |
-|---|---|---|
-| v1.0 | 2026-02-08 | 初始版本，整理所有提示词和配置 |
-| v1.1 | 2026-02-08 | 优化可爱风和Q版提示词，增强区分度 |
-| v1.2 | 2026-02-08 | 新增「图文并茂」风格，Q版保持纯粹可爱风格 |
+|---|---|---|\n| v1.0 | 2026-02-08 | 初始版本 |
+| v2.0 | 2026-02-08 | 重构为两层选择系统（内容框架 + 视觉风格） |
 
-**v1.1 详细变更**：
+**v2.0 详细变更**：
 
-**可爱风 (Cute)** - 从：
-```
-cute kawaii style, adorable, soft colors, rounded shapes
-```
-改为：
-```
-kawaii aesthetic, pastel colors, soft lighting, gentle features,
-dreamy atmosphere, delicate details, sweet and tender mood
-```
+1. **架构重构**：
+   - 从"主要模式 + 设计风格"改为"内容框架 + 视觉风格"
+   - 第一层：内容框架（定义结构）
+   - 第二层：视觉风格（定义外观）
 
-**Q版 (Chibi)** - 从：
-```
-chibi style, super deformed, big head small body, playful
-```
-改为：
-```
-chibi proportions, oversized head 2:1 ratio, tiny body,
-exaggerated expressions, cartoon style, bold outlines, simplified features
-```
+2. **新增内容框架**：
+   - 📖 漫画故事：分镜叙事
+   - ⚖️ 对比分析：左右对比
+   - 🖌️ 手绘风格：手账风格海报
+   - 🔄 流程图：流程图结构
+   - 🧠 思维导图：中心辐射结构
+   - 📊 图文并茂：信息图表
+   - 👗 女装搭配：网格平铺
+   - 👗 女装搭配模特图：层叠平铺
 
----
+3. **视觉风格独立**：
+   - 🎭 默认风格
+   - 🎀 可爱风
+   - 🧸 Q版
+   - ✨ 简约风
+   - 🎨 水彩风
+   - 📜 复古风
 
-## 16. 待优化项
-
-### 16.1 提示词优化
-
-- [ ] 增加更多设计风格选项（如：赛博朋克、蒸汽波、像素风等）
-- [ ] 优化各风格的英文提示词，提升生成质量
-- [ ] 添加负面提示词（negative prompts）功能
-- [ ] 支持提示词权重调整
-
-### 16.2 功能增强
-
-- [ ] 实现素材库上传和管理功能
-- [ ] 支持批量生成（一次生成多张）
-- [ ] 支持图片编辑（裁剪、调色、滤镜）
-- [ ] 支持历史记录保存
-- [ ] 支持收藏功能
-- [ ] 支持分享到社交媒体
-- [ ] 支持图生图（image-to-image）
-- [ ] 支持局部重绘（inpainting）
-
-### 16.3 性能优化
-
-- [ ] 图片懒加载
-- [ ] 生成进度显示
-- [ ] 失败重试机制
-- [ ] 缓存机制
-
-### 16.4 用户体验
-
-- [ ] 添加风格预览图
-- [ ] 添加提示词示例
-- [ ] 添加生成历史记录
-- [ ] 添加快捷提示词标签
+4. **灵活组合**：
+   - 任意内容框架可以与任意视觉风格组合
+   - 例如：漫画故事 + 可爱风、流程图 + 简约风等
 
 ---
 
-## 17. 相关文档
+## 8. 常见问题 (FAQ)
 
-- [提示词管理 PRD](./PRD-提示词管理.md) - 全局提示词管理文档（如果存在）
-- [AI 绘图代码](../src/pages/AIDrawing.tsx) - 功能实现代码
-- [图片生成 API](../src/lib/ai-image.ts) - API 调用逻辑
-- [图片工具库](../src/lib/image-utils.ts) - 图片处理工具
-
----
-
-## 18. 常见问题 (FAQ)
-
-### Q1: 为什么可爱风和Q版要分开？
-A: 可爱风注重整体氛围和色彩的柔和感，适合温馨治愈的场景；Q版强调比例的夸张变形（大头小身体），适合卡通形象。两者风格差异明显。
-
-### Q2: 如何选择合适的图片比例？
+### Q1: 内容框架和视觉风格有什么区别？
 A:
-- 社交媒体头像：1:1
-- 电脑壁纸、PPT：4:3
-- 视频封面：16:9
-- 手机壁纸、短视频：9:16
+- **内容框架**：定义内容的组织结构（如漫画分镜、流程图、对比表格）
+- **视觉风格**：定义视觉呈现方式（如可爱风、Q版、水彩风）
+- 两者可以自由组合，例如"漫画故事 + 可爱风"
 
-### Q3: 普通线路和优质线路有什么区别？
-A: 优质线路生成质量更高，但可能速度稍慢；普通线路速度快，质量标准。
+### Q2: 自由模式和漫画故事有什么区别？
+A:
+- **自由模式**：生成单张图片，没有固定结构
+- **漫画故事**：生成 4-8 格漫画，有故事情节和对话气泡
 
-### Q4: 上传的图片会被压缩吗？
-A: 是的，为了提升性能，上传的图片会自动压缩到最大 1024px，质量 80%。
+### Q3: 如何选择合适的内容框架？
+A:
+- 想要单张插图 → 自由模式
+- 想要讲故事 → 漫画故事
+- 想要教程/步骤 → 流程图或思维导图
+- 想要对比两个东西 → 对比分析
+- 想要信息图表 → 图文并茂
 
-### Q5: 可以同时选择多个设计风格吗？
-A: 目前只能选择一个设计风格，但可以在用户输入中手动添加更多风格描述。
+### Q4: 可以同时选择多个视觉风格吗？
+A: 目前只能选择一个视觉风格，但可以在用户输入中手动添加更多风格描述。
+
+### Q5: 为什么生成失败？
+A: 可能的原因：
+- 涉及版权内容（如迪士尼角色、漫威角色等）
+- 提示词太长
+- 网络问题
+- AI 服务暂时不可用
+
+建议：
+- 避免使用具体的版权角色名称
+- 使用通用描述（如"兔子警察"而不是"朱迪"）
+- 切换线路重试
 
 ---
 
 > **文档维护**：项目开发团队
 > **最后更新**：2026-02-08
-> **文档版本**：v1.1
+> **文档版本**：v2.0
