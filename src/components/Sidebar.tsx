@@ -143,7 +143,7 @@ export const Sidebar = () => {
             </div>
             <div className="flex flex-col">
               <span className="font-semibold text-foreground text-[15px] leading-tight">
-                AI 创作
+                灵犀
               </span>
               <span className="text-[11px] text-muted-foreground/60 tracking-wide">
                 CREATIVE STUDIO

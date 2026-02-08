@@ -36,7 +36,7 @@ export const Header = () => {
               <Sparkles className="w-4 h-4 text-primary-foreground" />
               <span className="absolute inset-0 rounded-lg bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
             </div>
-            <span className="font-semibold text-foreground text-sm">AI 创作</span>
+            <span className="font-semibold text-foreground text-sm">灵犀</span>
           </Link>
         ) : (
           <nav className="flex items-center gap-1">
