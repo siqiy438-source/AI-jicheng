@@ -36,10 +36,7 @@ interface PromptPreset {
 // 默认风格选项（本地）- 自由模式放第一个
 const defaultStylePresets = [
   { id: "free", name: "自由模式", icon: "✍️" },
-  { id: "poster", name: "海报设计", icon: "🎨" },
   { id: "sketch", name: "手绘风格", icon: "🖌️" },
-  { id: "anime", name: "动漫风格", icon: "✨" },
-  { id: "realistic", name: "写实风格", icon: "📷" },
 ];
 
 // 比例选项
@@ -62,6 +59,15 @@ const languageOptions = [
   { id: "en", name: "English", flag: "🇺🇸" },
 ];
 
+// 手绘子风格选项
+const sketchSubStyles = [
+  { id: "cute", name: "可爱风", icon: "🎀", prompt: "cute kawaii style, adorable, soft colors, rounded shapes" },
+  { id: "chibi", name: "Q版", icon: "🧸", prompt: "chibi style, super deformed, big head small body, playful" },
+  { id: "minimalist", name: "简约风", icon: "✨", prompt: "minimalist clean style, simple lines, elegant, less is more" },
+  { id: "watercolor", name: "水彩风", icon: "🎨", prompt: "watercolor style, soft washes, flowing colors, artistic" },
+  { id: "vintage", name: "复古风", icon: "📜", prompt: "vintage retro style, nostalgic, warm tones, classic feel" },
+];
+
 
 const AIDrawing = () => {
   const navigate = useNavigate();
@@ -82,6 +88,8 @@ const AIDrawing = () => {
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [selectedLine, setSelectedLine] = useState<"standard" | "premium">("standard");
   const [selectedLanguage, setSelectedLanguage] = useState("zh");
+  const [selectedSketchSubStyle, setSelectedSketchSubStyle] = useState<string | null>(null);
+  const [showSketchSubStyleMenu, setShowSketchSubStyleMenu] = useState(false);
 
   // 风格预设列表（从数据库加载）
   const [stylePresets, setStylePresets] = useState<PromptPreset[]>(
@@ -128,6 +136,10 @@ const AIDrawing = () => {
   // 处理风格选择
   const handleStyleSelect = (styleId: string) => {
     setSelectedStyle(styleId);
+    // 切换风格时重置子风格
+    if (styleId !== 'sketch') {
+      setSelectedSketchSubStyle(null);
+    }
 
     // 如果选中的风格有预设提示词（来自数据库），清空输入框并设置提示
     const selected = stylePresets.find(s => s.id === styleId);
@@ -213,8 +225,19 @@ const AIDrawing = () => {
     setGeneratedImage(null);
 
     try {
+      // 构建最终提示词，包含子风格
+      let finalPrompt = prompt || "";
+      if (selectedStyle === 'sketch' && selectedSketchSubStyle) {
+        const subStyle = sketchSubStyles.find(s => s.id === selectedSketchSubStyle);
+        if (subStyle) {
+          finalPrompt = finalPrompt
+            ? `${subStyle.prompt}, ${finalPrompt}`
+            : subStyle.prompt;
+        }
+      }
+
       const data = await generateImage({
-        prompt: prompt || "",
+        prompt: finalPrompt,
         styleId: currentStyleHasPrompt ? selectedStyle : undefined,
         aspectRatio: selectedRatio,
         images: imagePreviews.length > 0 ? imagePreviews : undefined,
@@ -322,6 +345,7 @@ const AIDrawing = () => {
     setShowLineMenu(false);
     setShowStyleMenu(false);
     setShowLanguageMenu(false);
+    setShowSketchSubStyleMenu(false);
   };
 
   // 处理素材上传
@@ -458,6 +482,64 @@ const AIDrawing = () => {
                   </div>
                 )}
               </div>
+
+              {/* 手绘子风格选择 - 仅在选择手绘风格时显示 */}
+              {selectedStyle === 'sketch' && (
+                <div className="relative" onClick={(e) => e.stopPropagation()}>
+                  <button
+                    onClick={() => {
+                      setShowSketchSubStyleMenu(!showSketchSubStyleMenu);
+                      setShowStyleMenu(false);
+                      setShowRatioMenu(false);
+                      setShowLineMenu(false);
+                      setShowLanguageMenu(false);
+                    }}
+                    className={cn(
+                      "flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 rounded-full text-sm transition-all duration-200 border touch-target",
+                      selectedSketchSubStyle
+                        ? "bg-pink-50 border-pink-200 text-pink-700 hover:bg-pink-100"
+                        : "bg-secondary/50 text-muted-foreground hover:bg-secondary border-transparent"
+                    )}
+                  >
+                    <span>{sketchSubStyles.find(s => s.id === selectedSketchSubStyle)?.icon || "🎭"}</span>
+                    <span>{sketchSubStyles.find(s => s.id === selectedSketchSubStyle)?.name || "设计风格"}</span>
+                    <ChevronDown className={cn("w-3.5 h-3.5 transition-transform duration-200", showSketchSubStyleMenu && "rotate-180")} />
+                  </button>
+                  {showSketchSubStyleMenu && (
+                    <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 min-w-[120px] animate-dropdown">
+                      <button
+                        onClick={() => {
+                          setSelectedSketchSubStyle(null);
+                          setShowSketchSubStyleMenu(false);
+                        }}
+                        className={cn(
+                          "w-full flex items-center gap-2 px-3 py-2.5 text-sm hover:bg-secondary/50 transition-all duration-200 text-left touch-target",
+                          !selectedSketchSubStyle && "bg-pink-50 text-pink-700"
+                        )}
+                      >
+                        <span>🎭</span>
+                        <span>默认</span>
+                      </button>
+                      {sketchSubStyles.map((subStyle) => (
+                        <button
+                          key={subStyle.id}
+                          onClick={() => {
+                            setSelectedSketchSubStyle(subStyle.id);
+                            setShowSketchSubStyleMenu(false);
+                          }}
+                          className={cn(
+                            "w-full flex items-center gap-2 px-3 py-2.5 text-sm hover:bg-secondary/50 transition-all duration-200 text-left touch-target",
+                            selectedSketchSubStyle === subStyle.id && "bg-pink-50 text-pink-700"
+                          )}
+                        >
+                          <span>{subStyle.icon}</span>
+                          <span>{subStyle.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* 比例选择 */}
               <div className="relative" onClick={(e) => e.stopPropagation()}>
