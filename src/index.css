@@ -780,6 +780,32 @@
   display: none;
 }
 
+/* 隐藏滚动条（用于横向滑动区域） */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* 下拉菜单动画 */
+@keyframes dropdown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-dropdown {
+  animation: dropdown 0.15s ease-out;
+}
+
 /* 移动端安全区域工具类 */
 @layer utilities {
   .pt-safe {
