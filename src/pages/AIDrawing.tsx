@@ -132,8 +132,8 @@ const AIDrawing = () => {
     if (selected?.prompt) {
       // 不填充提示词，保持输入框为空或显示提示
       setPrompt('');
-      // 如果是女装搭配，自动设置比例为 9:16
-      if (styleId === 'fashion-outfit') {
+      // 如果是女装搭配类风格，自动设置比例为 9:16
+      if (styleId === 'fashion-outfit' || styleId === 'outfit-model') {
         setSelectedRatio('9:16');
       }
     }
