@@ -141,10 +141,10 @@ const ratioOptions = [
 
 // 线路选项
 const lineOptions = [
-  { id: "premium", name: "优质线路", line: "premium" as const, resolution: "2k" as const },
-  { id: "standard", name: "普通线路", line: "standard" as const, resolution: "default" as const },
-  { id: "standard_2k", name: "普通线路 2K", line: "standard" as const, resolution: "2k" as const },
-  { id: "standard_4k", name: "普通线路 4K", line: "standard" as const, resolution: "4k" as const },
+  { id: "premium", name: "灵犀 Pro", line: "premium" as const, resolution: "2k" as const, badge: "优质" },
+  { id: "standard", name: "标准", line: "standard" as const, resolution: "default" as const },
+  { id: "standard_2k", name: "标准 2K", line: "standard" as const, resolution: "2k" as const },
+  { id: "standard_4k", name: "标准 4K", line: "standard" as const, resolution: "4k" as const },
 ];
 
 // 语言选项
@@ -669,6 +669,11 @@ const AIDrawing = () => {
                 >
                   <Zap className="w-3.5 h-3.5" />
                   <span>{lineOptions.find(l => l.id === selectedLine)?.name}</span>
+                  {lineOptions.find(l => l.id === selectedLine)?.badge && (
+                    <span className="px-1 py-0.5 text-[9px] md:text-[10px] leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded">
+                      {lineOptions.find(l => l.id === selectedLine)?.badge}
+                    </span>
+                  )}
                   <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showLineMenu && "rotate-180")} />
                 </button>
                 {showLineMenu && (
@@ -681,11 +686,16 @@ const AIDrawing = () => {
                           setShowLineMenu(false);
                         }}
                         className={cn(
-                          "w-full px-3 py-2.5 text-sm hover:bg-secondary/50 transition-all duration-200 text-left touch-target",
+                          "w-full flex items-center gap-1.5 px-3 py-2.5 text-sm hover:bg-secondary/50 transition-all duration-200 text-left touch-target",
                           selectedLine === line.id && "bg-orange-50 text-orange-700"
                         )}
                       >
-                        {line.name}
+                        <span>{line.name}</span>
+                        {line.badge && (
+                          <span className="px-1 py-0.5 text-[9px] leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded">
+                            {line.badge}
+                          </span>
+                        )}
                       </button>
                     ))}
                   </div>
