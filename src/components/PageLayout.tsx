@@ -54,6 +54,20 @@ export const PageLayout = ({
           >
             {children}
           </div>
+          
+          {/* 备案号 Footer */}
+          <footer className="py-4 md:py-6 border-t border-border/30 bg-background/30 backdrop-blur-sm">
+            <div className="text-center">
+              <a
+                href="https://beian.miit.gov.cn/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs md:text-sm text-muted-foreground/70 hover:text-muted-foreground transition-colors inline-block"
+              >
+                黔ICP备2026001006号
+              </a>
+            </div>
+          </footer>
         </main>
       </div>
       {/* 移动端底部导航 */}

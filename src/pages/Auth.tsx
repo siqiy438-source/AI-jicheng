@@ -164,6 +164,18 @@ export default function Auth() {
             ← 返回首页
           </Link>
         </p>
+
+        {/* 备案号 */}
+        <div className="text-center mt-8">
+          <a
+            href="https://beian.miit.gov.cn/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-muted-foreground/70 hover:text-muted-foreground transition-colors"
+          >
+            黔ICP备2026001006号
+          </a>
+        </div>
       </div>
     </div>
   )
