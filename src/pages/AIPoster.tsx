@@ -119,7 +119,7 @@ const sizeOptions = [
 
 // 线路选项
 const lineOptions = [
-  { id: "premium", name: "优质线路", line: "premium" as const, resolution: "default" as const },
+  { id: "premium", name: "优质线路", line: "premium" as const, resolution: "2k" as const },
   { id: "standard", name: "普通线路", line: "standard" as const, resolution: "default" as const },
   { id: "standard_2k", name: "普通线路 2K", line: "standard" as const, resolution: "2k" as const },
   { id: "standard_4k", name: "普通线路 4K", line: "standard" as const, resolution: "4k" as const },

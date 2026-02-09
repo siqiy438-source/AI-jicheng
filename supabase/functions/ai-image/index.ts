@@ -1,11 +1,11 @@
 /**
  * Supabase Edge Function: AI Image Generation
- * 使用 Gemini 3 Pro Image (Nano Banana) 通过 ZenMux Vertex AI 协议生成图像
+ * 使用 BLTCY API 生成图像（普通线路走 Gemini generateContent，优质/2K/4K 走 images/edits）
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
-import { buildGenerateContentUrl, getImageProvider, getProviderConfig, isHDResolution, getHDModel, getHDApiUrl } from "./provider.ts"
+import { buildGenerateContentUrl, getImageProvider, getProviderConfig, isHDResolution, isPremiumHD, getHDModel, getHDApiUrl } from "./provider.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -24,9 +24,11 @@ serve(async (req) => {
 
     const { prompt, style, aspectRatio, negativePrompt, styleId, images, line, resolution, hasFrameworkPrompt } = await req.json()
     const resolvedLine = getImageProvider(line)
+    // 优质线路固定走 2K HD
+    const resolvedResolution = resolvedLine === "premium" ? "2k" : (resolution || "default")
     const providerConfig = getProviderConfig(resolvedLine)
     const providerApiKey = Deno.env.get(providerConfig.apiKeyEnv)
-    const providerName = resolvedLine === "premium" ? "ZenMux" : "BLTCY"
+    const providerName = "BLTCY"
 
     if (!providerApiKey) {
       console.error(`[ai-image] Missing API key: ${providerConfig.apiKeyEnv} for ${providerName} provider`)
@@ -119,14 +121,14 @@ Flat-lay product showcase requirements:
       fullPrompt += `. Aspect ratio: ${aspectRatio}`
     }
 
-    // ========== 2K/4K 高清线路：走 images/edits 接口 ==========
-    if (isHDResolution(resolution)) {
+    // ========== 2K/4K 高清线路（含优质线路）：走 images/edits 接口 ==========
+    if (isHDResolution(resolvedResolution)) {
       const hdApiKey = Deno.env.get('BLTCY_API_KEY')
       if (!hdApiKey) {
         throw new Error('图像服务配置错误：BLTCY API Key 未配置，请联系管理员')
       }
 
-      const hdModel = getHDModel(resolution)
+      const hdModel = getHDModel(resolvedResolution)
       const hdUrl = getHDApiUrl()
 
       // 构建 FormData（images/edits 接口使用 multipart/form-data）
@@ -173,7 +175,7 @@ Flat-lay product showcase requirements:
       if (!hdResponse.ok) {
         const errorText = await hdResponse.text()
         console.error(`[ai-image] BLTCY HD (${hdModel}) API error: ${hdResponse.status} - ${errorText}`)
-        throw new Error(`BLTCY ${resolution.toUpperCase()} API 错误: ${hdResponse.status} - ${errorText}`)
+        throw new Error(`BLTCY ${resolvedResolution.toUpperCase()} API 错误: ${hdResponse.status} - ${errorText}`)
       }
 
       const hdData = await hdResponse.json()
@@ -205,7 +207,7 @@ Flat-lay product showcase requirements:
       })
     }
 
-    // ========== 普通/优质线路：走 Gemini generateContent 接口 ==========
+    // ========== 普通线路：走 Gemini generateContent 接口 ==========
 
     // 构建 Vertex AI 格式的请求内容
     type PartType = { text: string } | { inlineData: { mimeType: string; data: string } }
@@ -232,17 +234,10 @@ Flat-lay product showcase requirements:
 
     // 调用对应线路 API 生成图像
     const apiUrl = buildGenerateContentUrl(providerConfig)
-    const generationConfig =
-      resolvedLine === "standard"
-        ? {
-          responseModalities: ['IMAGE'],
-          imageConfig: aspectRatio ? { aspectRatio } : undefined,
-        }
-        : {
-          responseModalities: ['TEXT', 'IMAGE'],
-          temperature: 1,
-          maxOutputTokens: 8192,
-        }
+    const generationConfig = {
+      responseModalities: ['IMAGE'],
+      imageConfig: aspectRatio ? { aspectRatio } : undefined,
+    }
 
     const response = await fetch(apiUrl, {
       method: 'POST',

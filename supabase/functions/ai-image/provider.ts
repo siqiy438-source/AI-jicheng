@@ -24,17 +24,11 @@ export const getHDModel = (resolution: string): string =>
 export const getHDApiUrl = (): string =>
   "https://api.bltcy.ai/v1/images/edits";
 
-export const getProviderConfig = (line: ImageLine): ProviderConfig => {
-  if (line === "premium") {
-    return {
-      line,
-      baseUrl: "https://zenmux.ai/api/vertex-ai",
-      pathPrefix: "v1",
-      model: "google/gemini-3-pro-image-preview",
-      apiKeyEnv: "ZENMUX_API_KEY",
-    };
-  }
+/** 优质线路是否走 HD 2K（premium 固定走 BLTCY images/edits 2K） */
+export const isPremiumHD = (line?: string): boolean => line === "premium";
 
+export const getProviderConfig = (line: ImageLine): ProviderConfig => {
+  // 优质线路现在也走 BLTCY（HD 2K 通过 images/edits 接口）
   return {
     line,
     baseUrl: "https://api.bltcy.ai",
