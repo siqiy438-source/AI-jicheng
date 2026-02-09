@@ -30,15 +30,6 @@ import {
 } from "./constants";
 
 // 静态 JSX 提取到组件外部 (rendering-hoist-jsx)
-const PageIcon = (
-  <div
-    className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center"
-    aria-hidden="true"
-  >
-    <Sparkles className="w-7 h-7 text-white" aria-hidden="true" />
-  </div>
-);
-
 const InspirationEmptyState = (
   <div className="col-span-2 glass-card rounded-xl p-8 text-center">
     <Lightbulb className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" aria-hidden="true" />
@@ -150,16 +141,13 @@ const Lingxi = () => {
             </Link>
 
             {/* 页面标题 */}
-            <header className="flex items-center gap-4 mb-8">
-              {PageIcon}
-              <div>
-                <h1 className="text-2xl font-bold text-foreground text-balance">
-                  灵犀
-                </h1>
-                <p className="text-muted-foreground text-sm">
-                  心有灵犀，创意无限
-                </p>
-              </div>
+            <header className="mb-8">
+              <h1 className="text-2xl font-bold text-foreground text-balance">
+                灵犀
+              </h1>
+              <p className="text-muted-foreground text-sm">
+                心有灵犀，创意无限
+              </p>
             </header>
 
             {/* 数据统计 */}

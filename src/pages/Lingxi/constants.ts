@@ -2,9 +2,6 @@ import {
   Palette,
   ImageIcon,
   FileText,
-  Video,
-  Mic,
-  Wand2,
   BarChart3,
   Star,
   Clock,
@@ -55,7 +52,7 @@ export interface Tip {
   readTime: string;
 }
 
-// 快捷工具配置
+// 快捷工具配置（只保留已实现的功能）
 export const QUICK_TOOLS: QuickTool[] = [
   {
     id: "poster",
@@ -88,37 +85,14 @@ export const QUICK_TOOLS: QuickTool[] = [
     path: "/ai-copywriting",
   },
   {
-    id: "video",
-    name: "AI 视频",
-    description: "短视频创作",
-    icon: Video,
-    color: "from-pink-500 to-pink-600",
-    bgColor: "bg-pink-50",
-    textColor: "text-pink-600",
-    path: "#",
-    comingSoon: true,
-  },
-  {
-    id: "voice",
-    name: "AI 配音",
-    description: "智能语音合成",
-    icon: Mic,
-    color: "from-green-500 to-green-600",
-    bgColor: "bg-green-50",
-    textColor: "text-green-600",
-    path: "#",
-    comingSoon: true,
-  },
-  {
-    id: "magic",
-    name: "一键改图",
-    description: "智能图片编辑",
-    icon: Wand2,
-    color: "from-indigo-500 to-indigo-600",
-    bgColor: "bg-indigo-50",
-    textColor: "text-indigo-600",
-    path: "#",
-    comingSoon: true,
+    id: "ppt",
+    name: "AI PPT",
+    description: "智能演示文稿生成",
+    icon: FileText,
+    color: "from-emerald-500 to-emerald-600",
+    bgColor: "bg-emerald-50",
+    textColor: "text-emerald-600",
+    path: "/ai-ppt",
   },
 ];
 

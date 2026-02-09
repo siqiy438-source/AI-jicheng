@@ -67,7 +67,7 @@ export const Header = () => {
               <button className={cn(
                 "ml-1 md:ml-2 flex items-center gap-2",
                 "px-2 md:px-3 py-1.5 md:py-2",
-                "bg-accent hover:bg-accent/80 rounded-xl",
+                "rounded-xl hover:bg-accent active:bg-accent",
                 "text-sm font-medium transition-colors",
                 "touch-target"
               )}>
