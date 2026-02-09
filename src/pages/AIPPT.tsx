@@ -337,7 +337,7 @@ const AIPPT = () => {
               <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", showPageCountMenu && "rotate-180")} />
             </button>
             {showPageCountMenu && (
-              <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 min-w-[100px]">
+              <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 min-w-[100px] max-h-[128px] overflow-y-auto scrollbar-thin">
                 {PAGE_COUNTS.map((c) => (
                   <button
                     key={c}
@@ -362,7 +362,7 @@ const AIPPT = () => {
               <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", showStyleMenu && "rotate-180")} />
             </button>
             {showStyleMenu && (
-              <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 min-w-[140px]">
+              <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 min-w-[140px] max-h-[128px] overflow-y-auto scrollbar-thin">
                 {PPT_STYLES.map((s) => (
                   <button
                     key={s.id}
@@ -387,7 +387,7 @@ const AIPPT = () => {
               <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", showRatioMenu && "rotate-180")} />
             </button>
             {showRatioMenu && (
-              <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 min-w-[90px]">
+              <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 min-w-[90px] max-h-[128px] overflow-y-auto scrollbar-thin">
                 {PPT_RATIOS.map((r) => (
                   <button
                     key={r.id}
@@ -681,7 +681,7 @@ const AIPPT = () => {
               <ChevronDown className="w-3 h-3" />
             </button>
             {showStyleMenu && (
-              <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 min-w-[130px]">
+              <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 min-w-[130px] max-h-[128px] overflow-y-auto scrollbar-thin">
                 {PPT_STYLES.map((s) => (
                   <button
                     key={s.id}
