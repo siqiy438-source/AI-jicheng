@@ -12,6 +12,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Palette,
+  Presentation,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -213,6 +214,13 @@ export const Sidebar = () => {
             active={isActive("/ai-drawing")}
             collapsed={collapsed}
             to="/ai-drawing"
+          />
+          <NavItem
+            icon={<Presentation className="w-[18px] h-[18px]" />}
+            label="AI PPT"
+            active={isActive("/ai-ppt")}
+            collapsed={collapsed}
+            to="/ai-ppt"
           />
           <NavItem
             icon={<FileText className="w-[18px] h-[18px]" />}

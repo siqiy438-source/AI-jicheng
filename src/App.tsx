@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AIPoster from "./pages/AIPoster";
 import AIDrawing from "./pages/AIDrawing";
+import AIPPT from "./pages/AIPPT";
 import AICopywriting from "./pages/AICopywriting";
 import MyWorks from "./pages/MyWorks";
 import MyMaterials from "./pages/MyMaterials";
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/ai-poster" element={<AIPoster />} />
             <Route path="/ai-drawing" element={<AIDrawing />} />
+            <Route path="/ai-ppt" element={<AIPPT />} />
             <Route path="/ai-copywriting" element={<AICopywriting />} />
             <Route path="/my-works" element={<MyWorks />} />
             <Route path="/my-materials" element={<MyMaterials />} />
