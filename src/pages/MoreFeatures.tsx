@@ -35,9 +35,8 @@ const FeatureItem = ({ icon, title, description, status, color, to }: FeatureIte
     )}
     <div
       className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110`}
-      style={{ backgroundColor: `${color}20` }}
     >
-      <span style={{ color }}>{icon}</span>
+      {icon}
     </div>
     <h3 className="font-semibold text-foreground mb-2">{title}</h3>
     <p className="text-sm text-muted-foreground">{description}</p>
@@ -48,7 +47,7 @@ const FeatureItem = ({ icon, title, description, status, color, to }: FeatureIte
 const MoreFeatures = () => {
   const features: FeatureItemProps[] = [
     {
-      icon: <Store className="w-6 h-6" />,
+      icon: <img src="/icons/ai-display-custom.png" alt="AI 陈列" className="w-10 h-10 object-contain" />,
       title: "AI 陈列",
       description: "智能搭配，一键生成专业店铺陈列方案",
       status: "available",
@@ -56,7 +55,7 @@ const MoreFeatures = () => {
       to: "/ai-display",
     },
     {
-      icon: <Palette className="w-6 h-6" />,
+      icon: <img src="/icons/ai-poster-custom.png" alt="AI 海报" className="w-10 h-10 object-contain" />,
       title: "AI 海报",
       description: "专业场景海报，一键智能设计",
       status: "available",

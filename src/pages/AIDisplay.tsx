@@ -293,8 +293,12 @@ OUTPUT: Photorealistic editorial boutique photo with cinematic depth. Clothes ke
 
         {/* 页面标题 */}
         <div className="hidden md:flex items-center gap-4 mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-100 to-pink-50 flex items-center justify-center flex-shrink-0">
-            <Store className="w-7 h-7 text-rose-600" />
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0">
+            <img 
+              src="/icons/ai-display-custom.png" 
+              alt="AI 陈列" 
+              className="w-14 h-14 object-contain"
+            />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-foreground">AI 智能陈列</h1>

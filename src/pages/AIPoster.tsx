@@ -391,8 +391,12 @@ const AIPoster = () => {
 
         {/* 页面标题 */}
         <div className="flex items-center gap-2.5 md:gap-4 mb-4 md:mb-8">
-          <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-to-br from-amber-100 to-orange-50 flex items-center justify-center flex-shrink-0">
-            <Palette className="w-5 h-5 md:w-7 md:h-7 text-amber-600" />
+          <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center flex-shrink-0">
+            <img 
+              src="/icons/ai-poster-custom.png" 
+              alt="AI 海报" 
+              className="w-10 h-10 md:w-14 md:h-14 object-contain"
+            />
           </div>
           <div>
             <h1 className="text-lg md:text-2xl font-bold text-foreground">AI 海报</h1>

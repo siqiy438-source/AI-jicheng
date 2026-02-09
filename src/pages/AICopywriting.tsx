@@ -260,8 +260,12 @@ const AICopywriting = () => {
 
       {/* 页面标题 */}
       <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
-        <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center">
-          <FileText className="w-6 h-6 md:w-7 md:h-7 text-orange-600" />
+        <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center">
+          <img 
+            src="/icons/ai-copywriting-custom.png" 
+            alt="AI 文案" 
+            className="w-12 h-12 md:w-14 md:h-14 object-contain"
+          />
         </div>
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-foreground">AI 文案</h1>

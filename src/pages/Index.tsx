@@ -11,21 +11,21 @@ import {
 const Index = () => {
   const features = [
     {
-      icon: Presentation,
+      customIcon: "/icons/ai-ppt-custom.png",
       title: "AI PPT",
       description: "文字变演示，智能生成幻灯片",
       color: "amber" as const,
       to: "/ai-ppt",
     },
     {
-      icon: ImageIcon,
+      customIcon: "/icons/ai-drawing-custom.png",
       title: "AI 绘图",
       description: "一句话生成，灵感即刻呈现",
       color: "indigo" as const,
       to: "/ai-drawing",
     },
     {
-      icon: FileText,
+      customIcon: "/icons/ai-copywriting-custom.png",
       title: "AI 文案",
       description: "智能写作，助力内容创造",
       color: "emerald" as const,

@@ -319,8 +319,12 @@ const AIPPT = () => {
       <div onClick={closeAllMenus}>
         {/* Title area */}
         <div className="text-center mb-8 md:mb-12 pt-4 md:pt-8">
-          <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center mx-auto mb-4">
-            <Presentation className="w-7 h-7 md:w-8 md:h-8 text-orange-500" />
+          <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <img 
+              src="/icons/ai-ppt-custom.png" 
+              alt="AI PPT" 
+              className="w-14 h-14 md:w-16 md:h-16 object-contain"
+            />
           </div>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">今天想创作什么？</h1>
           <p className="text-muted-foreground text-sm md:text-base">把想法转化为精美演示文稿</p>

@@ -3,7 +3,8 @@ import { LucideIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface FeatureCardProps {
-  icon: LucideIcon;
+  icon?: LucideIcon;
+  customIcon?: string; // 自定义图片路径
   title: string;
   description: string;
   badge?: string;
@@ -53,6 +54,7 @@ const colorVariants = {
 
 export const FeatureCard = ({
   icon: Icon,
+  customIcon,
   title,
   description,
   badge,
@@ -119,23 +121,36 @@ export const FeatureCard = ({
         className={cn(
           "relative w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center mb-3 md:mb-4",
           "bg-gradient-to-br",
-          colorStyle.iconBg,
+          customIcon ? "bg-transparent" : colorStyle.iconBg,
           // 内阴影增加深度
-          "shadow-[inset_0_-2px_4px_hsl(0_0%_0%/0.05),0_2px_4px_hsl(0_0%_0%/0.04)]",
+          !customIcon && "shadow-[inset_0_-2px_4px_hsl(0_0%_0%/0.05),0_2px_4px_hsl(0_0%_0%/0.04)]",
           // 悬停效果
           "transition-transform duration-300",
           "group-hover:scale-105 group-hover:rotate-3"
         )}
       >
-        <Icon
-          className={cn(
-            "w-5 h-5 md:w-7 md:h-7 transition-all duration-300",
-            colorStyle.iconColor,
-            "group-hover:scale-110"
-          )}
-        />
-        {/* 高光层 */}
-        <span className="absolute inset-0 rounded-2xl bg-gradient-to-b from-white/40 to-transparent dark:from-white/10 pointer-events-none" />
+        {customIcon ? (
+          <img
+            src={customIcon}
+            alt={title}
+            className={cn(
+              "w-full h-full object-contain transition-all duration-300",
+              "group-hover:scale-110"
+            )}
+          />
+        ) : Icon ? (
+          <Icon
+            className={cn(
+              "w-5 h-5 md:w-7 md:h-7 transition-all duration-300",
+              colorStyle.iconColor,
+              "group-hover:scale-110"
+            )}
+          />
+        ) : null}
+        {/* 高光层 - 仅非自定义图标显示 */}
+        {!customIcon && (
+          <span className="absolute inset-0 rounded-2xl bg-gradient-to-b from-white/40 to-transparent dark:from-white/10 pointer-events-none" />
+        )}
       </div>
 
       {/* 标题 */}

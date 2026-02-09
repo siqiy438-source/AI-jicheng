@@ -457,8 +457,12 @@ const AIDrawing = () => {
 
         {/* 页面标题 - 移动端隐藏避免与 Header logo 重叠 */}
         <div className="hidden md:flex items-center gap-4 mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center flex-shrink-0">
-            <ImageIcon className="w-7 h-7 text-purple-600" />
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0">
+            <img 
+              src="/icons/ai-drawing-custom.png" 
+              alt="AI 绘图" 
+              className="w-14 h-14 object-contain"
+            />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-foreground">AI 绘图</h1>
