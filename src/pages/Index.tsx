@@ -32,7 +32,7 @@ const Index = () => {
       to: "/ai-copywriting",
     },
     {
-      icon: Wand2,
+      customIcon: "/icons/more-features-custom.png",
       title: "更多功能",
       description: "持续更新中",
       color: "violet" as const,
