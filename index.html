@@ -7,10 +7,29 @@
     <!-- PWA 支持 -->
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#D97706" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#D97706" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#B45309" />
+    
+    <!-- iOS Safari 全屏支持 -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="AI创作" />
-    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    
+    <!-- iOS 桌面图标（不同尺寸） -->
+    <link rel="apple-touch-icon" href="/icons/icon-180.png" />
+    <link rel="apple-touch-icon" sizes="120x120" href="/icons/icon-120.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152.png" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-167.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180.png" />
+    
+    <!-- iOS 启动画面（可选） -->
+    <link rel="apple-touch-startup-image" href="/splash/iphone-splash.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" />
+    <link rel="apple-touch-startup-image" href="/splash/iphone-plus-splash.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)" />
+    
+    <!-- 标准图标 -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
 
     <!-- TODO: Set the document title to the name of your application -->
     <title>Lovable App</title>

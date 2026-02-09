@@ -1,7 +1,7 @@
 {
-  "name": "AI 创作平台",
+  "name": "AI 创作平台 - 灵犀",
   "short_name": "AI创作",
-  "description": "AI 驱动的创作工具平台，支持绘图、文案、海报等多种创作场景",
+  "description": "AI 驱动的创作工具平台，支持绘图、文案、海报、PPT 等多种创作场景",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#FDFBF8",
@@ -9,21 +9,128 @@
   "orientation": "portrait-primary",
   "icons": [
     {
+      "src": "/icons/icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
       "src": "/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/desktop-1.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "AI 创作平台主界面"
+    },
+    {
+      "src": "/screenshots/mobile-1.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "移动端创作界面"
     }
   ],
   "categories": ["productivity", "utilities", "creativity"],
   "lang": "zh-CN",
   "dir": "ltr",
   "scope": "/",
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "AI 绘图",
+      "short_name": "绘图",
+      "description": "快速启动 AI 绘图功能",
+      "url": "/ai-drawing",
+      "icons": [
+        {
+          "src": "/icons/shortcut-drawing.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "AI 文案",
+      "short_name": "文案",
+      "description": "快速启动 AI 文案生成",
+      "url": "/ai-copywriting",
+      "icons": [
+        {
+          "src": "/icons/shortcut-copywriting.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "AI PPT",
+      "short_name": "PPT",
+      "description": "快速启动 AI PPT 生成",
+      "url": "/ai-ppt",
+      "icons": [
+        {
+          "src": "/icons/shortcut-ppt.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "display_override": ["standalone", "minimal-ui", "browser"]
 }
