@@ -142,9 +142,9 @@ const ratioOptions = [
 // 线路选项
 const lineOptions = [
   { id: "premium", name: "灵犀 Pro", line: "premium" as const, resolution: "2k" as const, badge: "优质" },
-  { id: "standard", name: "标准", line: "standard" as const, resolution: "default" as const },
-  { id: "standard_2k", name: "标准 2K", line: "standard" as const, resolution: "2k" as const },
-  { id: "standard_4k", name: "标准 4K", line: "standard" as const, resolution: "4k" as const },
+  { id: "standard", name: "灵犀标准", line: "standard" as const, resolution: "default" as const },
+  { id: "standard_2k", name: "灵犀 2K", line: "standard" as const, resolution: "2k" as const },
+  { id: "standard_4k", name: "灵犀 4K", line: "standard" as const, resolution: "4k" as const },
 ];
 
 // 语言选项
