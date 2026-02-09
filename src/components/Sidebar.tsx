@@ -132,21 +132,12 @@ export const Sidebar = () => {
       <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border">
         {!collapsed ? (
           <div className="flex items-center gap-3">
-            {/* Logo 图标 - 正方形设计 */}
-            <div className={cn(
-              "relative w-9 h-9 flex items-center justify-center flex-shrink-0 overflow-hidden",
-              "bg-gradient-to-br from-primary to-[hsl(32_85%_48%)]",
-              "shadow-[inset_0_1px_0_hsl(0_0%_100%/0.2),0_2px_8px_hsl(28_80%_52%/0.3)]",
-            )}>
-              {/* 品牌图标（缩小居中） */}
-              <img 
-                src="/logo.png" 
-                alt="灵犀 Logo" 
-                className="w-6 h-6 object-contain relative z-10"
-              />
-              {/* 光泽效果 */}
-              <span className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
-            </div>
+            {/* Logo 图标 - 直接铺满 */}
+            <img 
+              src="/logo.png" 
+              alt="灵犀 Logo" 
+              className="w-9 h-9 object-cover flex-shrink-0"
+            />
             <div className="flex flex-col min-w-0">
               <span className="font-semibold text-foreground text-[15px] leading-tight">
                 灵犀

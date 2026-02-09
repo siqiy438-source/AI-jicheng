@@ -28,20 +28,12 @@ export const Header = () => {
         {/* 移动端显示 Logo */}
         {isMobile ? (
           <Link to="/" className="flex items-center gap-2">
-            <div className={cn(
-              "relative w-8 h-8 flex items-center justify-center flex-shrink-0 overflow-hidden",
-              "bg-gradient-to-br from-primary to-[hsl(32_85%_48%)]",
-              "shadow-[inset_0_1px_0_hsl(0_0%_100%/0.2),0_2px_6px_hsl(28_80%_52%/0.3)]",
-            )}>
-              {/* 品牌图标（缩小居中） */}
-              <img 
-                src="/logo.png" 
-                alt="灵犀 Logo" 
-                className="w-5 h-5 object-contain relative z-10"
-              />
-              {/* 光泽效果 */}
-              <span className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
-            </div>
+            {/* Logo 图标 - 直接铺满 */}
+            <img 
+              src="/logo.png" 
+              alt="灵犀 Logo" 
+              className="w-8 h-8 object-cover flex-shrink-0"
+            />
             <span className="font-semibold text-foreground text-sm">灵犀</span>
           </Link>
         ) : (
