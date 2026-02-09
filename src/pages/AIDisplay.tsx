@@ -163,7 +163,7 @@ const AIDisplay = () => {
       setGenerationStep("正在设计陈列方案...");
       const style = displayStyles.find(s => s.id === selectedStyle) || displayStyles[0];
 
-      const displayPrompt = `Create a stunning Xiaohongshu (小红书) style boutique display photo — the kind that goes viral with thousands of saves.
+      const displayPrompt = `Create a Xiaohongshu (小红书) style boutique rack display photo — natural, curated, and effortlessly stylish.
 
 REFERENCE IMAGES:
 - Image 1: A numbered grid of ${clothingImages.length} clothing items (the inventory to arrange)
@@ -171,39 +171,32 @@ REFERENCE IMAGES:
 
 DISPLAY STYLE: ${style.name} - ${style.prompt}
 
-CRITICAL REQUIREMENTS — THIS MUST LOOK LIKE A XIAOHONGSHU VIRAL BOUTIQUE PHOTO:
+KEY REQUIREMENTS — NATURAL XIAOHONGSHU BOUTIQUE AESTHETIC:
 
-1. OUTFIT LAYERING ON HANGERS (最重要): Do NOT hang individual pieces separately. Instead, layer complete outfits on each hanger — a top draped over a bottom (e.g., knit sweater over pleated skirt, blazer over wide-leg pants, cardigan over a dress). Each hanger tells a complete outfit story. This is the #1 difference between amateur and professional display.
+1. MIXED HANGING STYLE (自然混搭，最重要): Create a VARIED, natural-looking rack — NOT every hanger should have a full outfit. Mix it up like a real curated boutique:
+   - Some hangers: just a single piece (a coat alone, a dress alone, a cardigan alone)
+   - 2-3 hangers: a top layered over a bottom (e.g., blazer over pants, knit over skirt)
+   - The mix of single pieces and layered looks creates visual rhythm and feels natural, not formulaic
+   - Pieces should be spaced with breathing room, not crammed together
 
-2. ACCESSORIES STYLING: Add lifestyle accessories around the rack to create a curated boutique feel:
-   - Hang 1-2 bags (tote bags, crossbody bags) on the rack ends or hooks
-   - Place shoes/boots neatly below the rack, aligned with their matching outfits
-   - Drape scarves or shawls casually over the rack bar
-   - Hang a hat on one end of the rack
-   These accessories should match the color palette of the clothes.
+2. ACCESSORIES (点缀配饰): Scatter a few accessories naturally around the rack:
+   - A bag hanging on one end of the rack or on a hook
+   - A hat casually placed on the rack end
+   - A scarf draped over the bar
+   Keep it minimal — 2-3 accessories total, not overdone.
 
-3. PROPS & DECORATIVE TOUCHES (道具点缀): Add small lifestyle props that make the photo feel warm and editorial:
-   - Clip postcards, polaroid photos, or dried flower sprigs to hangers with small clips
-   - Place a small vase of dried flowers or eucalyptus near the rack base
-   - A coffee cup, candle, or small art print nearby
-   - A woven basket or fabric storage box below the rack
-   These props should feel natural, not forced — like a real boutique owner's personal touches.
+3. SMALL PROPS (生活道具): Add 1-2 subtle lifestyle touches near the rack base:
+   - A small vase of dried flowers or eucalyptus
+   - A woven basket or vintage box
+   These should feel like they naturally belong there, not staged.
 
-4. COHESIVE COLOR STORY (色彩统一): The ENTIRE rack must follow ONE cohesive color palette. Examples:
-   - Warm earth tones: cream, camel, brown, chocolate, tan
-   - Soft feminine: white, blush pink, dusty rose, mauve
-   - Cool minimal: ivory, gray, slate, black, white
-   Every piece, accessory, and prop should harmonize within this palette. NO random clashing colors.
+4. COHESIVE COLOR PALETTE (色调统一): All pieces on the rack should share a harmonious color family. The overall rack reads as one cohesive color story at a glance.
 
-5. SPACING & ARRANGEMENT: Only 4-6 outfit groupings on the rack with generous spacing between each. This is a curated selection, NOT a crowded closet. Each outfit grouping should be clearly visible and styled.
-
-6. BOUTIQUE ATMOSPHERE: Warm natural lighting, clean background (white wall or light wood). The overall mood is cozy, aspirational, and "I want to buy everything on this rack." Think premium Xiaohongshu fashion blogger's showroom.
-
-7. FABRIC & DETAIL: Clothes drape naturally with beautiful texture. Knits look soft, silk looks luminous, cotton looks crisp. Every collar, sleeve, and hem is perfectly arranged.
+5. NATURAL ATMOSPHERE: Warm soft lighting, clean simple background. The mood is relaxed and inviting — like walking into a friend's beautifully curated closet or a cozy independent boutique.
 
 ${additionalNotes ? `STORE OWNER'S NOTES: ${additionalNotes}` : ""}
 
-OUTPUT: A photorealistic, Instagram/Xiaohongshu-worthy boutique display photo. Clothes must maintain their EXACT original colors and patterns from the grid. The image should make viewers want to screenshot and save it. NO text, NO watermarks, NO people. Aspect ratio 4:3.`;
+OUTPUT: A photorealistic boutique display photo. Clothes must keep their EXACT original colors and patterns from the grid. NO text, NO watermarks, NO people. Aspect ratio 4:3.`;
 
       // Step 3: 调用 AI 生成
       setGenerationStep("AI 正在生成陈列效果图...");
