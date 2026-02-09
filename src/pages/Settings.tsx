@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { PageLayout } from "@/components/PageLayout";
+import { useToast } from "@/hooks/use-toast";
 import {
   Settings as SettingsIcon,
   Sun,
@@ -10,7 +11,6 @@ import {
   Globe,
   User,
   Palette,
-  Volume2,
   ChevronRight,
   Check,
 } from "lucide-react";
@@ -87,6 +87,7 @@ const ThemeOption = ({ mode, icon, label, selected, onClick }: ThemeOptionProps)
 );
 
 const Settings = () => {
+  const { toast } = useToast();
   const [theme, setTheme] = useState<ThemeMode>("system");
   const [notifications, setNotifications] = useState(true);
 
@@ -97,6 +98,35 @@ const Settings = () => {
       setTheme(savedTheme);
     }
   }, []);
+
+  // Setting item handlers
+  const handleProfileClick = () => {
+    toast({
+      title: "个人信息",
+      description: "此功能正在开发中，敬请期待...",
+    });
+  };
+
+  const handleSecurityClick = () => {
+    toast({
+      title: "账户安全",
+      description: "此功能正在开发中，敬请期待...",
+    });
+  };
+
+  const handleLanguageClick = () => {
+    toast({
+      title: "语言与地区",
+      description: "当前语言：简体中文",
+    });
+  };
+
+  const handleVersionClick = () => {
+    toast({
+      title: "灵犀 AI 创作平台",
+      description: "版本 1.0.0 • 最新版本",
+    });
+  };
 
   // Apply theme changes
   useEffect(() => {
@@ -208,11 +238,6 @@ const Settings = () => {
               />
             </button>
           </SettingItem>
-          <SettingItem
-            icon={<Volume2 className="w-5 h-5" />}
-            title="声音提醒"
-            description="任务完成时播放提示音"
-          />
         </div>
       </div>
 
@@ -226,16 +251,19 @@ const Settings = () => {
             icon={<User className="w-5 h-5" />}
             title="个人信息"
             description="管理您的个人资料"
+            onClick={handleProfileClick}
           />
           <SettingItem
             icon={<Shield className="w-5 h-5" />}
             title="账户安全"
             description="密码、两步验证等安全设置"
+            onClick={handleSecurityClick}
           />
           <SettingItem
             icon={<Globe className="w-5 h-5" />}
             title="语言与地区"
             description="简体中文"
+            onClick={handleLanguageClick}
           />
         </div>
       </div>
@@ -250,6 +278,7 @@ const Settings = () => {
             icon={<SettingsIcon className="w-5 h-5" />}
             title="版本信息"
             description="当前版本 1.0.0"
+            onClick={handleVersionClick}
           />
         </div>
       </div>
