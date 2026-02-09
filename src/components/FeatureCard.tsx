@@ -73,8 +73,8 @@ export const FeatureCard = ({
     <div
       onClick={handleClick}
       className={cn(
-        // 基础布局
-        "group relative p-5 rounded-2xl cursor-pointer",
+        // 基础布局 - Mobile-First 内边距
+        "group relative p-3 md:p-5 rounded-xl md:rounded-2xl cursor-pointer",
         // 背景与边框
         "bg-card border border-border",
         // 阴影系统
@@ -117,7 +117,7 @@ export const FeatureCard = ({
       {/* 图标容器 - 增加深度感 */}
       <div
         className={cn(
-          "relative w-14 h-14 rounded-2xl flex items-center justify-center mb-4",
+          "relative w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center mb-3 md:mb-4",
           "bg-gradient-to-br",
           colorStyle.iconBg,
           // 内阴影增加深度
@@ -129,7 +129,7 @@ export const FeatureCard = ({
       >
         <Icon
           className={cn(
-            "w-7 h-7 transition-all duration-300",
+            "w-5 h-5 md:w-7 md:h-7 transition-all duration-300",
             colorStyle.iconColor,
             "group-hover:scale-110"
           )}
@@ -140,14 +140,14 @@ export const FeatureCard = ({
 
       {/* 标题 */}
       <h3 className={cn(
-        "font-semibold text-foreground mb-1.5",
+        "font-semibold text-foreground mb-1 md:mb-1.5 text-sm md:text-base",
         "transition-colors duration-200"
       )}>
         {title}
       </h3>
 
       {/* 描述 */}
-      <p className="text-sm text-muted-foreground leading-relaxed">
+      <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
         {description}
       </p>
 

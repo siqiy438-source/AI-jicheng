@@ -311,8 +311,8 @@ const AIPPT = () => {
           <p className="text-muted-foreground text-sm md:text-base">把想法转化为精美演示文稿</p>
         </div>
 
-        {/* Mode tabs */}
-        <div className="flex items-center justify-center gap-1 mb-6">
+        {/* Mode tabs - 移动端使用横向滚动 */}
+        <div className="flex items-center justify-center gap-0.5 md:gap-1 mb-4 md:mb-6 overflow-x-auto scrollbar-none">
           {([
             { key: "sentence" as const, label: "一句话生成" },
             { key: "outline" as const, label: "从大纲生成" },
@@ -322,10 +322,10 @@ const AIPPT = () => {
               key={tab.key}
               onClick={() => setGenerationMode(tab.key)}
               className={cn(
-                "px-4 py-2.5 text-sm font-medium transition-all duration-200 border-b-2",
+                "px-3 md:px-4 py-2.5 text-xs md:text-sm font-medium transition-all duration-200 border-b-2 whitespace-nowrap",
                 generationMode === tab.key
                   ? "border-orange-500 text-orange-600"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground active:text-foreground"
               )}
             >
               {tab.label}
@@ -347,8 +347,8 @@ const AIPPT = () => {
           </div>
         </div>
 
-        {/* Parameter bar */}
-        <div className="flex items-center gap-2 md:gap-3 flex-wrap mb-6">
+        {/* Parameter bar - 移动端自动换行 */}
+        <div className="flex items-center gap-1.5 md:gap-3 flex-wrap mb-4 md:mb-6">
           {/* Page count selector */}
           <div className="relative" onClick={(e) => e.stopPropagation()}>
             <button
@@ -360,7 +360,7 @@ const AIPPT = () => {
               <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", showPageCountMenu && "rotate-180")} />
             </button>
             {showPageCountMenu && (
-              <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 min-w-[100px] max-h-[128px] overflow-y-auto scrollbar-thin">
+              <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 w-[100px] max-w-[calc(100vw-2rem)] max-h-[128px] overflow-y-auto scrollbar-thin dropdown-panel">
                 {PAGE_COUNTS.map((c) => (
                   <button
                     key={c}
@@ -385,7 +385,7 @@ const AIPPT = () => {
               <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", showStyleMenu && "rotate-180")} />
             </button>
             {showStyleMenu && (
-              <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 min-w-[140px] max-h-[128px] overflow-y-auto scrollbar-thin">
+              <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 w-[140px] max-w-[calc(100vw-2rem)] max-h-[128px] overflow-y-auto scrollbar-thin dropdown-panel">
                 {PPT_STYLES.map((s) => (
                   <button
                     key={s.id}
@@ -407,11 +407,11 @@ const AIPPT = () => {
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm bg-secondary/50 hover:bg-secondary border border-border/50 transition-all"
             >
               <span>{PPT_TEMPLATES.find((t) => t.id === template)?.icon}</span>
-              <span>{PPT_TEMPLATES.find((t) => t.id === template)?.name}</span>
+              <span className="hidden xs:inline">{PPT_TEMPLATES.find((t) => t.id === template)?.name}</span>
               <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", showTemplateMenu && "rotate-180")} />
             </button>
             {showTemplateMenu && (
-              <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 min-w-[160px] max-h-[200px] overflow-y-auto scrollbar-thin">
+              <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 w-[160px] max-w-[calc(100vw-2rem)] max-h-[200px] overflow-y-auto scrollbar-thin dropdown-panel">
                 {PPT_TEMPLATES.map((t) => (
                   <button
                     key={t.id}
@@ -436,7 +436,7 @@ const AIPPT = () => {
               <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", showRatioMenu && "rotate-180")} />
             </button>
             {showRatioMenu && (
-              <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 min-w-[90px] max-h-[128px] overflow-y-auto scrollbar-thin">
+              <div className="absolute top-full right-0 sm:left-0 sm:right-auto mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 w-[90px] max-w-[calc(100vw-2rem)] max-h-[128px] overflow-y-auto scrollbar-thin dropdown-panel">
                 {PPT_RATIOS.map((r) => (
                   <button
                     key={r.id}
@@ -515,12 +515,12 @@ const AIPPT = () => {
             size="sm"
             onClick={(e) => { e.stopPropagation(); handleBatchGenerateDescriptions(); }}
             disabled={isGeneratingDescription}
-            className="text-xs"
+            className="text-xs min-h-[36px]"
           >
             {isGeneratingDescription ? <Loader2 className="w-3.5 h-3.5 md:mr-1 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 md:mr-1" />}
             <span className="hidden md:inline">{isGeneratingDescription ? "生成中..." : "批量生成"}</span>
           </Button>
-          <Button size="sm" onClick={() => setCurrentStep(3)} className="bg-blue-600 hover:bg-blue-700 text-white text-xs">
+          <Button size="sm" onClick={() => setCurrentStep(3)} className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs min-h-[36px]">
             下一步
             <ChevronRight className="w-3.5 h-3.5 ml-1" />
           </Button>
@@ -647,7 +647,7 @@ const AIPPT = () => {
                             newSlides[selectedSlideIndex].outlinePoints.splice(i, 1);
                             setSlides([...newSlides]);
                           }}
-                          className="p-1 rounded hover:bg-red-50 text-muted-foreground/40 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                          className="p-1 rounded hover:bg-red-50 active:bg-red-50 text-muted-foreground/40 hover:text-red-500 active:text-red-500 md:opacity-0 md:group-hover:opacity-100 transition-all shrink-0 touch-target"
                           title="删除要点"
                         >
                           <X className="w-3.5 h-3.5" />
@@ -663,7 +663,7 @@ const AIPPT = () => {
                       newSlides[selectedSlideIndex].outlinePoints.push("");
                       setSlides([...newSlides]);
                     }}
-                    className="flex items-center gap-1.5 text-xs text-orange-500 hover:text-orange-600 py-1 transition-colors"
+                    className="flex items-center gap-1.5 text-xs text-orange-500 hover:text-orange-600 active:text-orange-600 py-1 transition-colors"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     添加要点
@@ -741,7 +741,7 @@ const AIPPT = () => {
               <ChevronDown className="w-3 h-3" />
             </button>
             {showStyleMenu && (
-              <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 min-w-[130px] max-h-[128px] overflow-y-auto scrollbar-thin">
+              <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 w-[130px] max-w-[calc(100vw-2rem)] max-h-[128px] overflow-y-auto scrollbar-thin dropdown-panel">
                 {PPT_STYLES.map((s) => (
                   <button
                     key={s.id}
@@ -765,7 +765,7 @@ const AIPPT = () => {
               <ChevronDown className="w-3 h-3" />
             </button>
             {showTemplateMenu && (
-              <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 min-w-[160px] max-h-[200px] overflow-y-auto scrollbar-thin">
+              <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 w-[160px] max-w-[calc(100vw-2rem)] max-h-[200px] overflow-y-auto scrollbar-thin dropdown-panel">
                 {PPT_TEMPLATES.map((t) => (
                   <button
                     key={t.id}
@@ -784,7 +784,7 @@ const AIPPT = () => {
             size="sm"
             onClick={handleBatchGenerateImages}
             disabled={isGeneratingImage}
-            className="text-xs hidden md:inline-flex"
+            className="text-xs min-h-[36px]"
           >
             <Sparkles className="w-3.5 h-3.5 md:mr-1" />
             <span className="hidden md:inline">批量出图</span>
@@ -796,7 +796,7 @@ const AIPPT = () => {
               <ChevronDown className="w-3 h-3 ml-0.5 md:ml-1" />
             </Button>
             {showExportMenu && (
-              <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 min-w-[120px]">
+              <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 w-[120px] max-w-[calc(100vw-2rem)] dropdown-panel">
                 <button onClick={() => { handleExport("pptx"); setShowExportMenu(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-secondary/50 text-left">PPT 格式</button>
                 <button onClick={() => { handleExport("pdf"); setShowExportMenu(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-secondary/50 text-left">PDF 格式</button>
                 <button onClick={() => { handleExport("images"); setShowExportMenu(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-secondary/50 text-left">图片 ZIP</button>
@@ -879,7 +879,8 @@ const AIPPT = () => {
                 {currentSlide.generatedImage ? (
                   <>
                     <img src={currentSlide.generatedImage} alt={currentSlide.title} className="w-full" />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
+                    {/* 桌面端 hover 覆盖层 */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all hidden md:flex items-center justify-center">
                       <Button
                         variant="outline"
                         size="sm"
@@ -891,6 +892,24 @@ const AIPPT = () => {
                         }}
                         disabled={isGeneratingImage}
                         className="opacity-0 group-hover:opacity-100 transition-all bg-white/90 hover:bg-white text-xs"
+                      >
+                        {isGeneratingImage ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5 mr-1" />}
+                        重新生成
+                      </Button>
+                    </div>
+                    {/* 移动端始终显示的重新生成按钮 */}
+                    <div className="absolute bottom-2 right-2 md:hidden">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const newSlides = [...slides];
+                          newSlides[selectedSlideIndex] = { ...newSlides[selectedSlideIndex], generatedImage: undefined };
+                          setSlides(newSlides);
+                          handleGenerateImage(selectedSlideIndex);
+                        }}
+                        disabled={isGeneratingImage}
+                        className="bg-white/90 active:bg-white text-xs shadow-md"
                       >
                         {isGeneratingImage ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5 mr-1" />}
                         重新生成
@@ -962,7 +981,7 @@ const AIPPT = () => {
                               newSlides[selectedSlideIndex].outlinePoints.splice(i, 1);
                               setSlides([...newSlides]);
                             }}
-                            className="p-0.5 rounded hover:bg-red-50 text-muted-foreground/40 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                            className="p-1 rounded hover:bg-red-50 active:bg-red-50 text-muted-foreground/40 hover:text-red-500 active:text-red-500 md:opacity-0 md:group-hover:opacity-100 transition-all shrink-0 touch-target"
                           >
                             <X className="w-3 h-3" />
                           </button>

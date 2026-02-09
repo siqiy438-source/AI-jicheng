@@ -477,7 +477,7 @@ const AIPoster = () => {
                   <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showCategoryMenu && "rotate-180")} />
                 </button>
                 {showCategoryMenu && (
-                  <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 min-w-[200px] md:min-w-[220px] animate-dropdown max-h-[176px] overflow-y-auto scrollbar-thin">
+                  <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 w-[220px] max-w-[calc(100vw-2rem)] animate-dropdown max-h-[176px] overflow-y-auto scrollbar-thin dropdown-panel">
                     {posterCategories.map((category, index) => (
                       <button
                         key={category.id}
@@ -528,7 +528,7 @@ const AIPoster = () => {
                   <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showStyleMenu && "rotate-180")} />
                 </button>
                 {showStyleMenu && (
-                  <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 min-w-[140px] md:min-w-[150px] animate-dropdown max-h-[128px] overflow-y-auto scrollbar-thin">
+                  <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 w-[150px] max-w-[calc(100vw-2rem)] animate-dropdown max-h-[128px] overflow-y-auto scrollbar-thin dropdown-panel">
                     {stylePresets.map((style) => (
                       <button
                         key={style.id}
@@ -565,7 +565,7 @@ const AIPoster = () => {
                   <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showSizeMenu && "rotate-180")} />
                 </button>
                 {showSizeMenu && (
-                  <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 min-w-[130px] md:min-w-[140px] animate-dropdown max-h-[128px] overflow-y-auto scrollbar-thin">
+                  <div className="absolute top-full left-0 right-0 sm:right-auto mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 sm:w-[140px] max-w-[calc(100vw-2rem)] animate-dropdown max-h-[128px] overflow-y-auto scrollbar-thin dropdown-panel">
                     {sizeOptions.map((size) => (
                       <button
                         key={size.id}
@@ -601,7 +601,7 @@ const AIPoster = () => {
                   <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showLineMenu && "rotate-180")} />
                 </button>
                 {showLineMenu && (
-                  <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 min-w-[110px] animate-dropdown max-h-[128px] overflow-y-auto scrollbar-thin">
+                  <div className="absolute top-full right-0 sm:left-0 sm:right-auto mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 w-[110px] max-w-[calc(100vw-2rem)] animate-dropdown max-h-[128px] overflow-y-auto scrollbar-thin dropdown-panel">
                     {lineOptions.map((line) => (
                       <button
                         key={line.id}

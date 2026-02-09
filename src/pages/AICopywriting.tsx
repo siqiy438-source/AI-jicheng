@@ -249,10 +249,10 @@ const AICopywriting = () => {
 
   return (
     <PageLayout className="py-4 md:py-8">
-      {/* 返回按钮 */}
+      {/* 返回按钮 - 仅桌面端显示，移动端使用底部导航 */}
       <button
         onClick={() => navigate("/")}
-        className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4 md:mb-6 transition-colors touch-target"
+        className="hidden md:flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         <span className="text-sm">返回首页</span>
@@ -396,9 +396,9 @@ const AICopywriting = () => {
                 <span className="max-w-[100px] md:max-w-[150px] truncate text-foreground">{file.name}</span>
                 <button
                   onClick={() => removeFile(index)}
-                  className="w-5 h-5 md:w-4 md:h-4 rounded-full bg-black/10 flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                  className="w-5 h-5 rounded-full bg-black/10 flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-opacity touch-target"
                 >
-                  <X className="w-3 h-3 md:w-2.5 md:h-2.5" />
+                  <X className="w-3 h-3" />
                 </button>
               </div>
             ))}
@@ -437,7 +437,7 @@ const AICopywriting = () => {
                 <ChevronDown className={cn("w-3.5 h-3.5 md:w-4 md:h-4 transition-transform", showAgentMenu && "rotate-180")} />
               </button>
               {showAgentMenu && (
-                <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-2 z-10 min-w-[180px] md:min-w-[200px] max-h-[60vh] overflow-y-auto">
+                <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-2 z-10 w-[200px] max-w-[calc(100vw-2rem)] max-h-[60vh] overflow-y-auto dropdown-panel">
                   {agentOptions.map((agent) => (
                     <button
                       key={agent.id}

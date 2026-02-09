@@ -167,6 +167,17 @@
 }
 
 @layer base {
+  /* ═══════════════════════════════════════════════════════════════════════
+     Mobile-First 全局重置
+     ═══════════════════════════════════════════════════════════════════════ */
+
+  /* 盒模型重置：所有元素强制 border-box */
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
   * {
     @apply border-border;
   }
@@ -175,6 +186,9 @@
     scroll-behavior: smooth;
     /* 防止移动端过度滚动弹跳 */
     overscroll-behavior: contain;
+    /* 零溢出承诺：禁止横向滚动 */
+    overflow-x: hidden;
+    max-width: 100vw;
   }
 
   body {
@@ -182,12 +196,21 @@
     font-family: 'Outfit', 'LXGW WenKai', -apple-system, BlinkMacSystemFont, sans-serif;
     font-feature-settings: 'cv11', 'ss01';
     font-variation-settings: 'wght' 400;
+    /* Mobile-First 字体：正文不低于 16px（防 iOS 输入框缩放） */
+    font-size: 1rem; /* 16px */
+    line-height: 1.6;
     /* 移动端触摸优化 */
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
     /* 防止文本选择时的高亮闪烁 */
     -webkit-user-select: none;
     user-select: none;
+    /* 零溢出承诺：宽度不超 100vw */
+    overflow-x: hidden;
+    max-width: 100vw;
+    /* 长内容处理：防撑开容器 */
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
 
   /* 允许输入框和文本区域选择文本 */
@@ -199,6 +222,18 @@
   /* 所有可交互元素的触摸优化 */
   button, a, [role="button"], input, textarea, select {
     touch-action: manipulation;
+  }
+
+  /* 图片/视频/iframe 防溢出 */
+  img, video, iframe, svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* 长内容防撑开：URL、长数字等 */
+  p, li, td, th, span, label, h1, h2, h3, h4, h5, h6 {
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
 
   /* 标题使用 Fraunces 衬线体 */
@@ -719,9 +754,13 @@
    移动端优化
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   Mobile-First 移动端优化
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 /* 防止 iOS 输入框自动放大 - 确保所有输入框字体至少 16px */
 input, textarea, select {
-  font-size: 16px !important;
+  font-size: max(16px, 1rem) !important;
 }
 
 /* 低端机性能降级 - 减少动画 */
@@ -742,51 +781,85 @@ input, textarea, select {
   }
 }
 
+/* ── Mobile-First 默认样式（< 768px） ─────────────────────────────── */
+
+/* 确保按钮和交互元素最小触控区域 44x44px */
+button,
+a,
+[role="button"],
+input[type="button"],
+input[type="submit"] {
+  min-height: 44px;
+}
+
+/* 小型按钮例外（图标按钮使用 touch-target 扩展点击区域） */
+button.btn-icon-sm,
+button[data-compact],
+.compact-btn {
+  min-height: auto;
+}
+
 /* 移动端触摸滚动优化 */
-@media (max-width: 767px) {
-  .scrollbar-thin {
-    -webkit-overflow-scrolling: touch;
+.scrollbar-thin {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 隐藏移动端滚动条 */
+.scrollbar-thin::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-thin {
+  scrollbar-width: none;
+}
+
+/* ── 下拉菜单视口约束（Mobile-First） ──────────────────────────── */
+/* 所有自定义下拉面板在移动端不超出屏幕 */
+.dropdown-panel {
+  max-width: calc(100vw - 2rem);
+}
+
+/* ── hover 交互的触摸替代 ─────────────────────────────────── */
+/* 在触摸设备上，hover 状态改由 :active / :focus-visible 触发 */
+@media (hover: none) and (pointer: coarse) {
+  /* 交互卡片 - 移除悬停上浮动画，保留 active 反馈 */
+  .card-interactive:hover {
+    transform: none;
+    box-shadow: var(--shadow-sm);
+    border-color: hsl(var(--border));
   }
 
-  /* 隐藏移动端滚动条 */
+  .card-interactive:active {
+    transform: scale(0.98);
+    box-shadow: var(--shadow-md);
+    border-color: hsl(var(--primary) / 0.3);
+  }
+
+  /* hover-only 可见元素在触摸设备上始终显示 */
+  .touch-show {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+}
+
+/* ── 大屏增强（>= 768px） ─────────────────────────────────── */
+@media (min-width: 768px) {
+  /* 桌面端滚动条恢复显示 */
   .scrollbar-thin::-webkit-scrollbar {
-    display: none;
+    display: block;
   }
 
   .scrollbar-thin {
-    scrollbar-width: none;
+    scrollbar-width: thin;
   }
 
-  /* 移动端字体最小 14px */
-  body {
-    font-size: 14px;
-  }
-
-  /* 确保按钮和交互元素足够大 */
+  /* 桌面端移除全局 min-height 约束 */
   button,
   a,
   [role="button"],
   input[type="button"],
   input[type="submit"] {
-    min-height: 44px;
-  }
-
-  /* 小型按钮例外（图标按钮已有 touch-target） */
-  button.p-2,
-  button.p-1\.5,
-  button.p-1 {
     min-height: auto;
-  }
-
-  /* 优化移动端间距 */
-  .glass-card {
-    padding: 1rem !important;
-  }
-
-  /* 移动端图片优化 */
-  img {
-    max-width: 100%;
-    height: auto;
   }
 }
 

@@ -546,7 +546,7 @@ const AIDrawing = () => {
                   <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showFrameworkMenu && "rotate-180")} />
                 </button>
                 {showFrameworkMenu && (
-                  <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 min-w-[140px] animate-dropdown max-h-[128px] overflow-y-auto scrollbar-thin">
+                  <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 w-[160px] max-w-[calc(100vw-2rem)] animate-dropdown max-h-[128px] overflow-y-auto scrollbar-thin dropdown-panel">
                     {contentFrameworks.map((framework) => (
                       <button
                         key={framework.id}
@@ -593,7 +593,7 @@ const AIDrawing = () => {
                   <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showVisualStyleMenu && "rotate-180")} />
                 </button>
                 {showVisualStyleMenu && (
-                  <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 min-w-[140px] animate-dropdown max-h-[128px] overflow-y-auto scrollbar-thin">
+                  <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 w-[140px] max-w-[calc(100vw-2rem)] animate-dropdown max-h-[128px] overflow-y-auto scrollbar-thin dropdown-panel">
                     {visualStyles.map((style) => (
                       <button
                         key={style.id}
@@ -619,7 +619,8 @@ const AIDrawing = () => {
                 <button
                   onClick={() => {
                     setShowRatioMenu(!showRatioMenu);
-                    setShowStyleMenu(false);
+                    setShowFrameworkMenu(false);
+                    setShowVisualStyleMenu(false);
                     setShowLineMenu(false);
                     setShowLanguageMenu(false);
                   }}
@@ -630,7 +631,7 @@ const AIDrawing = () => {
                   <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showRatioMenu && "rotate-180")} />
                 </button>
                 {showRatioMenu && (
-                  <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 min-w-[100px] animate-dropdown max-h-[128px] overflow-y-auto scrollbar-thin">
+                  <div className="absolute top-full left-0 right-0 sm:right-auto mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 sm:w-[100px] max-w-[calc(100vw-2rem)] animate-dropdown max-h-[128px] overflow-y-auto scrollbar-thin dropdown-panel">
                     {ratioOptions.map((ratio) => (
                       <button
                         key={ratio.id}
@@ -655,7 +656,8 @@ const AIDrawing = () => {
                 <button
                   onClick={() => {
                     setShowLineMenu(!showLineMenu);
-                    setShowStyleMenu(false);
+                    setShowFrameworkMenu(false);
+                    setShowVisualStyleMenu(false);
                     setShowRatioMenu(false);
                     setShowLanguageMenu(false);
                   }}
@@ -666,7 +668,7 @@ const AIDrawing = () => {
                   <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showLineMenu && "rotate-180")} />
                 </button>
                 {showLineMenu && (
-                  <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 min-w-[110px] animate-dropdown max-h-[128px] overflow-y-auto scrollbar-thin">
+                  <div className="absolute top-full right-0 sm:left-0 sm:right-auto mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 w-[110px] max-w-[calc(100vw-2rem)] animate-dropdown max-h-[128px] overflow-y-auto scrollbar-thin dropdown-panel">
                     {lineOptions.map((line) => (
                       <button
                         key={line.id}
@@ -728,7 +730,8 @@ const AIDrawing = () => {
                 <button
                   onClick={() => {
                     setShowLanguageMenu(!showLanguageMenu);
-                    setShowStyleMenu(false);
+                    setShowFrameworkMenu(false);
+                    setShowVisualStyleMenu(false);
                     setShowRatioMenu(false);
                     setShowLineMenu(false);
                   }}
@@ -738,7 +741,7 @@ const AIDrawing = () => {
                   <Languages className="w-3.5 h-3.5" />
                 </button>
                 {showLanguageMenu && (
-                  <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 min-w-[120px] animate-dropdown max-h-[128px] overflow-y-auto scrollbar-thin">
+                  <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 w-[120px] max-w-[calc(100vw-2rem)] animate-dropdown max-h-[128px] overflow-y-auto scrollbar-thin dropdown-panel">
                     {languageOptions.map((lang) => (
                       <button
                         key={lang.id}
