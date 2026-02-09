@@ -163,7 +163,7 @@ const AIDisplay = () => {
       setGenerationStep("正在设计陈列方案...");
       const style = displayStyles.find(s => s.id === selectedStyle) || displayStyles[0];
 
-      const displayPrompt = `Create a Xiaohongshu (小红书) style boutique rack display photo — natural, curated, and effortlessly stylish.
+      const displayPrompt = `Create a Xiaohongshu (小红书) style boutique rack display photo — airy, spacious, and effortlessly curated.
 
 REFERENCE IMAGES:
 - Image 1: A numbered grid of ${clothingImages.length} clothing items (the inventory to arrange)
@@ -171,32 +171,26 @@ REFERENCE IMAGES:
 
 DISPLAY STYLE: ${style.name} - ${style.prompt}
 
-KEY REQUIREMENTS — NATURAL XIAOHONGSHU BOUTIQUE AESTHETIC:
+STRICT RULES:
 
-1. MIXED HANGING STYLE (自然混搭，最重要): Create a VARIED, natural-looking rack — NOT every hanger should have a full outfit. Mix it up like a real curated boutique:
-   - Some hangers: just a single piece (a coat alone, a dress alone, a cardigan alone)
-   - 2-3 hangers: a top layered over a bottom (e.g., blazer over pants, knit over skirt)
-   - The mix of single pieces and layered looks creates visual rhythm and feels natural, not formulaic
-   - Pieces should be spaced with breathing room, not crammed together
+1. QUANTITY & SPACING (数量与间距，最重要): Display ONLY 5-6 pieces on the rack. There MUST be a visible gap (at least one fist width) between each hanger. The rack should feel spacious and airy — you should be able to see the wall/background between pieces. NEVER crowd or overlap clothes.
 
-2. ACCESSORIES (点缀配饰): Scatter a few accessories naturally around the rack:
-   - A bag hanging on one end of the rack or on a hook
-   - A hat casually placed on the rack end
-   - A scarf draped over the bar
-   Keep it minimal — 2-3 accessories total, not overdone.
+2. NATURAL MIX (自然混搭): Vary how pieces hang:
+   - Most hangers hold a single piece (one coat, one dress, one blouse)
+   - Only 1-2 hangers have a layered look where a bottom (skirt/pants) peeks out naturally behind a top
+   - Alternate between longer pieces (dresses, coats) and shorter pieces (tops, cardigans) to create a gentle wave silhouette
 
-3. SMALL PROPS (生活道具): Add 1-2 subtle lifestyle touches near the rack base:
-   - A small vase of dried flowers or eucalyptus
-   - A woven basket or vintage box
-   These should feel like they naturally belong there, not staged.
+3. MINIMAL ACCESSORIES: Add just 1-2 small touches — a bag on one end of the rack, or a hat. Do not overdo it.
 
-4. COHESIVE COLOR PALETTE (色调统一): All pieces on the rack should share a harmonious color family. The overall rack reads as one cohesive color story at a glance.
+4. GROUND PROPS: Place 1 small item near the rack base — a vase of dried flowers, or a woven basket. Keep it simple.
 
-5. NATURAL ATMOSPHERE: Warm soft lighting, clean simple background. The mood is relaxed and inviting — like walking into a friend's beautifully curated closet or a cozy independent boutique.
+5. COLOR HARMONY: All pieces share one soft, cohesive color palette. The rack reads as one unified color story.
+
+6. ATMOSPHERE: Clean white or light background, warm natural light. The overall feel is calm, minimal, and inviting.
 
 ${additionalNotes ? `STORE OWNER'S NOTES: ${additionalNotes}` : ""}
 
-OUTPUT: A photorealistic boutique display photo. Clothes must keep their EXACT original colors and patterns from the grid. NO text, NO watermarks, NO people. Aspect ratio 4:3.`;
+OUTPUT: Photorealistic boutique display photo. Clothes keep their EXACT original colors/patterns from the grid. NO text, NO watermarks, NO people. Aspect ratio 4:3.`;
 
       // Step 3: 调用 AI 生成
       setGenerationStep("AI 正在生成陈列效果图...");
