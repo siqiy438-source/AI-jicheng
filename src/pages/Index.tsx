@@ -6,7 +6,6 @@ import {
   FileText,
   Presentation,
   Wand2,
-  Store,
 } from "lucide-react";
 
 const Index = () => {
@@ -24,13 +23,6 @@ const Index = () => {
       description: "一句话生成，灵感即刻呈现",
       color: "indigo" as const,
       to: "/ai-drawing",
-    },
-    {
-      icon: Store,
-      title: "AI 陈列",
-      description: "智能搭配，一键生成专业陈列",
-      color: "rose" as const,
-      to: "/ai-display",
     },
     {
       icon: FileText,
@@ -89,7 +81,7 @@ const Index = () => {
         </div>
 
         {/* 卡片网格 - 移动端保持 2 列，间距调整 */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {features.map((feature, index) => (
             <FeatureCard
               key={feature.title}

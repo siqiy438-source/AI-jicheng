@@ -8,6 +8,7 @@ import {
   Clock,
   Palette,
   Languages,
+  Store,
 } from "lucide-react";
 
 interface FeatureItemProps {
@@ -47,6 +48,14 @@ const FeatureItem = ({ icon, title, description, status, color, to }: FeatureIte
 
 const MoreFeatures = () => {
   const features: FeatureItemProps[] = [
+    {
+      icon: <Store className="w-6 h-6" />,
+      title: "AI 陈列",
+      description: "智能搭配，一键生成专业店铺陈列方案",
+      status: "available",
+      color: "#f43f5e",
+      to: "/ai-display",
+    },
     {
       icon: <Palette className="w-6 h-6" />,
       title: "AI 海报",
