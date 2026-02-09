@@ -7,7 +7,6 @@ import {
   Zap,
   Clock,
   Palette,
-  Languages,
   Store,
 } from "lucide-react";
 
@@ -63,13 +62,6 @@ const MoreFeatures = () => {
       status: "available",
       color: "#f59e0b",
       to: "/ai-poster",
-    },
-    {
-      icon: <Languages className="w-6 h-6" />,
-      title: "AI 翻译",
-      description: "多语言智能翻译，保持风格一致",
-      status: "coming",
-      color: "#14b8a6",
     },
   ];
 
