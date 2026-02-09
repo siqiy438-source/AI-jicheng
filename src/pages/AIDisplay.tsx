@@ -28,42 +28,42 @@ const displayStyles = [
     name: "智能推荐",
     icon: "✨",
     description: "AI 根据衣服风格自动搭配",
-    prompt: "Analyze the clothing colors and styles, then choose the BEST color ombré gradient arrangement. Create a cohesive, curated boutique look.",
+    prompt: "Analyze the clothing colors and styles, then choose the BEST cohesive color palette. Layer complementary tops+bottoms on each hanger as complete outfits. Add matching bags, shoes, and dried flower props for a viral Xiaohongshu boutique look.",
   },
   {
     id: "minimal-commute",
     name: "简约通勤",
     icon: "💼",
     description: "干练利落，职场精英感",
-    prompt: "Minimalist professional palette: arrange in a clean gradient from white → cream → camel → gray → charcoal → black. Structured silhouettes grouped together. TheRow / COS boutique aesthetic. Ultra-clean, architectural feel.",
+    prompt: "Minimalist professional palette: white → cream → camel → gray → charcoal → black gradient. Layer structured blazers over tailored pants/skirts on each hanger. Add a leather tote bag and pointed-toe heels below. Clean, architectural COS/TheRow boutique feel.",
   },
   {
     id: "sweet-girl",
     name: "甜美少女",
     icon: "🎀",
     description: "粉嫩柔美，少女心满满",
-    prompt: "Dreamy pastel gradient: white → baby pink → blush → lavender → lilac → soft mint. Lightweight fabrics flow beautifully. Add dried flower or ribbon accents between pieces. Soft, romantic, Instagram-worthy display.",
+    prompt: "Dreamy pastel palette: white → baby pink → blush → lavender → lilac. Layer soft knits over flowy skirts, cardigans over dresses. Add ribbon-tied dried flower bouquets clipped to hangers, a straw bag, ballet flats below. Soft, romantic, Xiaohongshu dream closet aesthetic.",
   },
   {
     id: "light-luxury",
     name: "轻奢高级",
     icon: "👑",
     description: "参考 Chanel/Dior 陈列美学",
-    prompt: "Chanel/Dior luxury standard: monochromatic color story with ONE accent color. Maximum 6-8 pieces on display with extremely generous spacing. Each piece is a statement. Gold or brass rack details. Museum-like curation where every piece feels precious.",
+    prompt: "Chanel/Dior luxury standard: monochromatic color story with ONE accent color. Layer silk blouses over tailored trousers, cashmere coats over midi dresses. Maximum 4-5 outfit groupings with museum-like spacing. Add a quilted chain bag, pearl-accented accessories. Gold or brass rack details. Every piece feels precious and curated.",
   },
   {
     id: "street-trendy",
     name: "街头潮流",
     icon: "🔥",
     description: "个性混搭，潮酷态度",
-    prompt: "Bold street style: intentional color contrast pairings (black+neon, denim+red). Oversized pieces next to fitted ones. Layered styling on some hangers. Raw, edgy energy but still organized. Supreme/Off-White store vibe.",
+    prompt: "Bold street style: intentional color contrast pairings (black+neon, denim+red). Layer oversized hoodies over cargo pants, leather jackets over graphic tees on hangers. Add a crossbody bag, chunky sneakers below, a beanie on the rack end. Raw, edgy Supreme/Off-White store energy but still curated.",
   },
   {
     id: "french-elegant",
     name: "法式优雅",
     icon: "🥐",
     description: "慵懒随性，高级不费力",
-    prompt: "Parisian effortless chic: muted earth tone gradient (ivory → sand → taupe → olive → chocolate). Capsule wardrobe groupings of 2-3 pieces. Linen and silk textures. Sézane/Rouje boutique atmosphere. Relaxed but perfectly curated.",
+    prompt: "Parisian effortless chic: muted earth tone palette (ivory → sand → taupe → olive → chocolate). Layer linen shirts over wide-leg trousers, soft cardigans over slip dresses on each hanger. Add a woven basket bag, leather sandals, dried lavender sprigs clipped to hangers. Sézane/Rouje boutique warmth — relaxed but perfectly curated.",
   },
 ];
 
@@ -163,33 +163,47 @@ const AIDisplay = () => {
       setGenerationStep("正在设计陈列方案...");
       const style = displayStyles.find(s => s.id === selectedStyle) || displayStyles[0];
 
-      const displayPrompt = `Create a stunning, magazine-editorial quality photograph of a luxury women's clothing boutique display.
+      const displayPrompt = `Create a stunning Xiaohongshu (小红书) style boutique display photo — the kind that goes viral with thousands of saves.
 
 REFERENCE IMAGES:
-- Image 1: A numbered grid of ${clothingImages.length} clothing items (the inventory to display)
+- Image 1: A numbered grid of ${clothingImages.length} clothing items (the inventory to arrange)
 - Image 2: The actual store rack/display space to use
 
 DISPLAY STYLE: ${style.name} - ${style.prompt}
 
-CRITICAL AESTHETIC REQUIREMENTS (THIS IS NOT A SIMPLE RACK - IT MUST LOOK LIKE A LUXURY BOUTIQUE):
+CRITICAL REQUIREMENTS — THIS MUST LOOK LIKE A XIAOHONGSHU VIRAL BOUTIQUE PHOTO:
 
-1. COLOR OMBRÉ ARRANGEMENT (MOST IMPORTANT): Arrange clothes in a beautiful color gradient flow - for example, cream → blush pink → dusty rose → burgundy → deep red, or ivory → sage → forest green. The color transition must be smooth and intentional, like a sunset gradient. NEVER place clashing colors next to each other.
+1. OUTFIT LAYERING ON HANGERS (最重要): Do NOT hang individual pieces separately. Instead, layer complete outfits on each hanger — a top draped over a bottom (e.g., knit sweater over pleated skirt, blazer over wide-leg pants, cardigan over a dress). Each hanger tells a complete outfit story. This is the #1 difference between amateur and professional display.
 
-2. LUXURY SPACING: Each piece must have generous breathing room between hangers (8-10cm gaps minimum). This is a HIGH-END boutique, NOT a crowded fast-fashion store. Less is more - if there are too many pieces, only display the best ones and leave others folded below.
+2. ACCESSORIES STYLING: Add lifestyle accessories around the rack to create a curated boutique feel:
+   - Hang 1-2 bags (tote bags, crossbody bags) on the rack ends or hooks
+   - Place shoes/boots neatly below the rack, aligned with their matching outfits
+   - Drape scarves or shawls casually over the rack bar
+   - Hang a hat on one end of the rack
+   These accessories should match the color palette of the clothes.
 
-3. VISUAL STORYTELLING: Group 2-3 pieces that form a complete outfit look together. Create mini "capsule stories" along the rack - a blazer next to its matching blouse, a coat next to a complementary dress.
+3. PROPS & DECORATIVE TOUCHES (道具点缀): Add small lifestyle props that make the photo feel warm and editorial:
+   - Clip postcards, polaroid photos, or dried flower sprigs to hangers with small clips
+   - Place a small vase of dried flowers or eucalyptus near the rack base
+   - A coffee cup, candle, or small art print nearby
+   - A woven basket or fabric storage box below the rack
+   These props should feel natural, not forced — like a real boutique owner's personal touches.
 
-4. HEIGHT RHYTHM: Create a pleasing wave pattern - alternate between longer pieces (coats, dresses) and shorter pieces (tops, jackets). The silhouette of the hanging clothes should create an elegant undulating line.
+4. COHESIVE COLOR STORY (色彩统一): The ENTIRE rack must follow ONE cohesive color palette. Examples:
+   - Warm earth tones: cream, camel, brown, chocolate, tan
+   - Soft feminine: white, blush pink, dusty rose, mauve
+   - Cool minimal: ivory, gray, slate, black, white
+   Every piece, accessory, and prop should harmonize within this palette. NO random clashing colors.
 
-5. PREMIUM DETAILS: All clothes on matching high-quality wooden or velvet hangers. Fabric drapes naturally with beautiful folds. Sleeves and collars are perfectly arranged, not crumpled.
+5. SPACING & ARRANGEMENT: Only 4-6 outfit groupings on the rack with generous spacing between each. This is a curated selection, NOT a crowded closet. Each outfit grouping should be clearly visible and styled.
 
-6. BOUTIQUE ATMOSPHERE: Warm, golden-hour directional lighting from above-left. Soft shadows. The overall mood should feel like walking into a Chanel or MaxMara boutique - serene, curated, aspirational.
+6. BOUTIQUE ATMOSPHERE: Warm natural lighting, clean background (white wall or light wood). The overall mood is cozy, aspirational, and "I want to buy everything on this rack." Think premium Xiaohongshu fashion blogger's showroom.
 
-7. FOCAL HERO PIECE: The most striking or colorful piece should be positioned at the center of the rack, slightly pulled forward, as the visual anchor of the entire display.
+7. FABRIC & DETAIL: Clothes drape naturally with beautiful texture. Knits look soft, silk looks luminous, cotton looks crisp. Every collar, sleeve, and hem is perfectly arranged.
 
 ${additionalNotes ? `STORE OWNER'S NOTES: ${additionalNotes}` : ""}
 
-OUTPUT: A photorealistic, high-resolution image that looks like it belongs in Vogue or Elle magazine's boutique feature. The clothes must maintain their EXACT original colors and patterns from the grid. NO text, NO watermarks, NO people. Aspect ratio 4:3.`;
+OUTPUT: A photorealistic, Instagram/Xiaohongshu-worthy boutique display photo. Clothes must maintain their EXACT original colors and patterns from the grid. The image should make viewers want to screenshot and save it. NO text, NO watermarks, NO people. Aspect ratio 4:3.`;
 
       // Step 3: 调用 AI 生成
       setGenerationStep("AI 正在生成陈列效果图...");
