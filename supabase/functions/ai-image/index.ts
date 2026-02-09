@@ -22,7 +22,7 @@ serve(async (req) => {
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
     const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
-    const { prompt, style, aspectRatio, negativePrompt, styleId, images, line } = await req.json()
+    const { prompt, style, aspectRatio, negativePrompt, styleId, images, line, hasFrameworkPrompt } = await req.json()
     const resolvedLine = getImageProvider(line)
     const providerConfig = getProviderConfig(resolvedLine)
     const providerApiKey = Deno.env.get(providerConfig.apiKeyEnv)
@@ -77,7 +77,7 @@ serve(async (req) => {
 
     // 如果有上传图片但没有专用风格提示词，添加通用背景匹配指令（英文）
     // 有专用风格提示词（如 fashion-outfit）时跳过，避免指令冲突
-    if (images && Array.isArray(images) && images.length > 0 && !hasStylePrompt) {
+    if (images && Array.isArray(images) && images.length > 0 && !hasStylePrompt && !hasFrameworkPrompt) {
       const imageCount = images.length
       const backgroundInstruction = `
 IMPORTANT INSTRUCTIONS - Please read carefully:

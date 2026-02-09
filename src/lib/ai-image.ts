@@ -14,6 +14,7 @@ export interface ImageGenerationParams {
   styleId?: string;
   images?: string[];
   line?: "standard" | "premium";
+  hasFrameworkPrompt?: boolean;
 }
 
 // 图像生成结果

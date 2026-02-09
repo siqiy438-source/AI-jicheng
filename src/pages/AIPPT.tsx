@@ -437,29 +437,27 @@ const AIPPT = () => {
   const renderStep2 = () => (
     <div className="flex flex-col h-[100dvh] bg-background">
       {/* Top navbar */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-white border-b border-border shrink-0 relative z-20">
-        <div className="flex items-center gap-2 shrink-0">
-          <button onClick={() => navigate("/")} className="p-2 rounded-lg hover:bg-secondary transition-colors" title="主页">
+      <div className="flex items-center justify-between px-3 md:px-4 py-2 md:py-2.5 bg-white border-b border-border shrink-0 relative z-20 gap-2">
+        <div className="flex items-center gap-1.5 md:gap-2 min-w-0">
+          <button onClick={() => navigate("/")} className="p-1.5 md:p-2 rounded-lg hover:bg-secondary transition-colors shrink-0" title="主页">
             <Home className="w-4 h-4 text-muted-foreground" />
           </button>
-          <button onClick={() => setCurrentStep(1)} className="p-2 rounded-lg hover:bg-secondary transition-colors" title="返回">
+          <button onClick={() => setCurrentStep(1)} className="p-1.5 md:p-2 rounded-lg hover:bg-secondary transition-colors shrink-0" title="返回">
             <ArrowLeft className="w-4 h-4 text-muted-foreground" />
           </button>
-          <div className="w-px h-5 bg-border mx-1" />
+          <div className="w-px h-5 bg-border mx-0.5 md:mx-1 shrink-0" />
           <input
             value={projectTitle}
             onChange={(e) => setProjectTitle(e.target.value)}
-            className="text-sm font-medium bg-transparent border-none focus:outline-none focus:ring-0 max-w-[200px]"
+            className="text-sm font-medium bg-transparent border-none focus:outline-none focus:ring-0 min-w-0 max-w-[100px] md:max-w-[200px]"
             placeholder="项目标题"
           />
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="hidden md:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs bg-orange-50 text-orange-600 border border-orange-100">
+          <span className="hidden md:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs bg-orange-50 text-orange-600 border border-orange-100 shrink-0">
             <Pencil className="w-3 h-3" />
             第2步 · 描述
           </span>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
           <span className="text-xs text-muted-foreground">
             {slides.filter((s) => s.description).length}/{slides.length}
           </span>
@@ -470,8 +468,8 @@ const AIPPT = () => {
             disabled={isGeneratingDescription}
             className="text-xs"
           >
-            {isGeneratingDescription ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 mr-1" />}
-            {isGeneratingDescription ? "生成中..." : "批量生成"}
+            {isGeneratingDescription ? <Loader2 className="w-3.5 h-3.5 md:mr-1 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 md:mr-1" />}
+            <span className="hidden md:inline">{isGeneratingDescription ? "生成中..." : "批量生成"}</span>
           </Button>
           <Button size="sm" onClick={() => setCurrentStep(3)} className="bg-blue-600 hover:bg-blue-700 text-white text-xs">
             下一步
@@ -482,20 +480,20 @@ const AIPPT = () => {
 
       {/* Warning banner */}
       {undescribedCount > 0 && (
-        <div className="flex items-center justify-between px-4 py-2.5 bg-gradient-to-r from-orange-50 to-amber-50 border-b border-orange-100 shrink-0 relative z-10">
-          <div className="flex items-center gap-2 text-sm text-orange-700">
+        <div className="flex items-center justify-between px-3 md:px-4 py-2 md:py-2.5 bg-gradient-to-r from-orange-50 to-amber-50 border-b border-orange-100 shrink-0 relative z-10 gap-2">
+          <div className="flex items-center gap-2 text-xs md:text-sm text-orange-700 min-w-0">
             <Sparkles className="w-4 h-4 shrink-0" />
-            <span>还有 {undescribedCount} 页未生成描述，建议先批量生成</span>
+            <span className="truncate">还有 {undescribedCount} 页未生成描述，建议先批量生成</span>
           </div>
           <Button
             variant="outline"
             size="sm"
             onClick={(e) => { e.stopPropagation(); handleBatchGenerateDescriptions(); }}
             disabled={isGeneratingDescription}
-            className="text-xs border-orange-200 text-orange-700 hover:bg-orange-100 shrink-0 ml-2"
+            className="text-xs border-orange-200 text-orange-700 hover:bg-orange-100 shrink-0"
           >
-            {isGeneratingDescription ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 mr-1" />}
-            {isGeneratingDescription ? "生成中..." : "批量生成"}
+            {isGeneratingDescription ? <Loader2 className="w-3.5 h-3.5 md:mr-1 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 md:mr-1" />}
+            <span className="hidden md:inline">{isGeneratingDescription ? "生成中..." : "批量生成"}</span>
           </Button>
         </div>
       )}
@@ -653,32 +651,30 @@ const AIPPT = () => {
   const renderStep3 = () => (
     <div className="flex flex-col h-[100dvh] bg-background">
       {/* Top navbar */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-white border-b border-border shrink-0">
-        <div className="flex items-center gap-2">
-          <button onClick={() => navigate("/")} className="p-2 rounded-lg hover:bg-secondary transition-colors" title="主页">
+      <div className="flex items-center justify-between px-3 md:px-4 py-2 md:py-2.5 bg-white border-b border-border shrink-0 gap-2">
+        <div className="flex items-center gap-1.5 md:gap-2 min-w-0">
+          <button onClick={() => navigate("/")} className="p-1.5 md:p-2 rounded-lg hover:bg-secondary transition-colors shrink-0" title="主页">
             <Home className="w-4 h-4 text-muted-foreground" />
           </button>
-          <button onClick={() => setCurrentStep(2)} className="p-2 rounded-lg hover:bg-secondary transition-colors" title="返回">
+          <button onClick={() => setCurrentStep(2)} className="p-1.5 md:p-2 rounded-lg hover:bg-secondary transition-colors shrink-0" title="返回">
             <ArrowLeft className="w-4 h-4 text-muted-foreground" />
           </button>
-          <div className="w-px h-5 bg-border mx-1" />
-          <span className="text-sm font-medium truncate max-w-[200px]">{projectTitle || "未命名项目"}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="hidden md:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs bg-green-50 text-green-600 border border-green-100">
+          <div className="w-px h-5 bg-border mx-0.5 md:mx-1 shrink-0" />
+          <span className="text-sm font-medium truncate min-w-0 max-w-[80px] md:max-w-[200px]">{projectTitle || "未命名项目"}</span>
+          <span className="text-xs text-muted-foreground shrink-0">
+            {selectedSlideIndex + 1}/{slides.length}
+          </span>
+          <span className="hidden md:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs bg-green-50 text-green-600 border border-green-100 shrink-0">
             <Eye className="w-3 h-3" />
             第3步 · 预览
           </span>
-          <span className="text-xs text-muted-foreground">
-            {selectedSlideIndex + 1}/{slides.length}
-          </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 md:gap-2 shrink-0">
           {/* Style dropdown */}
           <div className="relative" onClick={(e) => e.stopPropagation()}>
             <button
               onClick={() => setShowStyleMenu(!showStyleMenu)}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs bg-secondary/50 hover:bg-secondary border border-border/50 transition-all"
+              className="flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-lg text-xs bg-secondary/50 hover:bg-secondary border border-border/50 transition-all"
             >
               <span>{PPT_STYLES.find((s) => s.id === style)?.icon}</span>
               <span className="hidden md:inline">{PPT_STYLES.find((s) => s.id === style)?.name}</span>
@@ -704,16 +700,16 @@ const AIPPT = () => {
             size="sm"
             onClick={handleBatchGenerateImages}
             disabled={isGeneratingImage}
-            className="text-xs"
+            className="text-xs hidden md:inline-flex"
           >
             <Sparkles className="w-3.5 h-3.5 md:mr-1" />
             <span className="hidden md:inline">批量出图</span>
           </Button>
           <div className="relative" onClick={(e) => e.stopPropagation()}>
             <Button variant="outline" size="sm" onClick={() => setShowExportMenu(!showExportMenu)} className="text-xs">
-              <Download className="w-3.5 h-3.5 mr-1" />
+              <Download className="w-3.5 h-3.5 md:mr-1" />
               <span className="hidden md:inline">导出</span>
-              <ChevronDown className="w-3 h-3 ml-1" />
+              <ChevronDown className="w-3 h-3 ml-0.5 md:ml-1" />
             </Button>
             {showExportMenu && (
               <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 min-w-[120px]">
@@ -731,20 +727,20 @@ const AIPPT = () => {
 
       {/* Warning banner */}
       {ungeneratedImageCount > 0 && (
-        <div className="flex items-center justify-between px-4 py-2.5 bg-gradient-to-r from-orange-50 to-amber-50 border-b border-orange-100 shrink-0 relative z-10">
-          <div className="flex items-center gap-2 text-sm text-orange-700">
+        <div className="flex items-center justify-between px-3 md:px-4 py-2 md:py-2.5 bg-gradient-to-r from-orange-50 to-amber-50 border-b border-orange-100 shrink-0 relative z-10 gap-2">
+          <div className="flex items-center gap-2 text-xs md:text-sm text-orange-700 min-w-0">
             <Sparkles className="w-4 h-4 shrink-0" />
-            <span>还有 {ungeneratedImageCount} 页未生成图片，建议批量出图</span>
+            <span className="truncate">还有 {ungeneratedImageCount} 页未生成图片，建议批量出图</span>
           </div>
           <Button
             variant="outline"
             size="sm"
             onClick={(e) => { e.stopPropagation(); handleBatchGenerateImages(); }}
             disabled={isGeneratingImage}
-            className="text-xs border-orange-200 text-orange-700 hover:bg-orange-100 shrink-0 ml-2"
+            className="text-xs border-orange-200 text-orange-700 hover:bg-orange-100 shrink-0"
           >
-            {isGeneratingImage ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 mr-1" />}
-            {isGeneratingImage ? "生成中..." : "批量出图"}
+            {isGeneratingImage ? <Loader2 className="w-3.5 h-3.5 md:mr-1 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 md:mr-1" />}
+            <span className="hidden md:inline">{isGeneratingImage ? "生成中..." : "批量出图"}</span>
           </Button>
         </div>
       )}
