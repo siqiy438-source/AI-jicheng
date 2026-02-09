@@ -16,6 +16,10 @@ import {
   Pencil,
   Save,
   Presentation,
+  Plus,
+  X,
+  RefreshCw,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -591,9 +595,18 @@ const AIPPT = () => {
             <div className="max-w-2xl mx-auto">
               {/* Slide header */}
               <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-semibold">{currentSlide.title}</h2>
-                  <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <input
+                    value={currentSlide.title}
+                    onChange={(e) => {
+                      const newSlides = [...slides];
+                      newSlides[selectedSlideIndex].title = e.target.value;
+                      setSlides(newSlides);
+                    }}
+                    className="text-lg font-semibold bg-transparent border-none focus:outline-none focus:ring-0 flex-1 min-w-0"
+                    placeholder="输入页面标题..."
+                  />
+                  <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full shrink-0">
                     {selectedSlideIndex + 1}/{slides.length}
                   </span>
                 </div>
@@ -618,7 +631,7 @@ const AIPPT = () => {
                 <div className="space-y-2 pl-4 border-l-2 border-orange-200">
                   {currentSlide.outlinePoints.length > 0 ? (
                     currentSlide.outlinePoints.map((point, i) => (
-                      <div key={i} className="flex items-start gap-2">
+                      <div key={i} className="flex items-start gap-2 group">
                         <input
                           value={point}
                           onChange={(e) => {
@@ -628,11 +641,33 @@ const AIPPT = () => {
                           }}
                           className="flex-1 text-sm bg-transparent border-none focus:outline-none focus:ring-0 py-1"
                         />
+                        <button
+                          onClick={() => {
+                            const newSlides = [...slides];
+                            newSlides[selectedSlideIndex].outlinePoints.splice(i, 1);
+                            setSlides([...newSlides]);
+                          }}
+                          className="p-1 rounded hover:bg-red-50 text-muted-foreground/40 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                          title="删除要点"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     ))
                   ) : (
                     <p className="text-sm text-muted-foreground italic py-2">暂无大纲要点，点击 AI 生成</p>
                   )}
+                  <button
+                    onClick={() => {
+                      const newSlides = [...slides];
+                      newSlides[selectedSlideIndex].outlinePoints.push("");
+                      setSlides([...newSlides]);
+                    }}
+                    className="flex items-center gap-1.5 text-xs text-orange-500 hover:text-orange-600 py-1 transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    添加要点
+                  </button>
                 </div>
               </div>
 
@@ -840,9 +875,28 @@ const AIPPT = () => {
           {currentSlide ? (
             <div className="max-w-2xl mx-auto">
               {/* Generated image preview */}
-              <div className="mb-6 rounded-xl overflow-hidden bg-secondary/20 border border-border/50">
+              <div className="mb-6 rounded-xl overflow-hidden bg-secondary/20 border border-border/50 relative group">
                 {currentSlide.generatedImage ? (
-                  <img src={currentSlide.generatedImage} alt={currentSlide.title} className="w-full" />
+                  <>
+                    <img src={currentSlide.generatedImage} alt={currentSlide.title} className="w-full" />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const newSlides = [...slides];
+                          newSlides[selectedSlideIndex] = { ...newSlides[selectedSlideIndex], generatedImage: undefined };
+                          setSlides(newSlides);
+                          handleGenerateImage(selectedSlideIndex);
+                        }}
+                        disabled={isGeneratingImage}
+                        className="opacity-0 group-hover:opacity-100 transition-all bg-white/90 hover:bg-white text-xs"
+                      >
+                        {isGeneratingImage ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5 mr-1" />}
+                        重新生成
+                      </Button>
+                    </div>
+                  </>
                 ) : (
                   <div className="aspect-video flex flex-col items-center justify-center gap-3 text-muted-foreground">
                     {isGeneratingImage ? (
@@ -880,14 +934,54 @@ const AIPPT = () => {
                 </button>
                 {outlineExpanded && (
                   <div className="px-4 py-3 space-y-1.5">
-                    <p className="text-sm font-medium text-foreground mb-2">{currentSlide.title}</p>
+                    <input
+                      value={currentSlide.title}
+                      onChange={(e) => {
+                        const newSlides = [...slides];
+                        newSlides[selectedSlideIndex].title = e.target.value;
+                        setSlides(newSlides);
+                      }}
+                      className="text-sm font-medium text-foreground mb-2 w-full bg-transparent border-none focus:outline-none focus:ring-0"
+                      placeholder="输入页面标题..."
+                    />
                     {currentSlide.outlinePoints.length > 0 ? (
                       currentSlide.outlinePoints.map((point, i) => (
-                        <p key={i} className="text-sm text-muted-foreground pl-3 border-l-2 border-orange-200">{point}</p>
+                        <div key={i} className="flex items-start gap-1.5 group pl-3 border-l-2 border-orange-200">
+                          <input
+                            value={point}
+                            onChange={(e) => {
+                              const newSlides = [...slides];
+                              newSlides[selectedSlideIndex].outlinePoints[i] = e.target.value;
+                              setSlides(newSlides);
+                            }}
+                            className="flex-1 text-sm text-muted-foreground bg-transparent border-none focus:outline-none focus:ring-0 py-0.5"
+                          />
+                          <button
+                            onClick={() => {
+                              const newSlides = [...slides];
+                              newSlides[selectedSlideIndex].outlinePoints.splice(i, 1);
+                              setSlides([...newSlides]);
+                            }}
+                            className="p-0.5 rounded hover:bg-red-50 text-muted-foreground/40 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
                       ))
                     ) : (
                       <p className="text-sm text-muted-foreground italic">暂无大纲</p>
                     )}
+                    <button
+                      onClick={() => {
+                        const newSlides = [...slides];
+                        newSlides[selectedSlideIndex].outlinePoints.push("");
+                        setSlides([...newSlides]);
+                      }}
+                      className="flex items-center gap-1 text-xs text-orange-500 hover:text-orange-600 py-1 pl-3 transition-colors"
+                    >
+                      <Plus className="w-3 h-3" />
+                      添加要点
+                    </button>
                   </div>
                 )}
               </div>
