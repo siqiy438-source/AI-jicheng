@@ -29,12 +29,14 @@ export const Header = () => {
         {isMobile ? (
           <Link to="/" className="flex items-center gap-2">
             <div className={cn(
-              "relative w-8 h-8 rounded-lg flex items-center justify-center",
-              "bg-gradient-to-br from-primary to-[hsl(32_85%_48%)]",
-              "shadow-[inset_0_1px_0_hsl(0_0%_100%/0.2),0_2px_6px_hsl(28_80%_52%/0.3)]",
+              "relative w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0",
+              "shadow-[0_2px_6px_hsl(28_80%_52%/0.25)]",
             )}>
-              <Sparkles className="w-4 h-4 text-primary-foreground" />
-              <span className="absolute inset-0 rounded-lg bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
+              <img 
+                src="/logo.png" 
+                alt="灵犀 Logo" 
+                className="w-full h-full object-contain"
+              />
             </div>
             <span className="font-semibold text-foreground text-sm">灵犀</span>
           </Link>

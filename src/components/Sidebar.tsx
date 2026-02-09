@@ -132,17 +132,18 @@ export const Sidebar = () => {
       <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border">
         {!collapsed ? (
           <div className="flex items-center gap-3">
-            {/* Logo 图标 - 工艺感设计 */}
+            {/* Logo 图标 - 使用真实品牌图标 */}
             <div className={cn(
-              "relative w-9 h-9 rounded-xl flex items-center justify-center",
-              "bg-gradient-to-br from-primary to-[hsl(32_85%_48%)]",
-              "shadow-[inset_0_1px_0_hsl(0_0%_100%/0.2),0_2px_8px_hsl(28_80%_52%/0.3)]",
+              "relative w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0",
+              "shadow-[0_2px_8px_hsl(28_80%_52%/0.25)]",
             )}>
-              <Sparkles className="w-4.5 h-4.5 text-primary-foreground" />
-              {/* 光泽效果 */}
-              <span className="absolute inset-0 rounded-xl bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
+              <img 
+                src="/logo.png" 
+                alt="灵犀 Logo" 
+                className="w-full h-full object-contain"
+              />
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col min-w-0">
               <span className="font-semibold text-foreground text-[15px] leading-tight">
                 灵犀
               </span>
@@ -151,34 +152,37 @@ export const Sidebar = () => {
               </span>
             </div>
           </div>
-        ) : (
-          <div className={cn(
-            "relative w-9 h-9 rounded-xl flex items-center justify-center mx-auto",
-            "bg-gradient-to-br from-primary to-[hsl(32_85%_48%)]",
-            "shadow-[inset_0_1px_0_hsl(0_0%_100%/0.2),0_2px_8px_hsl(28_80%_52%/0.3)]",
-          )}>
-            <Sparkles className="w-4.5 h-4.5 text-primary-foreground" />
-            <span className="absolute inset-0 rounded-xl bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
-          </div>
-        )}
+        ) : null}
 
         {/* 收起/展开按钮 */}
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className={cn(
-            "p-2 rounded-lg transition-all duration-200 min-w-[36px] min-h-[36px]",
-            "text-muted-foreground hover:text-foreground",
-            "hover:bg-sidebar-accent",
-            "active:scale-95",
-            collapsed && "mx-auto mt-3"
-          )}
-        >
-          {collapsed ? (
-            <ChevronRight className="w-4 h-4" />
-          ) : (
+        {!collapsed && (
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className={cn(
+              "p-2 rounded-lg transition-all duration-200 min-w-[36px] min-h-[36px]",
+              "text-muted-foreground hover:text-foreground",
+              "hover:bg-sidebar-accent",
+              "active:scale-95"
+            )}
+          >
             <ChevronLeft className="w-4 h-4" />
-          )}
-        </button>
+          </button>
+        )}
+        
+        {/* 收起状态：展开按钮（居中显示） */}
+        {collapsed && (
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className={cn(
+              "p-2 rounded-lg transition-all duration-200 min-w-[36px] min-h-[36px] mx-auto",
+              "text-muted-foreground hover:text-foreground",
+              "hover:bg-sidebar-accent",
+              "active:scale-95"
+            )}
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       {/* 导航区域 */}
