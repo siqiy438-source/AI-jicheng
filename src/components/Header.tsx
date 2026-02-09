@@ -53,10 +53,52 @@ export const Header = () => {
         </button>
 
         {/* 通知按钮 */}
-        <button className="p-2.5 rounded-xl hover:bg-accent transition-colors relative touch-target">
-          <Bell className="w-5 h-5 text-muted-foreground" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full" />
-        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="p-2.5 rounded-xl hover:bg-accent transition-colors relative touch-target">
+              <Bell className="w-5 h-5 text-muted-foreground" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-80">
+            <div className="px-4 py-3 border-b border-border">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-sm">通知</h3>
+                <span className="text-xs text-muted-foreground">全部标为已读</span>
+              </div>
+            </div>
+            <div className="max-h-[400px] overflow-y-auto">
+              {/* 暂无通知 - 空状态 */}
+              <div className="px-4 py-8 text-center">
+                <Bell className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground mb-1">暂无新通知</p>
+                <p className="text-xs text-muted-foreground/60">
+                  有新的更新时会在这里显示
+                </p>
+              </div>
+              
+              {/* 通知列表示例（未来使用） */}
+              {/* <div className="divide-y divide-border">
+                <div className="px-4 py-3 hover:bg-accent/50 transition-colors cursor-pointer">
+                  <div className="flex gap-3">
+                    <div className="w-2 h-2 bg-primary rounded-full mt-1.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground mb-1">
+                        新功能上线
+                      </p>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        AI PPT 现已支持自定义模板，快来体验吧！
+                      </p>
+                      <p className="text-xs text-muted-foreground/60">
+                        2小时前
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div> */}
+            </div>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* 用户区域 */}
         {loading ? (
