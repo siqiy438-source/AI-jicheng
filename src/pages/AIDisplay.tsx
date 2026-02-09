@@ -171,10 +171,11 @@ REFERENCE IMAGES:
 
 DISPLAY STYLE: ${style.name} - ${style.prompt}
 
-COMPOSITION (构图 — 不要正面证件照):
-- Shot from a 45-degree angle or slight side view, NOT straight-on centered. The rack should be offset to one side of the frame (asymmetric composition).
-- Shallow depth of field: the foreground clothes are tack-sharp with visible fabric texture, while the background wall/furniture falls into a gentle bokeh blur.
-- The camera is at eye level or slightly below, creating a natural "walking into the store" perspective with depth and dimension.
+COMPOSITION (构图):
+- CLOSE-UP FRAMING: The camera is CLOSE to the rack — the clothes fill at least 70-80% of the frame. You can see fabric texture, stitching details, and material quality. This is NOT a wide room shot — it's an intimate, up-close view as if you're standing right in front of the rack reaching out to touch the clothes.
+- Shot from a slight 30-degree side angle, NOT straight-on centered. Asymmetric composition.
+- Shallow depth of field: foreground clothes are tack-sharp, background falls into gentle bokeh.
+- Camera at eye level, natural perspective.
 
 LIGHTING (光影 — 不要平光):
 - Soft natural sunlight streaming in from a window on one side, casting warm directional light across the clothes.
