@@ -28,42 +28,42 @@ const displayStyles = [
     name: "智能推荐",
     icon: "✨",
     description: "AI 根据衣服风格自动搭配",
-    prompt: "Automatically analyze the clothing colors, styles, and categories, then arrange them using the most suitable display method.",
+    prompt: "Analyze the clothing colors and styles, then choose the BEST color ombré gradient arrangement. Create a cohesive, curated boutique look.",
   },
   {
     id: "minimal-commute",
     name: "简约通勤",
     icon: "💼",
     description: "干练利落，职场精英感",
-    prompt: "Minimalist professional style display. Clean color blocking with neutral tones (black, white, gray, beige, navy). Group by outfit sets. Structured and organized arrangement.",
+    prompt: "Minimalist professional palette: arrange in a clean gradient from white → cream → camel → gray → charcoal → black. Structured silhouettes grouped together. TheRow / COS boutique aesthetic. Ultra-clean, architectural feel.",
   },
   {
     id: "sweet-girl",
     name: "甜美少女",
     icon: "🎀",
     description: "粉嫩柔美，少女心满满",
-    prompt: "Sweet feminine style display. Soft pastel color gradient arrangement (pink, lavender, mint, peach). Light and airy spacing. Romantic and dreamy atmosphere.",
+    prompt: "Dreamy pastel gradient: white → baby pink → blush → lavender → lilac → soft mint. Lightweight fabrics flow beautifully. Add dried flower or ribbon accents between pieces. Soft, romantic, Instagram-worthy display.",
   },
   {
     id: "light-luxury",
     name: "轻奢高级",
     icon: "👑",
     description: "参考 Chanel/Dior 陈列美学",
-    prompt: "Luxury boutique display referencing Chanel and Dior visual merchandising. Generous spacing between pieces. Monochromatic color stories. Elegant focal point arrangement. Premium and sophisticated atmosphere.",
+    prompt: "Chanel/Dior luxury standard: monochromatic color story with ONE accent color. Maximum 6-8 pieces on display with extremely generous spacing. Each piece is a statement. Gold or brass rack details. Museum-like curation where every piece feels precious.",
   },
   {
     id: "street-trendy",
     name: "街头潮流",
     icon: "🔥",
     description: "个性混搭，潮酷态度",
-    prompt: "Street style trendy display. Bold color contrasts and unexpected pairings. Layered and dynamic arrangement. Urban cool aesthetic with creative styling.",
+    prompt: "Bold street style: intentional color contrast pairings (black+neon, denim+red). Oversized pieces next to fitted ones. Layered styling on some hangers. Raw, edgy energy but still organized. Supreme/Off-White store vibe.",
   },
   {
     id: "french-elegant",
     name: "法式优雅",
     icon: "🥐",
     description: "慵懒随性，高级不费力",
-    prompt: "French effortless chic display. Muted earth tones and classic colors. Relaxed but intentional arrangement. Capsule wardrobe aesthetic with timeless pieces grouped together.",
+    prompt: "Parisian effortless chic: muted earth tone gradient (ivory → sand → taupe → olive → chocolate). Capsule wardrobe groupings of 2-3 pieces. Linen and silk textures. Sézane/Rouje boutique atmosphere. Relaxed but perfectly curated.",
   },
 ];
 
@@ -163,36 +163,33 @@ const AIDisplay = () => {
       setGenerationStep("正在设计陈列方案...");
       const style = displayStyles.find(s => s.id === selectedStyle) || displayStyles[0];
 
-      const displayPrompt = `You are a world-class visual merchandiser for a luxury women's clothing boutique, trained by Chanel, Dior, and MaxMara display teams.
+      const displayPrompt = `Create a stunning, magazine-editorial quality photograph of a luxury women's clothing boutique display.
 
-TASK: Create a photorealistic image showing the clothing items beautifully displayed/hung on the rack shown in the reference photos.
-
-IMAGE 1 (CLOTHING INVENTORY): A numbered grid showing ${clothingImages.length} clothing items. Each cell has a number label (#1, #2, etc.) and shows one clothing item.
-
-IMAGE 2 (DISPLAY SPACE): The actual store rack/pole/display area where clothes need to be hung and arranged.
+REFERENCE IMAGES:
+- Image 1: A numbered grid of ${clothingImages.length} clothing items (the inventory to display)
+- Image 2: The actual store rack/display space to use
 
 DISPLAY STYLE: ${style.name} - ${style.prompt}
 
-LUXURY VISUAL MERCHANDISING PRINCIPLES (MUST FOLLOW):
-1. COLOR STORY: Create smooth color transitions. Group similar tones together, use gradient arrangements from light to dark or warm to cool.
-2. STYLE COHESION: Keep similar styles adjacent. Create "outfit stories" - pieces that look like they belong together.
-3. VISUAL RHYTHM: Alternate between long and short pieces, thick and thin fabrics. Create visual interest through variety.
-4. FOCAL POINT: Place the most eye-catching or hero piece at center eye-level position. This is the anchor of the display.
-5. SPACING: Maintain even, generous spacing between hangers (like luxury boutiques, not fast fashion). Each piece should breathe.
-6. LAYERING & DEPTH: Some pieces face forward, some at slight angles. Create dimensional depth.
-7. PROPORTION BALANCE: Distribute visual weight evenly across the rack. Heavy/dark pieces balanced by light/airy ones.
-8. ACCESSORIES SUGGESTION: If appropriate, suggest how small accessories (scarves, belts) could enhance the display.
+CRITICAL AESTHETIC REQUIREMENTS (THIS IS NOT A SIMPLE RACK - IT MUST LOOK LIKE A LUXURY BOUTIQUE):
 
-${additionalNotes ? `ADDITIONAL NOTES FROM STORE OWNER: ${additionalNotes}` : ""}
+1. COLOR OMBRÉ ARRANGEMENT (MOST IMPORTANT): Arrange clothes in a beautiful color gradient flow - for example, cream → blush pink → dusty rose → burgundy → deep red, or ivory → sage → forest green. The color transition must be smooth and intentional, like a sunset gradient. NEVER place clashing colors next to each other.
 
-CRITICAL OUTPUT REQUIREMENTS:
-- Generate a PHOTOREALISTIC image of the clothes properly hung/displayed on the EXACT rack from Image 2
-- Each clothing item must maintain its EXACT original colors, patterns, and fabric texture
-- Clothes should look naturally hung with realistic fabric draping and folds
-- Professional boutique lighting (warm, inviting, like golden hour in a luxury store)
-- The final image should look like a professional store display photo
-- NO text, NO watermarks, NO mannequins, NO people
-- Aspect ratio: 4:3 (landscape, showing the full rack display)`;
+2. LUXURY SPACING: Each piece must have generous breathing room between hangers (8-10cm gaps minimum). This is a HIGH-END boutique, NOT a crowded fast-fashion store. Less is more - if there are too many pieces, only display the best ones and leave others folded below.
+
+3. VISUAL STORYTELLING: Group 2-3 pieces that form a complete outfit look together. Create mini "capsule stories" along the rack - a blazer next to its matching blouse, a coat next to a complementary dress.
+
+4. HEIGHT RHYTHM: Create a pleasing wave pattern - alternate between longer pieces (coats, dresses) and shorter pieces (tops, jackets). The silhouette of the hanging clothes should create an elegant undulating line.
+
+5. PREMIUM DETAILS: All clothes on matching high-quality wooden or velvet hangers. Fabric drapes naturally with beautiful folds. Sleeves and collars are perfectly arranged, not crumpled.
+
+6. BOUTIQUE ATMOSPHERE: Warm, golden-hour directional lighting from above-left. Soft shadows. The overall mood should feel like walking into a Chanel or MaxMara boutique - serene, curated, aspirational.
+
+7. FOCAL HERO PIECE: The most striking or colorful piece should be positioned at the center of the rack, slightly pulled forward, as the visual anchor of the entire display.
+
+${additionalNotes ? `STORE OWNER'S NOTES: ${additionalNotes}` : ""}
+
+OUTPUT: A photorealistic, high-resolution image that looks like it belongs in Vogue or Elle magazine's boutique feature. The clothes must maintain their EXACT original colors and patterns from the grid. NO text, NO watermarks, NO people. Aspect ratio 4:3.`;
 
       // Step 3: 调用 AI 生成
       setGenerationStep("AI 正在生成陈列效果图...");
