@@ -77,7 +77,6 @@ const PAGE_COUNTS = [3, 5, 8, 10, 12];
 
 // 线路选项
 const PPT_LINE_OPTIONS = [
-  { id: "premium", name: "灵犀 Pro", line: "premium" as const, resolution: "2k" as const, badge: "优质" },
   { id: "standard", name: "灵犀标准", line: "standard" as const, resolution: "default" as const },
   { id: "standard_2k", name: "灵犀 2K", line: "standard" as const, resolution: "2k" as const },
   { id: "standard_4k", name: "灵犀 4K", line: "standard" as const, resolution: "4k" as const },
@@ -470,15 +469,10 @@ const AIPPT = () => {
           <div className="relative" onClick={(e) => e.stopPropagation()}>
             <button
               onClick={() => { setShowLineMenu(!showLineMenu); setShowPageCountMenu(false); setShowStyleMenu(false); setShowTemplateMenu(false); setShowRatioMenu(false); }}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm bg-secondary/50 hover:bg-secondary border border-border/50 transition-all whitespace-nowrap"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm bg-secondary/50 hover:bg-secondary border border-border/50 transition-all"
             >
               <Zap className="w-3.5 h-3.5" />
               <span>{PPT_LINE_OPTIONS.find(l => l.id === selectedLine)?.name}</span>
-              {PPT_LINE_OPTIONS.find(l => l.id === selectedLine)?.badge && (
-                <span className="px-1 py-0.5 text-[9px] md:text-[10px] leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded">
-                  {PPT_LINE_OPTIONS.find(l => l.id === selectedLine)?.badge}
-                </span>
-              )}
               <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", showLineMenu && "rotate-180")} />
             </button>
             {showLineMenu && (
@@ -487,14 +481,9 @@ const AIPPT = () => {
                   <button
                     key={line.id}
                     onClick={() => { setSelectedLine(line.id); setShowLineMenu(false); }}
-                    className={cn("w-full flex items-center gap-1.5 px-3 py-2 text-sm hover:bg-secondary/50 text-left", selectedLine === line.id && "bg-orange-50 text-orange-700")}
+                    className={cn("w-full px-3 py-2 text-sm hover:bg-secondary/50 text-left", selectedLine === line.id && "bg-orange-50 text-orange-700")}
                   >
-                    <span>{line.name}</span>
-                    {line.badge && (
-                      <span className="px-1 py-0.5 text-[9px] leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded">
-                        {line.badge}
-                      </span>
-                    )}
+                    {line.name}
                   </button>
                 ))}
               </div>
