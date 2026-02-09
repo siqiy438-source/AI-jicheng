@@ -455,14 +455,14 @@ const AIDrawing = () => {
           <span>返回首页</span>
         </button>
 
-        {/* 页面标题 */}
-        <div className="flex items-center gap-2.5 md:gap-4 mb-4 md:mb-8">
-          <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center flex-shrink-0">
-            <ImageIcon className="w-5 h-5 md:w-7 md:h-7 text-purple-600" />
+        {/* 页面标题 - 移动端隐藏避免与 Header logo 重叠 */}
+        <div className="hidden md:flex items-center gap-4 mb-8">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center flex-shrink-0">
+            <ImageIcon className="w-7 h-7 text-purple-600" />
           </div>
           <div>
-            <h1 className="text-lg md:text-2xl font-bold text-foreground">AI 绘图</h1>
-            <p className="text-muted-foreground text-xs md:text-sm">描述你想要的画面，AI 帮你实现</p>
+            <h1 className="text-2xl font-bold text-foreground">AI 绘图</h1>
+            <p className="text-muted-foreground text-sm">描述你想要的画面，AI 帮你实现</p>
           </div>
         </div>
 
@@ -527,7 +527,7 @@ const AIDrawing = () => {
 
           {/* 工具栏 */}
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1 md:gap-1.5 flex-1 min-w-0 flex-wrap overflow-visible">
+            <div className="flex items-center gap-1 md:gap-1.5 flex-1 min-w-0 flex-wrap overflow-visible" style={{ rowGap: '6px' }}>
               {/* 内容框架选择（第一栏） */}
               <div className="relative flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                 <button
@@ -539,14 +539,14 @@ const AIDrawing = () => {
                     setShowLanguageMenu(false);
                   }}
                   className={cn(
-                    "flex items-center gap-1 md:gap-1.5 px-2.5 md:px-3 py-1.5 rounded-full text-xs md:text-sm transition-all duration-200 border touch-target",
+                    "flex items-center gap-1 md:gap-1.5 px-2 md:px-3 py-1.5 rounded-full text-[11px] md:text-sm transition-all duration-200 border touch-target whitespace-nowrap",
                     selectedFramework === "free"
                       ? "bg-secondary/50 text-muted-foreground hover:bg-secondary border-transparent"
                       : "bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100"
                   )}
                 >
-                  <span>{contentFrameworks.find(f => f.id === selectedFramework)?.icon || "✍️"}</span>
-                  <span className="hidden sm:inline">{contentFrameworks.find(f => f.id === selectedFramework)?.name || "自由模式"}</span>
+                  <span className="text-sm md:text-base">{contentFrameworks.find(f => f.id === selectedFramework)?.icon || "✍️"}</span>
+                  <span>{contentFrameworks.find(f => f.id === selectedFramework)?.name || "自由模式"}</span>
                   <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showFrameworkMenu && "rotate-180")} />
                 </button>
                 {showFrameworkMenu && (
@@ -586,14 +586,14 @@ const AIDrawing = () => {
                     setShowLanguageMenu(false);
                   }}
                   className={cn(
-                    "flex items-center gap-1 md:gap-1.5 px-2.5 md:px-3 py-1.5 rounded-full text-xs md:text-sm transition-all duration-200 border touch-target",
+                    "flex items-center gap-1 md:gap-1.5 px-2 md:px-3 py-1.5 rounded-full text-[11px] md:text-sm transition-all duration-200 border touch-target whitespace-nowrap",
                     selectedVisualStyle === "default"
                       ? "bg-secondary/50 text-muted-foreground hover:bg-secondary border-transparent"
                       : "bg-pink-50 border-pink-200 text-pink-700 hover:bg-pink-100"
                   )}
                 >
-                  <span>{visualStyles.find(s => s.id === selectedVisualStyle)?.icon || "🎭"}</span>
-                  <span className="hidden sm:inline">{visualStyles.find(s => s.id === selectedVisualStyle)?.name || "默认风格"}</span>
+                  <span className="text-sm md:text-base">{visualStyles.find(s => s.id === selectedVisualStyle)?.icon || "🎭"}</span>
+                  <span>{visualStyles.find(s => s.id === selectedVisualStyle)?.name || "默认风格"}</span>
                   <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showVisualStyleMenu && "rotate-180")} />
                 </button>
                 {showVisualStyleMenu && (
@@ -628,7 +628,7 @@ const AIDrawing = () => {
                     setShowLineMenu(false);
                     setShowLanguageMenu(false);
                   }}
-                  className="flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-full text-xs md:text-sm bg-secondary/50 text-muted-foreground hover:bg-secondary transition-all duration-200 border border-transparent touch-target"
+                  className="flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-full text-[11px] md:text-sm bg-secondary/50 text-muted-foreground hover:bg-secondary transition-all duration-200 border border-transparent touch-target whitespace-nowrap"
                 >
                   <Ratio className="w-3.5 h-3.5" />
                   <span>{selectedRatio}</span>
@@ -665,10 +665,10 @@ const AIDrawing = () => {
                     setShowRatioMenu(false);
                     setShowLanguageMenu(false);
                   }}
-                  className="flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-full text-xs md:text-sm bg-secondary/50 text-muted-foreground hover:bg-secondary transition-all duration-200 border border-transparent touch-target"
+                  className="flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-full text-[11px] md:text-sm bg-secondary/50 text-muted-foreground hover:bg-secondary transition-all duration-200 border border-transparent touch-target whitespace-nowrap"
                 >
                   <Zap className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">{lineOptions.find(l => l.id === selectedLine)?.name}</span>
+                  <span>{lineOptions.find(l => l.id === selectedLine)?.name}</span>
                   <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showLineMenu && "rotate-180")} />
                 </button>
                 {showLineMenu && (
@@ -693,7 +693,7 @@ const AIDrawing = () => {
               </div>
 
               {/* 分隔符 */}
-              <div className="w-px h-4 bg-border mx-0.5 hidden sm:block" />
+              <div className="w-px h-4 bg-border mx-0.5" />
 
               {/* 上传图片按钮 */}
               <input
