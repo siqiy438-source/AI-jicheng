@@ -181,6 +181,7 @@ export async function batchGenerateDescriptions(params: BatchGenerateDescription
 export async function generateSlideImage(params: {
   description: string;
   style: string;
+  template: string;
   aspectRatio: string;
 }): Promise<{ success: boolean; imageBase64?: string; error?: string }> {
   try {
@@ -190,16 +191,36 @@ export async function generateSlideImage(params: {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 120000);
 
-    // 构建图片生成 prompt：将描述 + 风格组合
+    // 风格提示词
     const stylePrompts: Record<string, string> = {
       free: '',
       sketch: 'Hand-drawn sketch style, journal aesthetic, warm tones. ',
       cute: 'Cute cartoon kawaii style, pastel colors, rounded shapes. ',
       art: 'Artistic illustration style, creative visual, rich colors. ',
+      ink: 'Traditional Chinese ink wash painting style, elegant brush strokes, artistic Zen atmosphere, high-end oriental aesthetic, minimalist ink textures, subtle watercolor gradients, cultural and sophisticated. ',
+      watercolor: 'Elegant watercolor wash, soft fluid textures, artistic bleeding effects, dreamy and light atmosphere, delicate hand-painted feel, pastel color palette, minimalist artistic expression. ',
+      popart: 'Vibrant pop art style, bold black outlines, halftone patterns, high-contrast saturated colors, Andy Warhol aesthetic, energetic and retro, repetitive patterns, strong visual impact. ',
+      crayon: 'Whimsical crayon drawing style, vibrant oil pastel textures, messy but charming lines, colorful scribbles, soft paper background, childlike imagination, bright primary colors, heartwarming and playful, high resolution. ',
     };
 
+    // PPT 模板提示词
+    const templatePrompts: Record<string, string> = {
+      none: '',
+      'visual-note': 'Professional Digital Whiteboard Illustration, hand-drawn marker sketch style, minimalist infographic doodles, creamy white paper texture with subtle grain, clean black ink outlines, hand-drawn arrows and emphasis markers, soft accent colors (orange/blue), organized visual thinking layout, high resolution, vector art feel, trending on Pinterest. ',
+      'swiss-minimal': 'High-end corporate PPT slide, Swiss Modernism, ultra-minimalist layout, massive negative space, bold sans-serif typography, professional color palette (Deep Navy, Slate Gray, Crisp White), grid-based alignment, perfect geometric shapes, thin professional lines, authoritative and clean, Apple website aesthetic. ',
+      'isometric': 'Isometric 3D infographic design, 45-degree angle orthographic view, clean vector 3D models, soft pastel color grading with professional gradients, neutral light gray background, elements perfectly aligned on a 3D grid, sophisticated organized tech-oriented visualization, C4D render style, soft shadows, clean edges. ',
+      'glassmorphism': 'Futuristic Glassmorphism style, translucent frosted glass cards floating in space, deep vibrant mesh gradient background (purple, blue, and teal), glowing neon edges, soft blur effects, typography: thin white sans-serif text, high-tech UI elements, floating 3D spheres, elegant refraction, cinematic lighting, Unreal Engine 5 render. ',
+      'claymorphism': 'Claymorphism 3D style, soft matte texture, rounded organic shapes, volumetric studio lighting, playful and friendly aesthetic, Morandi color palette, 3D icons with soft depth, cute and modern, high-quality 3D render, minimalist composition, friendly atmosphere. ',
+      'dark-cinematic': 'Dark cinematic presentation slide, charcoal gray textured background, dramatic spot lighting, high contrast, glowing gold and white accents, elegant serif typography, luxury brand aesthetic, sophisticated light and shadow play, 8k resolution, minimalist but powerful composition. ',
+      'neo-brutalism': 'Neo-brutalism design, bold thick black outlines, high-saturation pop colors (Yellow, Cyan, Red), thick hard shadows, asymmetrical experimental layout, avant-garde typography, vibrant energy, flat vector shapes, confident and modern, trending on Dribbble. ',
+      'editorial': 'High-end editorial magazine layout, fashion aesthetic, sophisticated mix of bold Serif and light Sans-serif fonts, professional white space management, photography-centric composition, minimalist artistic style, clean margins, elegant typography-focused design, premium print feel. ',
+    };
+
+    const templatePrompt = templatePrompts[params.template] || '';
+    const stylePrompt = stylePrompts[params.style] || '';
+
     const fullPrompt = `Create a professional presentation slide image.
-${stylePrompts[params.style] || ''}
+${templatePrompt}${stylePrompt}
 Content description:
 ${params.description}
 

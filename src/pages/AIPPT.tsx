@@ -44,6 +44,22 @@ const PPT_STYLES = [
   { id: "sketch", name: "手绘风格", icon: "🖌️", prompt: "hand-drawn sketch style, journal aesthetic" },
   { id: "cute", name: "卡通可爱", icon: "🎀", prompt: "cute cartoon kawaii style, pastel colors" },
   { id: "art", name: "艺术插画", icon: "🎨", prompt: "artistic illustration style, creative visual" },
+  { id: "ink", name: "国风墨绘", icon: "🏯", prompt: "Traditional Chinese ink wash painting style, elegant brush strokes, artistic Zen atmosphere, high-end oriental aesthetic, minimalist ink textures, subtle watercolor gradients, cultural and sophisticated." },
+  { id: "watercolor", name: "唯美水彩", icon: "💧", prompt: "Elegant watercolor wash, soft fluid textures, artistic bleeding effects, dreamy and light atmosphere, delicate hand-painted feel, pastel color palette, minimalist artistic expression." },
+  { id: "popart", name: "波普艺术", icon: "🎯", prompt: "Vibrant pop art style, bold black outlines, halftone patterns, high-contrast saturated colors, Andy Warhol aesthetic, energetic and retro, repetitive patterns, strong visual impact." },
+  { id: "crayon", name: "蜡笔色粉笔", icon: "🖍️", prompt: "Whimsical crayon drawing style, vibrant oil pastel textures, messy but charming lines, colorful scribbles, soft paper background, childlike imagination, bright primary colors, heartwarming and playful, high resolution." },
+];
+
+const PPT_TEMPLATES = [
+  { id: "none", name: "无模板", icon: "📄", prompt: "" },
+  { id: "visual-note", name: "视觉笔记风", icon: "📝", prompt: "Professional Digital Whiteboard Illustration, hand-drawn marker sketch style, minimalist infographic doodles, creamy white paper texture with subtle grain, clean black ink outlines, hand-drawn arrows and emphasis markers, soft accent colors (orange/blue), organized visual thinking layout, high resolution, vector art feel, trending on Pinterest." },
+  { id: "swiss-minimal", name: "瑞士极简风", icon: "🔲", prompt: "High-end corporate PPT slide, Swiss Modernism, ultra-minimalist layout, massive negative space, bold sans-serif typography, professional color palette (Deep Navy, Slate Gray, Crisp White), grid-based alignment, perfect geometric shapes, thin professional lines, authoritative and clean, Apple website aesthetic." },
+  { id: "isometric", name: "2.5D 等距视角", icon: "🧊", prompt: "Isometric 3D infographic design, 45-degree angle orthographic view, clean vector 3D models, soft pastel color grading with professional gradients, neutral light gray background, elements perfectly aligned on a 3D grid, sophisticated organized tech-oriented visualization, C4D render style, soft shadows, clean edges." },
+  { id: "glassmorphism", name: "磨砂玻璃风", icon: "🪟", prompt: "Futuristic Glassmorphism style, translucent frosted glass cards floating in space, deep vibrant mesh gradient background (purple, blue, and teal), glowing neon edges, soft blur effects, typography: thin white sans-serif text, high-tech UI elements, floating 3D spheres, elegant refraction, cinematic lighting, Unreal Engine 5 render." },
+  { id: "claymorphism", name: "黏土拟物风", icon: "🧸", prompt: "Claymorphism 3D style, soft matte texture, rounded organic shapes, volumetric studio lighting, playful and friendly aesthetic, Morandi color palette, 3D icons with soft depth, cute and modern, high-quality 3D render, minimalist composition, friendly atmosphere." },
+  { id: "dark-cinematic", name: "深色电影感", icon: "🎬", prompt: "Dark cinematic presentation slide, charcoal gray textured background, dramatic spot lighting, high contrast, glowing gold and white accents, elegant serif typography, luxury brand aesthetic, sophisticated light and shadow play, 8k resolution, minimalist but powerful composition." },
+  { id: "neo-brutalism", name: "新野兽派", icon: "⚡", prompt: "Neo-brutalism design, bold thick black outlines, high-saturation pop colors (Yellow, Cyan, Red), thick hard shadows, asymmetrical experimental layout, avant-garde typography, vibrant energy, flat vector shapes, confident and modern, trending on Dribbble." },
+  { id: "editorial", name: "高级杂志风", icon: "📰", prompt: "High-end editorial magazine layout, fashion aesthetic, sophisticated mix of bold Serif and light Sans-serif fonts, professional white space management, photography-centric composition, minimalist artistic style, clean margins, elegant typography-focused design, premium print feel." },
 ];
 
 const PPT_RATIOS = [
@@ -74,6 +90,7 @@ const AIPPT = () => {
   const [inputContent, setInputContent] = useState("");
   const [pageCount, setPageCount] = useState(8);
   const [style, setStyle] = useState("free");
+  const [template, setTemplate] = useState("none");
   const [aspectRatio, setAspectRatio] = useState("16:9");
 
   // Step 2 states
@@ -89,6 +106,7 @@ const AIPPT = () => {
   // Dropdown states
   const [showPageCountMenu, setShowPageCountMenu] = useState(false);
   const [showStyleMenu, setShowStyleMenu] = useState(false);
+  const [showTemplateMenu, setShowTemplateMenu] = useState(false);
   const [showRatioMenu, setShowRatioMenu] = useState(false);
 
   // Step 3 accordion states
@@ -205,6 +223,7 @@ const AIPPT = () => {
     const result = await generateSlideImage({
       description: slide.description,
       style,
+      template,
       aspectRatio,
     });
 
@@ -233,6 +252,7 @@ const AIPPT = () => {
       const result = await generateSlideImage({
         description: newSlides[i].description,
         style,
+        template,
         aspectRatio,
       });
       if (result.success && result.imageBase64) {
@@ -267,12 +287,11 @@ const AIPPT = () => {
   const closeAllMenus = () => {
     setShowPageCountMenu(false);
     setShowStyleMenu(false);
+    setShowTemplateMenu(false);
     setShowRatioMenu(false);
     setShowExportMenu(false);
   };
 
-  const undescribedCount = slides.filter((s) => !s.description).length;
-  const ungeneratedImageCount = slides.filter((s) => !s.generatedImage).length;
   const currentSlide = slides[selectedSlideIndex];
 
   // ==================== Step 1: Input & Config ====================
@@ -329,7 +348,7 @@ const AIPPT = () => {
           {/* Page count selector */}
           <div className="relative" onClick={(e) => e.stopPropagation()}>
             <button
-              onClick={() => { setShowPageCountMenu(!showPageCountMenu); setShowStyleMenu(false); setShowRatioMenu(false); }}
+              onClick={() => { setShowPageCountMenu(!showPageCountMenu); setShowStyleMenu(false); setShowTemplateMenu(false); setShowRatioMenu(false); }}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm bg-secondary/50 hover:bg-secondary border border-border/50 transition-all"
             >
               <span>🖥</span>
@@ -354,7 +373,7 @@ const AIPPT = () => {
           {/* Style selector */}
           <div className="relative" onClick={(e) => e.stopPropagation()}>
             <button
-              onClick={() => { setShowStyleMenu(!showStyleMenu); setShowPageCountMenu(false); setShowRatioMenu(false); }}
+              onClick={() => { setShowStyleMenu(!showStyleMenu); setShowPageCountMenu(false); setShowTemplateMenu(false); setShowRatioMenu(false); }}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm bg-secondary/50 hover:bg-secondary border border-border/50 transition-all"
             >
               <span>{PPT_STYLES.find((s) => s.id === style)?.icon}</span>
@@ -377,10 +396,36 @@ const AIPPT = () => {
             )}
           </div>
 
+          {/* Template selector */}
+          <div className="relative" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => { setShowTemplateMenu(!showTemplateMenu); setShowPageCountMenu(false); setShowStyleMenu(false); setShowRatioMenu(false); }}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm bg-secondary/50 hover:bg-secondary border border-border/50 transition-all"
+            >
+              <span>{PPT_TEMPLATES.find((t) => t.id === template)?.icon}</span>
+              <span>{PPT_TEMPLATES.find((t) => t.id === template)?.name}</span>
+              <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", showTemplateMenu && "rotate-180")} />
+            </button>
+            {showTemplateMenu && (
+              <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 min-w-[160px] max-h-[200px] overflow-y-auto scrollbar-thin">
+                {PPT_TEMPLATES.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => { setTemplate(t.id); setShowTemplateMenu(false); }}
+                    className={cn("w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-secondary/50 text-left", template === t.id && "bg-orange-50 text-orange-700")}
+                  >
+                    <span>{t.icon}</span>
+                    <span>{t.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Ratio selector */}
           <div className="relative" onClick={(e) => e.stopPropagation()}>
             <button
-              onClick={() => { setShowRatioMenu(!showRatioMenu); setShowPageCountMenu(false); setShowStyleMenu(false); }}
+              onClick={() => { setShowRatioMenu(!showRatioMenu); setShowPageCountMenu(false); setShowStyleMenu(false); setShowTemplateMenu(false); }}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm bg-secondary/50 hover:bg-secondary border border-border/50 transition-all"
             >
               <span>{aspectRatio}</span>
@@ -477,26 +522,6 @@ const AIPPT = () => {
           </Button>
         </div>
       </div>
-
-      {/* Warning banner */}
-      {undescribedCount > 0 && (
-        <div className="flex items-center justify-between px-3 md:px-4 py-2 md:py-2.5 bg-gradient-to-r from-orange-50 to-amber-50 border-b border-orange-100 shrink-0 relative z-10 gap-2">
-          <div className="flex items-center gap-2 text-xs md:text-sm text-orange-700 min-w-0">
-            <Sparkles className="w-4 h-4 shrink-0" />
-            <span className="truncate">还有 {undescribedCount} 页未生成描述，建议先批量生成</span>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={(e) => { e.stopPropagation(); handleBatchGenerateDescriptions(); }}
-            disabled={isGeneratingDescription}
-            className="text-xs border-orange-200 text-orange-700 hover:bg-orange-100 shrink-0"
-          >
-            {isGeneratingDescription ? <Loader2 className="w-3.5 h-3.5 md:mr-1 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 md:mr-1" />}
-            <span className="hidden md:inline">{isGeneratingDescription ? "生成中..." : "批量生成"}</span>
-          </Button>
-        </div>
-      )}
 
       {/* Mobile slide selector */}
       <div className="md:hidden flex items-center gap-1.5 px-3 py-2 bg-gray-50/80 border-b border-border overflow-x-auto shrink-0 scrollbar-none">
@@ -673,7 +698,7 @@ const AIPPT = () => {
           {/* Style dropdown */}
           <div className="relative" onClick={(e) => e.stopPropagation()}>
             <button
-              onClick={() => setShowStyleMenu(!showStyleMenu)}
+              onClick={() => { setShowStyleMenu(!showStyleMenu); setShowTemplateMenu(false); }}
               className="flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-lg text-xs bg-secondary/50 hover:bg-secondary border border-border/50 transition-all"
             >
               <span>{PPT_STYLES.find((s) => s.id === style)?.icon}</span>
@@ -689,6 +714,30 @@ const AIPPT = () => {
                     className={cn("w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-secondary/50 text-left", style === s.id && "bg-orange-50 text-orange-700")}
                   >
                     <span>{s.icon}</span><span>{s.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          {/* Template dropdown */}
+          <div className="relative" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => { setShowTemplateMenu(!showTemplateMenu); setShowStyleMenu(false); }}
+              className="flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-lg text-xs bg-secondary/50 hover:bg-secondary border border-border/50 transition-all"
+            >
+              <span>{PPT_TEMPLATES.find((t) => t.id === template)?.icon}</span>
+              <span className="hidden md:inline">{PPT_TEMPLATES.find((t) => t.id === template)?.name}</span>
+              <ChevronDown className="w-3 h-3" />
+            </button>
+            {showTemplateMenu && (
+              <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 min-w-[160px] max-h-[200px] overflow-y-auto scrollbar-thin">
+                {PPT_TEMPLATES.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => { setTemplate(t.id); setShowTemplateMenu(false); }}
+                    className={cn("w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-secondary/50 text-left", template === t.id && "bg-orange-50 text-orange-700")}
+                  >
+                    <span>{t.icon}</span><span>{t.name}</span>
                   </button>
                 ))}
               </div>
@@ -724,26 +773,6 @@ const AIPPT = () => {
           </Button>
         </div>
       </div>
-
-      {/* Warning banner */}
-      {ungeneratedImageCount > 0 && (
-        <div className="flex items-center justify-between px-3 md:px-4 py-2 md:py-2.5 bg-gradient-to-r from-orange-50 to-amber-50 border-b border-orange-100 shrink-0 relative z-10 gap-2">
-          <div className="flex items-center gap-2 text-xs md:text-sm text-orange-700 min-w-0">
-            <Sparkles className="w-4 h-4 shrink-0" />
-            <span className="truncate">还有 {ungeneratedImageCount} 页未生成图片，建议批量出图</span>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={(e) => { e.stopPropagation(); handleBatchGenerateImages(); }}
-            disabled={isGeneratingImage}
-            className="text-xs border-orange-200 text-orange-700 hover:bg-orange-100 shrink-0"
-          >
-            {isGeneratingImage ? <Loader2 className="w-3.5 h-3.5 md:mr-1 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 md:mr-1" />}
-            <span className="hidden md:inline">{isGeneratingImage ? "生成中..." : "批量出图"}</span>
-          </Button>
-        </div>
-      )}
 
       {/* Mobile slide selector */}
       <div className="md:hidden flex items-center gap-1.5 px-3 py-2 bg-gray-50/80 border-b border-border overflow-x-auto shrink-0 scrollbar-none">
