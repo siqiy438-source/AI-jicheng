@@ -28,42 +28,42 @@ const displayStyles = [
     name: "智能推荐",
     icon: "✨",
     description: "AI 根据衣服风格自动搭配",
-    prompt: "Analyze the clothing colors and styles, then choose the BEST cohesive color palette. Layer complementary tops+bottoms on each hanger as complete outfits. Add matching bags, shoes, and dried flower props for a viral Xiaohongshu boutique look.",
+    prompt: "Analyze the clothing colors and styles, then choose the BEST cohesive color palette. Create a curated boutique corner with natural mix of single pieces and layered outfits.",
   },
   {
     id: "minimal-commute",
     name: "简约通勤",
     icon: "💼",
     description: "干练利落，职场精英感",
-    prompt: "Minimalist professional palette: white → cream → camel → gray → charcoal → black gradient. Layer structured blazers over tailored pants/skirts on each hanger. Add a leather tote bag and pointed-toe heels below. Clean, architectural COS/TheRow boutique feel.",
+    prompt: "Minimalist professional palette: white → cream → camel → gray → charcoal → black. Clean architectural COS/TheRow boutique with polished concrete floor and brass rack details.",
   },
   {
     id: "sweet-girl",
     name: "甜美少女",
     icon: "🎀",
     description: "粉嫩柔美，少女心满满",
-    prompt: "Dreamy pastel palette: white → baby pink → blush → lavender → lilac. Layer soft knits over flowy skirts, cardigans over dresses. Add ribbon-tied dried flower bouquets clipped to hangers, a straw bag, ballet flats below. Soft, romantic, Xiaohongshu dream closet aesthetic.",
+    prompt: "Dreamy pastel palette: white → baby pink → blush → lavender → lilac. Soft romantic boutique with dried flowers, ribbon accents, and warm oak flooring. Xiaohongshu dream closet aesthetic.",
   },
   {
     id: "light-luxury",
     name: "轻奢高级",
     icon: "👑",
     description: "参考 Chanel/Dior 陈列美学",
-    prompt: "Chanel/Dior luxury standard: monochromatic color story with ONE accent color. Layer silk blouses over tailored trousers, cashmere coats over midi dresses. Maximum 4-5 outfit groupings with museum-like spacing. Add a quilted chain bag, pearl-accented accessories. Gold or brass rack details. Every piece feels precious and curated.",
+    prompt: "Chanel/Dior luxury standard: monochromatic color story with ONE accent color. Museum-like spacing, gold or brass rack details. Textured plaster wall, gallery-style warm lighting. Every piece feels precious.",
   },
   {
     id: "street-trendy",
     name: "街头潮流",
     icon: "🔥",
     description: "个性混搭，潮酷态度",
-    prompt: "Bold street style: intentional color contrast pairings (black+neon, denim+red). Layer oversized hoodies over cargo pants, leather jackets over graphic tees on hangers. Add a crossbody bag, chunky sneakers below, a beanie on the rack end. Raw, edgy Supreme/Off-White store energy but still curated.",
+    prompt: "Bold street style: intentional color contrast pairings (black+neon, denim+red). Raw industrial space with exposed brick or concrete. Supreme/Off-White store energy but still curated.",
   },
   {
     id: "french-elegant",
     name: "法式优雅",
     icon: "🥐",
     description: "慵懒随性，高级不费力",
-    prompt: "Parisian effortless chic: muted earth tone palette (ivory → sand → taupe → olive → chocolate). Layer linen shirts over wide-leg trousers, soft cardigans over slip dresses on each hanger. Add a woven basket bag, leather sandals, dried lavender sprigs clipped to hangers. Sézane/Rouje boutique warmth — relaxed but perfectly curated.",
+    prompt: "Parisian effortless chic: muted earth tone palette (ivory → sand → taupe → olive → chocolate). Warm oak flooring, linen curtains, dried lavender. Sézane/Rouje boutique warmth — relaxed but perfectly curated.",
   },
 ];
 
@@ -163,34 +163,41 @@ const AIDisplay = () => {
       setGenerationStep("正在设计陈列方案...");
       const style = displayStyles.find(s => s.id === selectedStyle) || displayStyles[0];
 
-      const displayPrompt = `Create a Xiaohongshu (小红书) style boutique rack display photo — airy, spacious, and effortlessly curated.
+      const displayPrompt = `A high-end boutique "lifestyle corner" photograph shot from a 45-degree side angle, capturing a curated clothing rack as part of a real store interior.
 
 REFERENCE IMAGES:
-- Image 1: A numbered grid of ${clothingImages.length} clothing items (the inventory to arrange)
+- Image 1: A numbered grid of ${clothingImages.length} clothing items (the inventory to arrange on the rack)
 - Image 2: The actual store rack/display space to use
 
 DISPLAY STYLE: ${style.name} - ${style.prompt}
 
-STRICT RULES:
+COMPOSITION (构图 — 不要正面证件照):
+- Shot from a 45-degree angle or slight side view, NOT straight-on centered. The rack should be offset to one side of the frame (asymmetric composition).
+- Shallow depth of field: the foreground clothes are tack-sharp with visible fabric texture, while the background wall/furniture falls into a gentle bokeh blur.
+- The camera is at eye level or slightly below, creating a natural "walking into the store" perspective with depth and dimension.
 
-1. QUANTITY & SPACING (数量与间距，最重要): Display ONLY 5-6 pieces on the rack. There MUST be a visible gap (at least one fist width) between each hanger. The rack should feel spacious and airy — you should be able to see the wall/background between pieces. NEVER crowd or overlap clothes.
+LIGHTING (光影 — 不要平光):
+- Soft natural sunlight streaming in from a window on one side, casting warm directional light across the clothes.
+- Visible light-and-shadow interplay: gentle shadows in fabric folds and creases that give clothes volume and texture. Soft shadows on the floor beneath the rack.
+- Warm color temperature around 3000K — gallery-style warm white lighting that makes fabrics look rich and inviting.
+- Some areas brighter, some in soft shadow — NOT flat, even illumination everywhere.
 
-2. NATURAL MIX (自然混搭): Vary how pieces hang:
-   - Most hangers hold a single piece (one coat, one dress, one blouse)
-   - Only 1-2 hangers have a layered look where a bottom (skirt/pants) peeks out naturally behind a top
-   - Alternate between longer pieces (dresses, coats) and shorter pieces (tops, cardigans) to create a gentle wave silhouette
+ENVIRONMENT (环境 — 不要空白样板间):
+- Background: a textured plaster wall or warm-toned concrete wall with subtle surface character, NOT a plain white void.
+- Floor: polished concrete, warm oak wood flooring, or herringbone tile — visible and grounding the scene.
+- Environmental props: a large-leaf plant (monstera or fiddle leaf fig) in the corner, or a minimalist designer chair/stool nearby, or a full-length mirror leaning against the wall. Pick 1-2 that feel natural.
+- The rack casts soft shadows on the floor, anchoring it in the space.
 
-3. MINIMAL ACCESSORIES: Add just 1-2 small touches — a bag on one end of the rack, or a hat. Do not overdo it.
-
-4. GROUND PROPS: Place 1 small item near the rack base — a vase of dried flowers, or a woven basket. Keep it simple.
-
-5. COLOR HARMONY: All pieces share one soft, cohesive color palette. The rack reads as one unified color story.
-
-6. ATMOSPHERE: Clean white or light background, warm natural light. The overall feel is calm, minimal, and inviting.
+RACK DISPLAY (陈列):
+- Display 8-10 pieces on the rack with even spacing between hangers. Not too crowded, not too sparse.
+- Natural mix: most hangers hold a single piece; 2-3 hangers have a layered look (top over bottom). Alternate longer and shorter pieces for a gentle wave silhouette.
+- 1-2 accessories: a bag on one end, a hat, or a scarf draped on the bar.
+- 1 ground prop near the rack base: dried flowers in a vase, a woven basket, or a pair of shoes.
+- All pieces share one cohesive color palette.
 
 ${additionalNotes ? `STORE OWNER'S NOTES: ${additionalNotes}` : ""}
 
-OUTPUT: Photorealistic boutique display photo. Clothes keep their EXACT original colors/patterns from the grid. NO text, NO watermarks, NO people. Aspect ratio 4:3.`;
+OUTPUT: Photorealistic editorial boutique photo with cinematic depth. Clothes keep their EXACT original colors/patterns from the grid. NO text, NO watermarks, NO people. Aspect ratio 4:3.`;
 
       // Step 3: 调用 AI 生成
       setGenerationStep("AI 正在生成陈列效果图...");
