@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Settings as SettingsIcon,
   Sun,
@@ -13,8 +14,28 @@ import {
   Palette,
   ChevronRight,
   Check,
+  Camera,
+  Mail,
+  Calendar,
+  Lock,
+  Smartphone,
+  LogOut,
+  Trash2,
+  Save,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 type ThemeMode = "light" | "dark" | "system";
 
@@ -88,8 +109,24 @@ const ThemeOption = ({ mode, icon, label, selected, onClick }: ThemeOptionProps)
 
 const Settings = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [theme, setTheme] = useState<ThemeMode>("system");
   const [notifications, setNotifications] = useState(true);
+  
+  // Dialog states
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+  const [securityDialogOpen, setSecurityDialogOpen] = useState(false);
+  const [languageDialogOpen, setLanguageDialogOpen] = useState(false);
+  
+  // Profile form state
+  const [profileForm, setProfileForm] = useState({
+    username: user?.email?.split('@')[0] || "用户",
+    email: user?.email || "",
+    bio: "",
+  });
+  
+  // Language state
+  const [language, setLanguage] = useState<"zh-CN" | "en-US">("zh-CN");
 
   // Load theme from localStorage on mount
   useEffect(() => {
@@ -101,24 +138,15 @@ const Settings = () => {
 
   // Setting item handlers
   const handleProfileClick = () => {
-    toast({
-      title: "个人信息",
-      description: "此功能正在开发中，敬请期待...",
-    });
+    setProfileDialogOpen(true);
   };
 
   const handleSecurityClick = () => {
-    toast({
-      title: "账户安全",
-      description: "此功能正在开发中，敬请期待...",
-    });
+    setSecurityDialogOpen(true);
   };
 
   const handleLanguageClick = () => {
-    toast({
-      title: "语言与地区",
-      description: "当前语言：简体中文",
-    });
+    setLanguageDialogOpen(true);
   };
 
   const handleVersionClick = () => {
@@ -126,6 +154,29 @@ const Settings = () => {
       title: "灵犀 AI 创作平台",
       description: "版本 1.0.0 • 最新版本",
     });
+  };
+  
+  const handleProfileSave = () => {
+    toast({
+      title: "保存成功",
+      description: "您的个人信息已更新",
+    });
+    setProfileDialogOpen(false);
+  };
+  
+  const handlePasswordChange = () => {
+    toast({
+      title: "密码修改",
+      description: "密码修改链接已发送到您的邮箱",
+    });
+  };
+  
+  const handleLanguageSave = () => {
+    toast({
+      title: "语言已切换",
+      description: language === "zh-CN" ? "当前语言：简体中文" : "Current language: English",
+    });
+    setLanguageDialogOpen(false);
   };
 
   // Apply theme changes
@@ -282,6 +333,250 @@ const Settings = () => {
           />
         </div>
       </div>
+
+      {/* 个人信息弹窗 */}
+      <Dialog open={profileDialogOpen} onOpenChange={setProfileDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>个人信息</DialogTitle>
+            <DialogDescription>管理您的个人资料和公开信息</DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            {/* 头像 */}
+            <div className="flex items-center gap-4">
+              <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center text-2xl text-primary-foreground font-semibold">
+                {profileForm.username.charAt(0).toUpperCase()}
+              </div>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Camera className="w-4 h-4" />
+                更换头像
+              </Button>
+            </div>
+
+            {/* 用户名 */}
+            <div className="space-y-2">
+              <Label htmlFor="username">用户名</Label>
+              <Input
+                id="username"
+                value={profileForm.username}
+                onChange={(e) => setProfileForm({ ...profileForm, username: e.target.value })}
+                placeholder="请输入用户名"
+              />
+            </div>
+
+            {/* 邮箱 */}
+            <div className="space-y-2">
+              <Label htmlFor="email">邮箱</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="email"
+                  type="email"
+                  value={profileForm.email}
+                  disabled
+                  className="flex-1"
+                />
+                <Button variant="outline" size="sm">
+                  <Mail className="w-4 h-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">邮箱地址不可修改</p>
+            </div>
+
+            {/* 个人简介 */}
+            <div className="space-y-2">
+              <Label htmlFor="bio">个人简介</Label>
+              <Textarea
+                id="bio"
+                value={profileForm.bio}
+                onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
+                placeholder="介绍一下自己..."
+                rows={3}
+              />
+            </div>
+
+            {/* 账户信息 */}
+            <div className="pt-4 border-t border-border">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Calendar className="w-4 h-4" />
+                <span>注册时间：2024 年 1 月</span>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setProfileDialogOpen(false)}>
+              取消
+            </Button>
+            <Button onClick={handleProfileSave} className="gap-2">
+              <Save className="w-4 h-4" />
+              保存
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 账户安全弹窗 */}
+      <Dialog open={securityDialogOpen} onOpenChange={setSecurityDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>账户安全</DialogTitle>
+            <DialogDescription>管理您的密码和安全设置</DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {/* 修改密码 */}
+            <div
+              className="flex items-center justify-between p-4 rounded-xl border border-border hover:bg-accent/50 transition-colors cursor-pointer"
+              onClick={handlePasswordChange}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Lock className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-sm">修改密码</h3>
+                  <p className="text-xs text-muted-foreground">上次修改：30 天前</p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </div>
+
+            {/* 两步验证 */}
+            <div className="flex items-center justify-between p-4 rounded-xl border border-border">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+                  <Smartphone className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-sm">两步验证</h3>
+                  <p className="text-xs text-muted-foreground">增强账户安全性</p>
+                </div>
+              </div>
+              <button
+                className={cn(
+                  "w-12 h-7 rounded-full transition-colors relative flex-shrink-0 bg-secondary"
+                )}
+              >
+                <div className="absolute top-1 left-1 w-5 h-5 rounded-full bg-white transition-transform shadow" />
+              </button>
+            </div>
+
+            {/* 登录设备 */}
+            <div className="p-4 rounded-xl border border-border">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                  <Monitor className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-sm">登录设备</h3>
+                  <p className="text-xs text-muted-foreground">管理已登录的设备</p>
+                </div>
+              </div>
+              <div className="space-y-2 pl-13">
+                <div className="flex items-center justify-between text-sm">
+                  <span>当前设备 (macOS)</span>
+                  <span className="text-xs text-green-600">活跃</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 危险区域 */}
+            <div className="pt-4 border-t border-border">
+              <Button variant="destructive" size="sm" className="gap-2 w-full">
+                <Trash2 className="w-4 h-4" />
+                注销账户
+              </Button>
+              <p className="text-xs text-muted-foreground mt-2 text-center">
+                此操作不可恢复，请谨慎操作
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSecurityDialogOpen(false)}>
+              关闭
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 语言与地区弹窗 */}
+      <Dialog open={languageDialogOpen} onOpenChange={setLanguageDialogOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>语言与地区</DialogTitle>
+            <DialogDescription>选择您偏好的语言和地区设置</DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-3">
+              {/* 简体中文 */}
+              <button
+                onClick={() => setLanguage("zh-CN")}
+                className={cn(
+                  "w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all",
+                  language === "zh-CN"
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:bg-accent/50"
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="text-2xl">🇨🇳</div>
+                  <div className="text-left">
+                    <div className="font-medium">简体中文</div>
+                    <div className="text-xs text-muted-foreground">Simplified Chinese</div>
+                  </div>
+                </div>
+                {language === "zh-CN" && (
+                  <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                    <Check className="w-3 h-3 text-primary-foreground" />
+                  </div>
+                )}
+              </button>
+
+              {/* English */}
+              <button
+                onClick={() => setLanguage("en-US")}
+                className={cn(
+                  "w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all",
+                  language === "en-US"
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:bg-accent/50"
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="text-2xl">🇺🇸</div>
+                  <div className="text-left">
+                    <div className="font-medium">English</div>
+                    <div className="text-xs text-muted-foreground">美国英语</div>
+                  </div>
+                </div>
+                {language === "en-US" && (
+                  <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                    <Check className="w-3 h-3 text-primary-foreground" />
+                  </div>
+                )}
+              </button>
+            </div>
+
+            <div className="pt-4 border-t border-border">
+              <p className="text-xs text-muted-foreground">
+                💡 更改语言后，部分内容需要刷新页面才能生效
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLanguageDialogOpen(false)}>
+              取消
+            </Button>
+            <Button onClick={handleLanguageSave}>
+              确认
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </PageLayout>
   );
 };
