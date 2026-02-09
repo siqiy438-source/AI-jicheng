@@ -401,11 +401,7 @@ const AIPPT = () => {
             )}
           </div>
 
-          {/* Model badge */}
-          <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm bg-blue-50 text-blue-600 border border-blue-100">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Gemini 3 Pro</span>
-          </div>
+
         </div>
 
         {/* Generate button */}
@@ -477,10 +473,6 @@ const AIPPT = () => {
             {isGeneratingDescription ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 mr-1" />}
             {isGeneratingDescription ? "生成中..." : "批量生成"}
           </Button>
-          <span className="hidden md:inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-blue-50 text-blue-600 border border-blue-100">
-            <Sparkles className="w-3 h-3" />
-            Gemini 3 Pro
-          </span>
           <Button size="sm" onClick={() => setCurrentStep(3)} className="bg-blue-600 hover:bg-blue-700 text-white text-xs">
             下一步
             <ChevronRight className="w-3.5 h-3.5 ml-1" />
