@@ -439,7 +439,7 @@ const AIPPT = () => {
 
   // ==================== Step 2: Outline & Description ====================
   const renderStep2 = () => (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="flex flex-col h-[100dvh] bg-background">
       {/* Top navbar */}
       <div className="flex items-center justify-between px-4 py-2.5 bg-white border-b border-border shrink-0 relative z-20">
         <div className="flex items-center gap-2 shrink-0">
@@ -508,9 +508,32 @@ const AIPPT = () => {
         </div>
       )}
 
+      {/* Mobile slide selector */}
+      <div className="md:hidden flex items-center gap-1.5 px-3 py-2 bg-gray-50/80 border-b border-border overflow-x-auto shrink-0 scrollbar-none">
+        {slides.map((slide, index) => (
+          <button
+            key={slide.id}
+            onClick={() => setSelectedSlideIndex(index)}
+            className={cn(
+              "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs whitespace-nowrap shrink-0 transition-all",
+              selectedSlideIndex === index
+                ? "bg-blue-100 text-blue-700 font-medium"
+                : "bg-white text-muted-foreground border border-border/50"
+            )}
+          >
+            <span className={cn(
+              "w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-medium",
+              slide.description ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
+            )}>
+              {index + 1}
+            </span>
+            <span className="max-w-[80px] truncate">{slide.title}</span>
+          </button>
+        ))}
+      </div>
+
       {/* Main content area */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left panel - slide list */}
         <div className="w-56 border-r border-border bg-gray-50/50 overflow-y-auto shrink-0 hidden md:block">
           <div className="p-3">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">幻灯片</h3>
@@ -621,7 +644,7 @@ const AIPPT = () => {
                   placeholder="输入优化要求..."
                   className="flex-1 text-sm bg-transparent border-none focus:outline-none"
                 />
-                <span className="text-[10px] text-muted-foreground shrink-0">Ctrl+Enter 提交 · Esc 取消</span>
+                <span className="text-[10px] text-muted-foreground shrink-0 hidden md:inline">Ctrl+Enter 提交 · Esc 取消</span>
               </div>
             </div>
           ) : (
@@ -636,7 +659,7 @@ const AIPPT = () => {
 
   // ==================== Step 3: Preview & Export ====================
   const renderStep3 = () => (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="flex flex-col h-[100dvh] bg-background">
       {/* Top navbar */}
       <div className="flex items-center justify-between px-4 py-2.5 bg-white border-b border-border shrink-0">
         <div className="flex items-center gap-2">
@@ -691,8 +714,8 @@ const AIPPT = () => {
             disabled={isGeneratingImage}
             className="text-xs"
           >
-            <Sparkles className="w-3.5 h-3.5 mr-1" />
-            批量出图
+            <Sparkles className="w-3.5 h-3.5 md:mr-1" />
+            <span className="hidden md:inline">批量出图</span>
           </Button>
           <div className="relative" onClick={(e) => e.stopPropagation()}>
             <Button variant="outline" size="sm" onClick={() => setShowExportMenu(!showExportMenu)} className="text-xs">
@@ -733,6 +756,30 @@ const AIPPT = () => {
           </Button>
         </div>
       )}
+
+      {/* Mobile slide selector */}
+      <div className="md:hidden flex items-center gap-1.5 px-3 py-2 bg-gray-50/80 border-b border-border overflow-x-auto shrink-0 scrollbar-none">
+        {slides.map((slide, index) => (
+          <button
+            key={slide.id}
+            onClick={() => setSelectedSlideIndex(index)}
+            className={cn(
+              "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs whitespace-nowrap shrink-0 transition-all",
+              selectedSlideIndex === index
+                ? "bg-blue-100 text-blue-700 font-medium"
+                : "bg-white text-muted-foreground border border-border/50"
+            )}
+          >
+            <span className={cn(
+              "w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-medium",
+              slide.generatedImage ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
+            )}>
+              {index + 1}
+            </span>
+            <span className="max-w-[80px] truncate">{slide.title}</span>
+          </button>
+        ))}
+      </div>
 
       {/* Main content area */}
       <div className="flex flex-1 overflow-hidden" onClick={closeAllMenus}>

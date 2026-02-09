@@ -4,18 +4,18 @@ import { FeatureCard } from "@/components/FeatureCard";
 import {
   ImageIcon,
   FileText,
-  Palette,
+  Presentation,
   Wand2,
 } from "lucide-react";
 
 const Index = () => {
   const features = [
     {
-      icon: Palette,
-      title: "AI 海报",
-      description: "专业场景海报，一键智能设计",
+      icon: Presentation,
+      title: "AI PPT",
+      description: "文字变演示，智能生成幻灯片",
       color: "amber" as const,
-      to: "/ai-poster",
+      to: "/ai-ppt",
     },
     {
       icon: ImageIcon,

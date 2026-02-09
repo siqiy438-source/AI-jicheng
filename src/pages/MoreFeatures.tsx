@@ -1,5 +1,7 @@
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
+import { MobileNav } from "@/components/MobileNav";
+import { useNavigate } from "react-router-dom";
 import {
   Wand2,
   Video,
@@ -18,6 +20,7 @@ import {
   Languages,
   Bot,
   Clock,
+  Palette,
 } from "lucide-react";
 
 interface FeatureItemProps {
@@ -26,10 +29,17 @@ interface FeatureItemProps {
   description: string;
   status: "available" | "coming";
   color: string;
+  to?: string;
 }
 
-const FeatureItem = ({ icon, title, description, status, color }: FeatureItemProps) => (
-  <div className="glass-card p-5 rounded-2xl hover:shadow-lg transition-all duration-300 group cursor-pointer relative overflow-hidden">
+const FeatureItem = ({ icon, title, description, status, color, to }: FeatureItemProps) => {
+  const navigate = useNavigate();
+
+  return (
+    <div
+      onClick={() => to && navigate(to)}
+      className={`glass-card p-5 rounded-2xl hover:shadow-lg transition-all duration-300 group relative overflow-hidden ${to ? "cursor-pointer" : "cursor-default"}`}
+    >
     {status === "coming" && (
       <div className="absolute top-3 right-3 px-2 py-0.5 bg-amber-500/20 text-amber-500 text-xs rounded-full flex items-center gap-1">
         <Clock className="w-3 h-3" />
@@ -45,7 +55,8 @@ const FeatureItem = ({ icon, title, description, status, color }: FeatureItemPro
     <h3 className="font-semibold text-foreground mb-2">{title}</h3>
     <p className="text-sm text-muted-foreground">{description}</p>
   </div>
-);
+  );
+};
 
 const MoreFeatures = () => {
   const aiFeatures: FeatureItemProps[] = [
@@ -140,6 +151,14 @@ const MoreFeatures = () => {
 
   const creativeTools: FeatureItemProps[] = [
     {
+      icon: <Palette className="w-6 h-6" />,
+      title: "AI 海报",
+      description: "专业场景海报，一键智能设计",
+      status: "available",
+      color: "#f59e0b",
+      to: "/ai-poster",
+    },
+    {
       icon: <Camera className="w-6 h-6" />,
       title: "产品摄影",
       description: "AI 生成专业级产品展示图",
@@ -174,7 +193,7 @@ const MoreFeatures = () => {
       <Sidebar />
       <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
           <div className="max-w-6xl mx-auto px-6 py-8">
             {/* Page Header */}
             <div className="mb-8 opacity-0 animate-fade-in">
@@ -239,6 +258,7 @@ const MoreFeatures = () => {
           </div>
         </main>
       </div>
+      <MobileNav />
     </div>
   );
 };
