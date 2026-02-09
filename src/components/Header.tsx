@@ -14,6 +14,9 @@ import { cn } from "@/lib/utils";
 export const Header = () => {
   const { user, loading, signOut } = useAuth();
   const isMobile = useIsMobile();
+  
+  // 通知状态（未来从后端获取）
+  const hasUnreadNotifications = false; // 当前无未读通知
 
   return (
     <header className={cn(
@@ -57,7 +60,10 @@ export const Header = () => {
           <DropdownMenuTrigger asChild>
             <button className="p-2.5 rounded-xl hover:bg-accent transition-colors relative touch-target">
               <Bell className="w-5 h-5 text-muted-foreground" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full" />
+              {/* 只在有未读通知时显示红点 */}
+              {hasUnreadNotifications && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full" />
+              )}
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-80">
