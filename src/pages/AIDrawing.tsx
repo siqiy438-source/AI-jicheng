@@ -444,7 +444,7 @@ const AIDrawing = () => {
   };
 
   return (
-    <PageLayout className="py-2 md:py-8">
+    <PageLayout className="pt-6 pb-2 md:py-8">
       <div onClick={closeAllMenus}>
         {/* 返回按钮 - 仅桌面端显示 */}
         <button
