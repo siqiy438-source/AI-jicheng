@@ -183,6 +183,8 @@ export async function generateSlideImage(params: {
   style: string;
   template: string;
   aspectRatio: string;
+  line?: "standard" | "premium";
+  resolution?: "default" | "2k" | "4k";
 }): Promise<{ success: boolean; imageBase64?: string; error?: string }> {
   try {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://kzdjqqinkonqlclbwleh.supabase.co';
@@ -238,7 +240,8 @@ Requirements:
       body: JSON.stringify({
         prompt: fullPrompt,
         aspectRatio: params.aspectRatio,
-        line: 'standard', // 固定使用 BLTCY
+        line: params.line || 'standard',
+        resolution: params.resolution || 'default',
       }),
       signal: controller.signal,
     });

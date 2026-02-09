@@ -5,7 +5,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
-import { buildGenerateContentUrl, getImageProvider, getProviderConfig } from "./provider.ts"
+import { buildGenerateContentUrl, getImageProvider, getProviderConfig, isHDResolution, getHDModel, getHDApiUrl } from "./provider.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,7 +22,7 @@ serve(async (req) => {
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
     const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
-    const { prompt, style, aspectRatio, negativePrompt, styleId, images, line, hasFrameworkPrompt } = await req.json()
+    const { prompt, style, aspectRatio, negativePrompt, styleId, images, line, resolution, hasFrameworkPrompt } = await req.json()
     const resolvedLine = getImageProvider(line)
     const providerConfig = getProviderConfig(resolvedLine)
     const providerApiKey = Deno.env.get(providerConfig.apiKeyEnv)
@@ -118,6 +118,94 @@ Flat-lay product showcase requirements:
     if (aspectRatio) {
       fullPrompt += `. Aspect ratio: ${aspectRatio}`
     }
+
+    // ========== 2K/4K 高清线路：走 images/edits 接口 ==========
+    if (isHDResolution(resolution)) {
+      const hdApiKey = Deno.env.get('BLTCY_API_KEY')
+      if (!hdApiKey) {
+        throw new Error('图像服务配置错误：BLTCY API Key 未配置，请联系管理员')
+      }
+
+      const hdModel = getHDModel(resolution)
+      const hdUrl = getHDApiUrl()
+
+      // 构建 FormData（images/edits 接口使用 multipart/form-data）
+      const formData = new FormData()
+      formData.append('model', hdModel)
+      formData.append('prompt', fullPrompt)
+      formData.append('n', '1')
+      formData.append('response_format', 'b64_json')
+
+      // images/edits 接口要求 image 参数
+      // 如果用户上传了参考图片，使用第一张；否则发送一个 1x1 透明占位图
+      if (images && Array.isArray(images) && images.length > 0) {
+        const firstImage = images[0]
+        const matches = firstImage.match(/^data:([^;]+);base64,(.+)$/)
+        if (matches) {
+          const binaryStr = atob(matches[2])
+          const bytes = new Uint8Array(binaryStr.length)
+          for (let i = 0; i < binaryStr.length; i++) {
+            bytes[i] = binaryStr.charCodeAt(i)
+          }
+          const blob = new Blob([bytes], { type: matches[1] })
+          formData.append('image', blob, 'image.png')
+        }
+      } else {
+        // 1x1 透明 PNG 占位图
+        const placeholderB64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
+        const binaryStr = atob(placeholderB64)
+        const bytes = new Uint8Array(binaryStr.length)
+        for (let i = 0; i < binaryStr.length; i++) {
+          bytes[i] = binaryStr.charCodeAt(i)
+        }
+        const blob = new Blob([bytes], { type: 'image/png' })
+        formData.append('image', blob, 'placeholder.png')
+      }
+
+      const hdResponse = await fetch(hdUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${hdApiKey}`,
+        },
+        body: formData,
+      })
+
+      if (!hdResponse.ok) {
+        const errorText = await hdResponse.text()
+        console.error(`[ai-image] BLTCY HD (${hdModel}) API error: ${hdResponse.status} - ${errorText}`)
+        throw new Error(`BLTCY ${resolution.toUpperCase()} API 错误: ${hdResponse.status} - ${errorText}`)
+      }
+
+      const hdData = await hdResponse.json()
+
+      // 解析 OpenAI 格式响应
+      let imageBase64: string | null = null
+      if (hdData.data && hdData.data.length > 0) {
+        const item = hdData.data[0]
+        if (item.b64_json) {
+          imageBase64 = `data:image/png;base64,${item.b64_json}`
+        } else if (item.url) {
+          // 如果返回的是 URL，需要下载图片
+          const imgResp = await fetch(item.url)
+          const imgBuffer = await imgResp.arrayBuffer()
+          const base64 = btoa(String.fromCharCode(...new Uint8Array(imgBuffer)))
+          imageBase64 = `data:image/png;base64,${base64}`
+        }
+      }
+
+      if (!imageBase64) {
+        throw new Error('未能生成高清图片')
+      }
+
+      return new Response(JSON.stringify({
+        success: true,
+        imageBase64,
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    // ========== 普通/优质线路：走 Gemini generateContent 接口 ==========
 
     // 构建 Vertex AI 格式的请求内容
     type PartType = { text: string } | { inlineData: { mimeType: string; data: string } }

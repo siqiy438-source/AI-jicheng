@@ -75,6 +75,13 @@ const PPT_RATIOS = [
 
 const PAGE_COUNTS = [3, 5, 8, 10, 12];
 
+// 线路选项
+const PPT_LINE_OPTIONS = [
+  { id: "standard", name: "普通线路", line: "standard" as const, resolution: "default" as const },
+  { id: "standard_2k", name: "普通线路 2K", line: "standard" as const, resolution: "2k" as const },
+  { id: "standard_4k", name: "普通线路 4K", line: "standard" as const, resolution: "4k" as const },
+];
+
 // ==================== Placeholder helpers ====================
 const PLACEHOLDERS: Record<string, string> = {
   sentence: "输入主题，例如：《高效能人士的七个习惯》读书笔记",
@@ -96,6 +103,8 @@ const AIPPT = () => {
   const [style, setStyle] = useState("free");
   const [template, setTemplate] = useState("none");
   const [aspectRatio, setAspectRatio] = useState("16:9");
+  const [selectedLine, setSelectedLine] = useState("standard");
+  const [showLineMenu, setShowLineMenu] = useState(false);
 
   // Step 2 states
   const [slides, setSlides] = useState<SlideData[]>([]);
@@ -224,11 +233,14 @@ const AIPPT = () => {
     }
     setIsGeneratingImage(true);
 
+    const selectedLineOption = PPT_LINE_OPTIONS.find(l => l.id === selectedLine) || PPT_LINE_OPTIONS[0];
     const result = await generateSlideImage({
       description: slide.description,
       style,
       template,
       aspectRatio,
+      line: selectedLineOption.line,
+      resolution: selectedLineOption.resolution,
     });
 
     setIsGeneratingImage(false);
@@ -250,6 +262,7 @@ const AIPPT = () => {
     }
     setIsGeneratingImage(true);
 
+    const selectedLineOption2 = PPT_LINE_OPTIONS.find(l => l.id === selectedLine) || PPT_LINE_OPTIONS[0];
     const newSlides = [...slides];
     for (let i = 0; i < newSlides.length; i++) {
       if (newSlides[i].generatedImage || !newSlides[i].description) continue;
@@ -258,6 +271,8 @@ const AIPPT = () => {
         style,
         template,
         aspectRatio,
+        line: selectedLineOption2.line,
+        resolution: selectedLineOption2.resolution,
       });
       if (result.success && result.imageBase64) {
         newSlides[i] = { ...newSlides[i], generatedImage: result.imageBase64 };
@@ -352,7 +367,7 @@ const AIPPT = () => {
           {/* Page count selector */}
           <div className="relative" onClick={(e) => e.stopPropagation()}>
             <button
-              onClick={() => { setShowPageCountMenu(!showPageCountMenu); setShowStyleMenu(false); setShowTemplateMenu(false); setShowRatioMenu(false); }}
+              onClick={() => { setShowPageCountMenu(!showPageCountMenu); setShowStyleMenu(false); setShowTemplateMenu(false); setShowRatioMenu(false); setShowLineMenu(false); }}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm bg-secondary/50 hover:bg-secondary border border-border/50 transition-all"
             >
               <span>🖥</span>
@@ -377,7 +392,7 @@ const AIPPT = () => {
           {/* Style selector */}
           <div className="relative" onClick={(e) => e.stopPropagation()}>
             <button
-              onClick={() => { setShowStyleMenu(!showStyleMenu); setShowPageCountMenu(false); setShowTemplateMenu(false); setShowRatioMenu(false); }}
+              onClick={() => { setShowStyleMenu(!showStyleMenu); setShowPageCountMenu(false); setShowTemplateMenu(false); setShowRatioMenu(false); setShowLineMenu(false); }}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm bg-secondary/50 hover:bg-secondary border border-border/50 transition-all"
             >
               <span>{PPT_STYLES.find((s) => s.id === style)?.icon}</span>
@@ -403,7 +418,7 @@ const AIPPT = () => {
           {/* Template selector */}
           <div className="relative" onClick={(e) => e.stopPropagation()}>
             <button
-              onClick={() => { setShowTemplateMenu(!showTemplateMenu); setShowPageCountMenu(false); setShowStyleMenu(false); setShowRatioMenu(false); }}
+              onClick={() => { setShowTemplateMenu(!showTemplateMenu); setShowPageCountMenu(false); setShowStyleMenu(false); setShowRatioMenu(false); setShowLineMenu(false); }}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm bg-secondary/50 hover:bg-secondary border border-border/50 transition-all"
             >
               <span>{PPT_TEMPLATES.find((t) => t.id === template)?.icon}</span>
@@ -429,7 +444,7 @@ const AIPPT = () => {
           {/* Ratio selector */}
           <div className="relative" onClick={(e) => e.stopPropagation()}>
             <button
-              onClick={() => { setShowRatioMenu(!showRatioMenu); setShowPageCountMenu(false); setShowStyleMenu(false); setShowTemplateMenu(false); }}
+              onClick={() => { setShowRatioMenu(!showRatioMenu); setShowPageCountMenu(false); setShowStyleMenu(false); setShowTemplateMenu(false); setShowLineMenu(false); }}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm bg-secondary/50 hover:bg-secondary border border-border/50 transition-all"
             >
               <span>{aspectRatio}</span>
@@ -444,6 +459,31 @@ const AIPPT = () => {
                     className={cn("w-full px-3 py-2 text-sm hover:bg-secondary/50 text-left", aspectRatio === r.id && "bg-orange-50 text-orange-700")}
                   >
                     {r.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* 线路选择 */}
+          <div className="relative" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => { setShowLineMenu(!showLineMenu); setShowPageCountMenu(false); setShowStyleMenu(false); setShowTemplateMenu(false); setShowRatioMenu(false); }}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm bg-secondary/50 hover:bg-secondary border border-border/50 transition-all"
+            >
+              <Zap className="w-3.5 h-3.5" />
+              <span>{PPT_LINE_OPTIONS.find(l => l.id === selectedLine)?.name}</span>
+              <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", showLineMenu && "rotate-180")} />
+            </button>
+            {showLineMenu && (
+              <div className="absolute top-full right-0 sm:left-0 sm:right-auto mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 w-[130px] max-w-[calc(100vw-2rem)] max-h-[180px] overflow-y-auto scrollbar-thin dropdown-panel">
+                {PPT_LINE_OPTIONS.map((line) => (
+                  <button
+                    key={line.id}
+                    onClick={() => { setSelectedLine(line.id); setShowLineMenu(false); }}
+                    className={cn("w-full px-3 py-2 text-sm hover:bg-secondary/50 text-left", selectedLine === line.id && "bg-orange-50 text-orange-700")}
+                  >
+                    {line.name}
                   </button>
                 ))}
               </div>

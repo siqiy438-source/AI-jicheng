@@ -14,6 +14,7 @@ export interface ImageGenerationParams {
   styleId?: string;
   images?: string[];
   line?: "standard" | "premium";
+  resolution?: "default" | "2k" | "4k";
   hasFrameworkPrompt?: boolean;
 }
 

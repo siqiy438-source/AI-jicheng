@@ -119,8 +119,10 @@ const sizeOptions = [
 
 // 线路选项
 const lineOptions = [
-  { id: "premium", name: "优质线路" },
-  { id: "standard", name: "普通线路" },
+  { id: "premium", name: "优质线路", line: "premium" as const, resolution: "default" as const },
+  { id: "standard", name: "普通线路", line: "standard" as const, resolution: "default" as const },
+  { id: "standard_2k", name: "普通线路 2K", line: "standard" as const, resolution: "2k" as const },
+  { id: "standard_4k", name: "普通线路 4K", line: "standard" as const, resolution: "4k" as const },
 ];
 
 const AIPoster = () => {
@@ -141,7 +143,7 @@ const AIPoster = () => {
   const [showStyleMenu, setShowStyleMenu] = useState(false);
   const [showSizeMenu, setShowSizeMenu] = useState(false);
   const [showLineMenu, setShowLineMenu] = useState(false);
-  const [selectedLine, setSelectedLine] = useState<"standard" | "premium">("standard");
+  const [selectedLine, setSelectedLine] = useState("standard");
 
   // 处理图片上传（支持多张，最多5张）
   const handleImageUpload = async (files: FileList | null) => {
@@ -260,12 +262,14 @@ const AIPoster = () => {
       console.log('线路:', selectedLine);
       console.log('参考图数量:', imagePreviews.length);
 
+      const selectedLineOption = lineOptions.find(l => l.id === selectedLine) || lineOptions[1];
       const data = await generateImage({
         prompt: finalPrompt,
         styleId: undefined,
         aspectRatio: selectedSize.ratio,
         images: imagePreviews.length > 0 ? imagePreviews : undefined,
-        line: selectedLine,
+        line: selectedLineOption.line,
+        resolution: selectedLineOption.resolution,
       });
 
       console.log('API 返回结果:', data);
@@ -601,12 +605,12 @@ const AIPoster = () => {
                   <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showLineMenu && "rotate-180")} />
                 </button>
                 {showLineMenu && (
-                  <div className="absolute top-full right-0 sm:left-0 sm:right-auto mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 w-[110px] max-w-[calc(100vw-2rem)] animate-dropdown max-h-[128px] overflow-y-auto scrollbar-thin dropdown-panel">
+                  <div className="absolute top-full right-0 sm:left-0 sm:right-auto mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 w-[130px] max-w-[calc(100vw-2rem)] animate-dropdown max-h-[180px] overflow-y-auto scrollbar-thin dropdown-panel">
                     {lineOptions.map((line) => (
                       <button
                         key={line.id}
                         onClick={() => {
-                          setSelectedLine(line.id as "standard" | "premium");
+                          setSelectedLine(line.id);
                           setShowLineMenu(false);
                         }}
                         className={cn(
