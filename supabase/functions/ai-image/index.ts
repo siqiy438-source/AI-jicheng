@@ -123,9 +123,9 @@ Flat-lay product showcase requirements:
 
     // ========== 2K/4K 高清线路（含优质线路）：走 images/edits 接口 ==========
     if (isHDResolution(resolvedResolution)) {
-      const hdApiKey = Deno.env.get('BLTCY_API_KEY')
+      const hdApiKey = providerApiKey
       if (!hdApiKey) {
-        throw new Error('图像服务配置错误：BLTCY API Key 未配置，请联系管理员')
+        throw new Error(`图像服务配置错误：${providerConfig.apiKeyEnv} 未配置，请联系管理员`)
       }
 
       const hdModel = getHDModel(resolvedResolution)

@@ -28,13 +28,12 @@ export const getHDApiUrl = (): string =>
 export const isPremiumHD = (line?: string): boolean => line === "premium";
 
 export const getProviderConfig = (line: ImageLine): ProviderConfig => {
-  // 优质线路现在也走 BLTCY（HD 2K 通过 images/edits 接口）
   return {
     line,
     baseUrl: "https://api.bltcy.ai",
     pathPrefix: "v1beta",
     model: "gemini-3-pro-image-preview",
-    apiKeyEnv: "BLTCY_API_KEY",
+    apiKeyEnv: line === "premium" ? "BLTCY_PRO_API_KEY" : "BLTCY_API_KEY",
   };
 };
 
