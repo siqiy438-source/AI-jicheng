@@ -17,6 +17,16 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { deleteWork, listWorks, type WorkListItem } from "@/lib/repositories/works";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type WorkCategory = "image" | "copywriting";
 
@@ -52,6 +62,7 @@ const MyWorks = () => {
   const [selectedWork, setSelectedWork] = useState<string | null>(null);
   const [works, setWorks] = useState<WorkListItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const refreshWorks = async () => {
     try {
@@ -70,14 +81,17 @@ const MyWorks = () => {
     refreshWorks();
   }, []);
 
-  const handleDeleteWork = async (workId: string) => {
+  const confirmDeleteWork = async () => {
+    if (!deleteConfirmId) return;
     try {
-      await deleteWork(workId);
-      setWorks((prev) => prev.filter((work) => work.id !== workId));
+      await deleteWork(deleteConfirmId);
+      setWorks((prev) => prev.filter((work) => work.id !== deleteConfirmId));
       toast.success("作品已删除");
     } catch (error) {
       console.error("删除作品失败", error);
       toast.error("删除作品失败");
+    } finally {
+      setDeleteConfirmId(null);
     }
   };
 
@@ -270,7 +284,7 @@ const MyWorks = () => {
                       className="p-2 bg-white rounded-lg hover:bg-red-50 transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDeleteWork(work.id);
+                        setDeleteConfirmId(work.id);
                       }}
                     >
                       <Trash2 className="w-4 h-4 text-red-500" />
@@ -317,7 +331,7 @@ const MyWorks = () => {
                       className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-red-50 text-red-500 text-xs touch-target"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDeleteWork(work.id);
+                        setDeleteConfirmId(work.id);
                       }}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -388,7 +402,7 @@ const MyWorks = () => {
                       className="p-2 rounded-lg bg-red-50 text-red-500 touch-target"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDeleteWork(work.id);
+                        setDeleteConfirmId(work.id);
                       }}
                     >
                       <Trash2 className="w-4 h-4" />
@@ -419,7 +433,7 @@ const MyWorks = () => {
                     className="p-2 hover:bg-red-50 rounded-lg transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleDeleteWork(work.id);
+                      setDeleteConfirmId(work.id);
                     }}
                   >
                     <Trash2 className="w-4 h-4 text-red-500" />
@@ -438,6 +452,25 @@ const MyWorks = () => {
           <p className="text-sm text-muted-foreground/70">开始创作你的第一个作品吧</p>
         </div>
       )}
+      <AlertDialog open={!!deleteConfirmId} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确定删除</AlertDialogTitle>
+            <AlertDialogDescription>
+              删除后将无法恢复，确定要删除这个作品吗？
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-500 hover:bg-red-600"
+              onClick={confirmDeleteWork}
+            >
+              删除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </PageLayout>
   );
 };
