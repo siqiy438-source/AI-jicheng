@@ -30,13 +30,13 @@ const tools: ToolItem[] = [
   {
     title: "服装搭配",
     description: "生成女装平铺搭配图，展示完整单品组合",
-    iconSrc: "/icons/ai-drawing-custom.png",
+    iconSrc: "/icons/fashion-outfit-custom.png",
     to: "/fashion-outfit",
   },
   {
     title: "服装模特搭配",
     description: "生成真实模特上身效果图，突出穿搭氛围",
-    iconSrc: "/icons/ai-drawing-custom.png",
+    iconSrc: "/icons/fashion-model-custom.png",
     to: "/fashion-model-outfit",
   },
 ];
