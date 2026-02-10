@@ -291,6 +291,39 @@ const MyWorks = () => {
                     <span className="hidden md:inline">·</span>
                     <span className="hidden md:inline">{work.tool}</span>
                   </div>
+
+                  <div className="mt-2.5 flex md:hidden items-center gap-1.5">
+                    <button
+                      className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-secondary/60 text-muted-foreground text-xs touch-target"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDownload(work);
+                      }}
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      下载
+                    </button>
+                    <button
+                      className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-secondary/60 text-muted-foreground text-xs touch-target"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (work.thumbnail) window.open(work.thumbnail, "_blank");
+                      }}
+                    >
+                      <Share2 className="w-3.5 h-3.5" />
+                      分享
+                    </button>
+                    <button
+                      className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-red-50 text-red-500 text-xs touch-target"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteWork(work.id);
+                      }}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      删除
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -330,6 +363,36 @@ const MyWorks = () => {
                   <div className="flex items-center gap-1.5 md:gap-2 text-xs text-muted-foreground">
                     <Clock className="w-3 h-3" />
                     <span>{work.createdAt}</span>
+                  </div>
+
+                  <div className="mt-2 flex md:hidden items-center gap-1.5">
+                    <button
+                      className="p-2 rounded-lg bg-secondary/60 text-muted-foreground touch-target"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDownload(work);
+                      }}
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                    <button
+                      className="p-2 rounded-lg bg-secondary/60 text-muted-foreground touch-target"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (work.thumbnail) window.open(work.thumbnail, "_blank");
+                      }}
+                    >
+                      <Share2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      className="p-2 rounded-lg bg-red-50 text-red-500 touch-target"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteWork(work.id);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
                 {/* 操作按钮 - 桌面端悬浮显示 */}

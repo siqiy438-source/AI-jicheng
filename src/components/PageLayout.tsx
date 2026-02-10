@@ -38,7 +38,7 @@ export const PageLayout = ({
           className={cn(
             "flex-1 overflow-y-auto scrollbar-thin",
             // 移动端底部留出导航栏空间
-            "pb-20 md:pb-0"
+            "pb-mobile-nav"
           )}
         >
           <div
