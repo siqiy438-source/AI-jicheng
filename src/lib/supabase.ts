@@ -6,6 +6,6 @@ export const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey)
 
 export const supabase = createClient(
-  supabaseUrl || 'http://127.0.0.1:54321',
-  supabaseAnonKey || 'public-anon-key-placeholder'
+  supabaseUrl || 'https://kzdjqqinkonqlclbwleh.supabase.co',
+  supabaseAnonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt6ZGpxcWlua29ucWxjbGJ3bGVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyNTQ0ODcsImV4cCI6MjA4NTgzMDQ4N30.CrgPY7OI6eSoEe9CNDlK0apob1UG8KH5v21GI2UQS6I'
 )
