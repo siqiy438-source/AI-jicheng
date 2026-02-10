@@ -246,7 +246,7 @@ const AIDisplay = () => {
           <>
             <div className="glass-card rounded-xl md:rounded-2xl p-3 md:p-5 mb-3 md:mb-4 shadow-lg">
               <div className="flex items-center gap-2 mb-3">
-                <ShirtIcon className="w-4 h-4 text-rose-500" />
+                <ShirtIcon className="w-4 h-4 text-primary" />
                 <span className="text-sm font-medium text-foreground">上传衣服照片</span>
                 <span className="text-xs text-muted-foreground ml-auto">
                   {clothingImages.length}/{MAX_CLOTHING_IMAGES}
@@ -288,7 +288,7 @@ const AIDisplay = () => {
                     {clothingImages.length < MAX_CLOTHING_IMAGES && (
                       <button
                         onClick={() => clothingInputRef.current?.click()}
-                        className="h-14 w-14 md:h-16 md:w-16 rounded-lg border-2 border-dashed border-border hover:border-rose-300 flex items-center justify-center text-muted-foreground hover:text-rose-500 transition-colors"
+                        className="h-14 w-14 md:h-16 md:w-16 rounded-lg border-2 border-dashed border-border hover:border-primary/40 flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
                       >
                         <span className="text-xl">+</span>
                       </button>
@@ -300,7 +300,7 @@ const AIDisplay = () => {
               {clothingImages.length === 0 && (
                 <button
                   onClick={() => clothingInputRef.current?.click()}
-                  className="w-full py-6 md:py-8 rounded-xl border-2 border-dashed border-border hover:border-rose-300 flex flex-col items-center gap-2 text-muted-foreground hover:text-rose-500 transition-colors"
+                  className="w-full py-6 md:py-8 rounded-xl border-2 border-dashed border-border hover:border-primary/40 flex flex-col items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
                 >
                   <ShirtIcon className="w-8 h-8" />
                   <span className="text-sm">点击批量上传衣服照片</span>
@@ -328,7 +328,7 @@ const AIDisplay = () => {
                 onChange={(e) => setAdditionalNotes(e.target.value)}
                 placeholder="补充说明（可选）：如「主推红色大衣放C位」「按颜色深浅排列」..."
                 rows={2}
-                className="w-full bg-secondary/30 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-1 focus:ring-rose-300 mb-3"
+                className="w-full bg-secondary/30 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-1 focus:ring-primary/30 mb-3"
               />
 
               <div className="flex items-center justify-between gap-2">
@@ -341,7 +341,7 @@ const AIDisplay = () => {
                     <Zap className="w-3.5 h-3.5" />
                     <span>{lineOptions.find(l => l.id === selectedLine)?.name}</span>
                     {lineOptions.find(l => l.id === selectedLine)?.badge && (
-                      <span className="px-1 py-0.5 text-[9px] md:text-[10px] leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded">
+                      <span className="px-1 py-0.5 text-[9px] md:text-[10px] leading-none font-medium bg-primary text-primary-foreground rounded">
                         {lineOptions.find(l => l.id === selectedLine)?.badge}
                       </span>
                     )}
@@ -358,12 +358,12 @@ const AIDisplay = () => {
                           }}
                           className={cn(
                             "w-full flex items-center gap-1.5 px-3 py-2.5 text-sm hover:bg-secondary/50 transition-all duration-200 text-left touch-target",
-                            selectedLine === line.id && "bg-orange-50 text-orange-700"
+                            selectedLine === line.id && "bg-primary/10 text-primary"
                           )}
                         >
                           <span>{line.name}</span>
                           {line.badge && (
-                            <span className="px-1 py-0.5 text-[9px] leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded">
+                            <span className="px-1 py-0.5 text-[9px] leading-none font-medium bg-primary text-primary-foreground rounded">
                               {line.badge}
                             </span>
                           )}
@@ -380,7 +380,7 @@ const AIDisplay = () => {
                   className={cn(
                     "flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 touch-target",
                     canStartAnalysis
-                      ? "bg-gradient-to-r from-rose-500 to-pink-600 text-white hover:from-rose-600 hover:to-pink-700 shadow-lg shadow-rose-500/25"
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25"
                       : "bg-secondary/50 text-muted-foreground/50 cursor-not-allowed"
                   )}
                 >
@@ -403,7 +403,7 @@ const AIDisplay = () => {
         {phase === "review" && analysis && (
           <div className="glass-card rounded-xl md:rounded-2xl p-3 md:p-5 shadow-lg">
             <div className="flex items-center gap-2 mb-4">
-              <Sparkles className="w-4 h-4 text-rose-500" />
+              <Sparkles className="w-4 h-4 text-primary" />
               <span className="text-sm font-medium text-foreground">AI 专家团队分析结果</span>
             </div>
             <AnalysisReview
@@ -418,7 +418,7 @@ const AIDisplay = () => {
         {phase === "generating" && (
           <div className="glass-card rounded-xl md:rounded-2xl p-3 md:p-6">
             <div className="flex flex-col items-center justify-center py-8 md:py-16">
-              <Loader2 className="w-8 h-8 md:w-12 md:h-12 text-rose-500 animate-spin mb-3 md:mb-4" />
+              <Loader2 className="w-8 h-8 md:w-12 md:h-12 text-primary animate-spin mb-3 md:mb-4" />
               <p className="text-muted-foreground text-xs md:text-base">{generationStep || "正在生成中..."}</p>
               <p className="text-muted-foreground/60 text-[10px] md:text-xs mt-2">
                 正在将 {clothingImages.length} 件衣服按专家方案智能陈列...
@@ -432,7 +432,7 @@ const AIDisplay = () => {
           <div className="glass-card rounded-xl md:rounded-2xl p-3 md:p-6">
             <div className="flex items-center justify-between mb-3 md:mb-4 flex-wrap gap-2">
               <h2 className="text-sm md:text-lg font-semibold text-foreground flex items-center gap-1.5 md:gap-2">
-                <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-rose-500" />
+                <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-primary" />
                 陈列效果图
               </h2>
               <div className="flex gap-2">

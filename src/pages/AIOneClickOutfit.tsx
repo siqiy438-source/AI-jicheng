@@ -216,7 +216,7 @@ cropped garments, partial view, flat lay, frontal view, low quality, blurry, dis
 
       <div className="glass-card rounded-xl md:rounded-2xl p-3 md:p-5 mb-3 md:mb-4 shadow-lg">
         <div className="flex items-center gap-2 mb-3">
-          <ShirtIcon className="w-4 h-4 text-indigo-500" />
+          <ShirtIcon className="w-4 h-4 text-primary" />
           <span className="text-sm font-medium text-foreground">第一步：上传三件服装</span>
         </div>
 
@@ -243,7 +243,7 @@ cropped garments, partial view, flat lay, frontal view, low quality, blurry, dis
                 ) : (
                   <button
                     onClick={() => getInputRef(slot.key).current?.click()}
-                    className="w-full h-44 rounded-lg border-2 border-dashed border-border hover:border-indigo-300 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-indigo-600 transition-colors"
+                    className="w-full h-44 rounded-lg border-2 border-dashed border-border hover:border-primary/40 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary transition-colors"
                   >
                     <Upload className="w-5 h-5" />
                     <span className="text-xs">点击上传{slot.title}</span>
@@ -265,7 +265,7 @@ cropped garments, partial view, flat lay, frontal view, low quality, blurry, dis
 
       <div className="glass-card rounded-xl md:rounded-2xl p-3 md:p-5 mb-4 md:mb-6 shadow-lg">
         <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="w-4 h-4 text-violet-500" />
+          <Sparkles className="w-4 h-4 text-primary" />
           <span className="text-sm font-medium text-foreground">第二步：选择清晰度并生成</span>
         </div>
 
@@ -277,8 +277,8 @@ cropped garments, partial view, flat lay, frontal view, low quality, blurry, dis
               className={cn(
                 "rounded-lg border px-3 py-2 text-sm transition-all",
                 selectedLine === option.id
-                  ? "border-indigo-300 bg-indigo-50 text-indigo-700"
-                  : "border-border bg-card text-muted-foreground hover:border-indigo-200"
+                  ? "border-primary/30 bg-primary/10 text-primary"
+                  : "border-border bg-card text-muted-foreground hover:border-primary/25"
               )}
             >
               {option.name}
@@ -286,7 +286,7 @@ cropped garments, partial view, flat lay, frontal view, low quality, blurry, dis
           ))}
         </div>
 
-        <div className="mb-3 rounded-lg border border-indigo-100 bg-indigo-50/60 p-2.5 text-xs text-indigo-700 flex items-center gap-2">
+        <div className="mb-3 rounded-lg border border-primary/20 bg-primary/10 p-2.5 text-xs text-primary flex items-center gap-2">
           <ShoppingBag className="w-4 h-4" />
           <span>系统自动匹配 1 个包包</span>
           <Star className="w-3.5 h-3.5 ml-2" />
@@ -298,7 +298,7 @@ cropped garments, partial view, flat lay, frontal view, low quality, blurry, dis
           onChange={(event) => setAdditionalNotes(event.target.value)}
           placeholder="补充说明（可选）：如“更偏轻熟通勤”“配色要低饱和”"
           rows={2}
-          className="w-full bg-secondary/30 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-1 focus:ring-indigo-300 mb-3"
+          className="w-full bg-secondary/30 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-1 focus:ring-primary/30 mb-3"
         />
 
         <button
@@ -307,7 +307,7 @@ cropped garments, partial view, flat lay, frontal view, low quality, blurry, dis
           className={cn(
             "w-full md:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
             canGenerate
-              ? "bg-gradient-to-r from-indigo-500 to-violet-600 text-white hover:from-indigo-600 hover:to-violet-700 shadow-lg shadow-indigo-500/25"
+              ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25"
               : "bg-secondary/50 text-muted-foreground/50 cursor-not-allowed"
           )}
         >
@@ -320,7 +320,7 @@ cropped garments, partial view, flat lay, frontal view, low quality, blurry, dis
         <div className="glass-card rounded-xl md:rounded-2xl p-3 md:p-6">
           <div className="flex items-center justify-between mb-3 md:mb-4 flex-wrap gap-2">
             <h2 className="text-sm md:text-lg font-semibold text-foreground flex items-center gap-1.5 md:gap-2">
-              <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-indigo-500" />
+              <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-primary" />
               AI 挂搭效果图
             </h2>
 
@@ -340,7 +340,7 @@ cropped garments, partial view, flat lay, frontal view, low quality, blurry, dis
 
           {isGenerating && (
             <div className="py-10 text-center">
-              <Loader2 className="w-8 h-8 text-indigo-500 animate-spin mx-auto mb-3" />
+              <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto mb-3" />
               <p className="text-sm text-muted-foreground">{generationStep || "AI 正在生成中，请稍候..."}</p>
             </div>
           )}

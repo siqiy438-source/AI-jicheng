@@ -37,13 +37,13 @@ const AnalyzingAnimation = ({ isComplete = false }: AnalyzingAnimationProps) => 
               <div
                 className={cn(
                   "relative w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center text-xl md:text-2xl transition-all duration-500",
-                  isActive && "ring-2 ring-offset-2 ring-rose-400 scale-110",
+                  isActive && "ring-2 ring-offset-2 ring-primary/50 scale-110",
                   isDone && "opacity-100",
                   !isActive && !isDone && "opacity-40 scale-90"
                 )}
                 style={{
                   background: isActive
-                    ? "linear-gradient(135deg, #fdf2f8, #fce7f3)"
+                    ? "hsl(var(--primary) / 0.12)"
                     : isDone
                     ? "linear-gradient(135deg, #f0fdf4, #dcfce7)"
                     : "#f5f5f5",
@@ -52,7 +52,7 @@ const AnalyzingAnimation = ({ isComplete = false }: AnalyzingAnimationProps) => 
                 <span>{agent.icon}</span>
                 {/* 激活脉冲 */}
                 {isActive && (
-                  <span className="absolute inset-0 rounded-full animate-ping bg-rose-200/40" />
+                  <span className="absolute inset-0 rounded-full animate-ping bg-primary/25" />
                 )}
                 {/* 完成对勾 */}
                 {isDone && (
@@ -64,7 +64,7 @@ const AnalyzingAnimation = ({ isComplete = false }: AnalyzingAnimationProps) => 
               <span
                 className={cn(
                   "text-[10px] md:text-xs font-medium transition-colors duration-300",
-                  isActive ? "text-rose-600" : isDone ? "text-green-600" : "text-muted-foreground/50"
+                  isActive ? "text-primary" : isDone ? "text-green-600" : "text-muted-foreground/50"
                 )}
               >
                 {agent.nameCn}
@@ -76,7 +76,7 @@ const AnalyzingAnimation = ({ isComplete = false }: AnalyzingAnimationProps) => 
 
       {/* 当前状态文字 */}
       <div className="flex items-center gap-2 text-muted-foreground">
-        <Loader2 className="w-4 h-4 animate-spin text-rose-500" />
+        <Loader2 className="w-4 h-4 animate-spin text-primary" />
         <span className="text-sm">
           {isComplete
             ? "分析完成！"

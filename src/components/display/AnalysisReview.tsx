@@ -30,7 +30,7 @@ const AnalysisReview = ({
   return (
     <div className="space-y-3">
       {/* 总结卡片 */}
-      <div className="glass-card rounded-xl p-3 md:p-4 border-l-4 border-rose-400">
+      <div className="glass-card rounded-xl p-3 md:p-4 border-l-4 border-primary/60">
         <p className="text-sm text-foreground leading-relaxed">
           {analysis.summary}
         </p>
@@ -98,7 +98,7 @@ const AnalysisReview = ({
             "flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all touch-target",
             isGenerating
               ? "bg-secondary/50 text-muted-foreground/50 cursor-not-allowed"
-              : "bg-gradient-to-r from-rose-500 to-pink-600 text-white hover:from-rose-600 hover:to-pink-700 shadow-lg shadow-rose-500/25"
+              : "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25"
           )}
         >
           <Sparkles className="w-4 h-4" />
@@ -172,7 +172,7 @@ function StyleDetectionContent({ analysis }: { analysis: VMAnalysisResult }) {
   return (
     <div className="pt-3 space-y-3">
       <div className="flex items-center gap-2">
-        <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded-full">
+        <span className="px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary rounded-full">
           {categoryLabels[styleDetection.styleCategory] || styleDetection.styleCategory}
         </span>
         <span className="text-xs text-muted-foreground">{styleDetection.styleDescription}</span>
