@@ -177,24 +177,38 @@ COMPOSITION (构图):
 - Shallow depth of field: foreground clothes are tack-sharp, background falls into gentle bokeh.
 - Camera at eye level, natural perspective.
 
+DEPTH & LAYERS (层次):
+- Build clear three-plane depth: 1) near foreground edge with one partial garment silhouette softly out of focus, 2) main rack in sharp focus, 3) textured wall/background props softly blurred.
+- Keep subtle overlap among 2-3 garments so the image feels spatial, not flat.
+- Keep the rack as the visual hero; depth effects must support clothes, not distract.
+
 LIGHTING (光影 — 不要平光):
 - Soft natural sunlight streaming in from a window on one side, casting warm directional light across the clothes.
 - Visible light-and-shadow interplay: gentle shadows in fabric folds and creases that give clothes volume and texture. Soft shadows on the floor beneath the rack.
 - Warm color temperature around 3000K — gallery-style warm white lighting that makes fabrics look rich and inviting.
 - Some areas brighter, some in soft shadow — NOT flat, even illumination everywhere.
+- Add realistic contact shadows under rack feet and props to avoid floating/misaligned objects.
 
 ENVIRONMENT (环境 — 不要空白样板间):
 - Background: a textured plaster wall or warm-toned concrete wall with subtle surface character, NOT a plain white void.
 - Floor: polished concrete, warm oak wood flooring, or herringbone tile — visible and grounding the scene.
-- Environmental props: a large-leaf plant (monstera or fiddle leaf fig) in the corner, or a minimalist designer chair/stool nearby, or a full-length mirror leaning against the wall. Pick 1-2 that feel natural.
+- Environmental props: a large-leaf plant (monstera or fiddle leaf fig) in the corner, or a minimalist designer chair/stool nearby, or a full-length mirror leaning against the wall. Keep props minimal and secondary.
 - The rack casts soft shadows on the floor, anchoring it in the space.
 
 RACK DISPLAY (陈列):
 - Display 8-10 pieces on the rack with even spacing between hangers. Not too crowded, not too sparse.
 - Natural mix: most hangers hold a single piece; 2-3 hangers have a layered look (top over bottom). Alternate longer and shorter pieces for a gentle wave silhouette.
+- Create a clear rhythm in hem heights (long-short-long cadence), avoiding one straight horizontal bottom line.
+- Keep slight spacing variation (small intentional gaps) so the arrangement feels curated, not mechanically uniform.
 - 1-2 accessories: a bag on one end, a hat, or a scarf draped on the bar.
-- 1 ground prop near the rack base: dried flowers in a vase, a woven basket, or a pair of shoes.
+- Use ONLY ONE ground prop near the rack base, placed at the outer one-third of the frame; do not place it in the visual center.
+- If using a plant or vase, keep it fully grounded on the floor plane, with correct perspective and contact shadow (no floating, no collision with rack legs).
 - All pieces share one cohesive color palette.
+
+MATERIAL & LUXURY DETAILS (高级质感):
+- Show fabric micro-texture clearly (denim grain, knit softness, silk/cotton drape) with refined highlight-rolloff.
+- Add subtle premium cues: clean hanger alignment, polished metal bar with restrained specular highlights, crisp but natural folds.
+- Keep the scene elegant and restrained: high-end editorial boutique mood, never cluttered.
 
 ${additionalNotes ? `STORE OWNER'S NOTES: ${additionalNotes}` : ""}
 
