@@ -40,22 +40,15 @@ const Index = () => {
         {/* 装饰标签 */}
         <div className="inline-flex items-center gap-2 px-3 py-1.5 mb-4 md:mb-6 rounded-full bg-primary/10 border border-primary/20">
           <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-          <span className="text-sm font-medium text-primary">创作者工坊</span>
+          <span className="text-sm font-medium text-primary">灵犀空间</span>
         </div>
 
         {/* 主标题 - 移动端字号稍小 */}
         <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-3 md:mb-4 tracking-tight leading-[1.1]">
-          创作无限可能
+          灵犀共鸣
           <br />
-          <span className="text-gradient">一念成形</span>
+          <span className="text-gradient">想法成型</span>
         </h1>
-
-        {/* 副标题 */}
-        <p className="text-base md:text-lg text-muted-foreground max-w-md">
-          Hi，欢迎使用 AI 创作平台
-          <br />
-          <span className="text-foreground/70">我是你的专属创作助手</span>
-        </p>
       </div>
 
       {/* Feature Cards Section */}
