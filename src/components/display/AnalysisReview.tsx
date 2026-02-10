@@ -22,6 +22,7 @@ const AnalysisReview = ({
   isGenerating = false,
 }: AnalysisReviewProps) => {
   const [expandedAgent, setExpandedAgent] = useState<string | null>("color");
+  const [imageLoadFailed, setImageLoadFailed] = useState<Record<string, boolean>>({});
 
   const toggleAgent = (id: string) => {
     setExpandedAgent(expandedAgent === id ? null : id);
@@ -47,7 +48,16 @@ const AnalysisReview = ({
             onClick={() => toggleAgent(agent.id)}
             className="w-full flex items-center gap-3 p-3 md:p-4 hover:bg-secondary/30 transition-colors"
           >
-            <span className="text-lg">{agent.icon}</span>
+            {agent.iconSrc && !imageLoadFailed[agent.id] ? (
+              <img
+                src={agent.iconSrc}
+                alt={agent.nameCn}
+                className="w-7 h-7 object-contain"
+                onError={() => setImageLoadFailed((prev) => ({ ...prev, [agent.id]: true }))}
+              />
+            ) : (
+              <span className="text-lg">{agent.icon}</span>
+            )}
             <div className="flex-1 text-left">
               <span className="text-sm font-medium text-foreground">
                 {agent.nameCn}

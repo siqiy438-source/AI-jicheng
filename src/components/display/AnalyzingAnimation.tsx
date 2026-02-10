@@ -15,6 +15,7 @@ interface AnalyzingAnimationProps {
 
 const AnalyzingAnimation = ({ isComplete = false }: AnalyzingAnimationProps) => {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [imageLoadFailed, setImageLoadFailed] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (isComplete) return;
@@ -49,7 +50,16 @@ const AnalyzingAnimation = ({ isComplete = false }: AnalyzingAnimationProps) => 
                     : "#f5f5f5",
                 }}
               >
-                <span>{agent.icon}</span>
+                {agent.iconSrc && !imageLoadFailed[agent.id] ? (
+                  <img
+                    src={agent.iconSrc}
+                    alt={agent.nameCn}
+                    className="w-8 h-8 md:w-10 md:h-10 object-contain"
+                    onError={() => setImageLoadFailed((prev) => ({ ...prev, [agent.id]: true }))}
+                  />
+                ) : (
+                  <span>{agent.icon}</span>
+                )}
                 {/* 激活脉冲 */}
                 {isActive && (
                   <span className="absolute inset-0 rounded-full animate-ping bg-primary/25" />

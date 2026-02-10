@@ -1,0 +1,22 @@
+VM Agent 图标文件映射（按此命名放置）
+
+1) 色彩分析师（调色盘）
+   文件名: vm-agent-color.png
+
+2) 风格识别师（放大镜+眼睛）
+   文件名: vm-agent-style.png
+
+3) 构图规划师（三角尺+铅笔）
+   文件名: vm-agent-composition.png
+
+4) 灯光指导（复古台灯）
+   文件名: vm-agent-lighting.png
+
+放置目录:
+public/icons/
+
+生效路径:
+/icons/vm-agent-color.png
+/icons/vm-agent-style.png
+/icons/vm-agent-composition.png
+/icons/vm-agent-lighting.png

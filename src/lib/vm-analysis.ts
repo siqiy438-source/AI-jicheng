@@ -62,6 +62,7 @@ export interface AgentInfo {
   name: string;
   nameCn: string;
   icon: string;
+  iconSrc?: string;
   color: string;
   bgColor: string;
   description: string;
@@ -73,6 +74,7 @@ export const VM_AGENTS: AgentInfo[] = [
     name: 'Color Analyst',
     nameCn: '色彩分析师',
     icon: '🎨',
+    iconSrc: '/icons/vm-agent-color.png',
     color: 'text-pink-500',
     bgColor: 'bg-pink-50',
     description: '提取主色调，推荐背景配色',
@@ -82,6 +84,7 @@ export const VM_AGENTS: AgentInfo[] = [
     name: 'Style Detector',
     nameCn: '风格识别师',
     icon: '👁️',
+    iconSrc: '/icons/vm-agent-style.png',
     color: 'text-purple-500',
     bgColor: 'bg-purple-50',
     description: '识别服装风格，推荐道具搭配',
@@ -91,6 +94,7 @@ export const VM_AGENTS: AgentInfo[] = [
     name: 'Composition Planner',
     nameCn: '构图规划师',
     icon: '📐',
+    iconSrc: '/icons/vm-agent-composition.png',
     color: 'text-blue-500',
     bgColor: 'bg-blue-50',
     description: '规划挂杆布局与空间节奏',
@@ -100,6 +104,7 @@ export const VM_AGENTS: AgentInfo[] = [
     name: 'Lighting Director',
     nameCn: '灯光指导',
     icon: '💡',
+    iconSrc: '/icons/vm-agent-lighting.png',
     color: 'text-amber-500',
     bgColor: 'bg-amber-50',
     description: '设计灯光方案与阴影效果',
