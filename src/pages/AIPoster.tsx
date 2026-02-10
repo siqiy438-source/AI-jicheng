@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { generateImage } from "@/lib/ai-image";
 import { compressImage } from "@/lib/image-utils";
+import { saveGeneratedImageWork } from "@/lib/repositories/works";
 
 // 海报类别选项
 const posterCategories = [
@@ -282,6 +283,22 @@ const AIPoster = () => {
       const resultImage = data.imageUrl || data.imageBase64;
       if (resultImage) {
         setGeneratedImage(resultImage);
+        const title = prompt.trim() ? `海报：${prompt.trim().slice(0, 24)}` : "AI 海报作品";
+        void saveGeneratedImageWork({
+          title,
+          type: "poster",
+          tool: "AI 海报",
+          prompt: finalPrompt,
+          imageDataUrl: resultImage,
+          metadata: {
+            category: selectedCategory.id,
+            style: selectedStyle,
+            ratio: selectedSize.ratio,
+            line: selectedLine,
+          },
+        }).catch((error) => {
+          console.error("自动保存海报作品失败", error);
+        });
       } else {
         throw new Error('未能获取生成的图片');
       }

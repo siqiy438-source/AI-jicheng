@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import {
   ArrowLeft,
@@ -16,17 +16,8 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-
-// 作品数据 - 新用户为空
-const mockWorks: Array<{
-  id: string;
-  title: string;
-  type: string;
-  thumbnail: string | null;
-  content?: string;
-  createdAt: string;
-  tool: string;
-}> = [];
+import { deleteWork, listWorks, type WorkListItem } from "@/lib/repositories/works";
+import { toast } from "sonner";
 
 // 获取类型图标
 const getTypeIcon = (type: string) => {
@@ -62,9 +53,66 @@ const MyWorks = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedWork, setSelectedWork] = useState<string | null>(null);
+  const [works, setWorks] = useState<WorkListItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const refreshWorks = async () => {
+    try {
+      setLoading(true);
+      const data = await listWorks();
+      setWorks(data);
+    } catch (error) {
+      console.error("加载作品失败", error);
+      toast.error("加载作品失败");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    refreshWorks();
+  }, []);
+
+  const handleDeleteWork = async (workId: string) => {
+    try {
+      await deleteWork(workId);
+      setWorks((prev) => prev.filter((work) => work.id !== workId));
+      toast.success("作品已删除");
+    } catch (error) {
+      console.error("删除作品失败", error);
+      toast.error("删除作品失败");
+    }
+  };
+
+  const handlePreview = (work: WorkListItem) => {
+    setSelectedWork(work.id);
+    if (work.thumbnail) {
+      window.open(work.thumbnail, "_blank");
+    }
+  };
+
+  const handleDownload = async (work: WorkListItem) => {
+    if (!work.thumbnail) return;
+
+    try {
+      const response = await fetch(work.thumbnail);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${work.title || "work"}-${Date.now()}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      window.open(work.thumbnail, "_blank");
+    }
+  };
 
   // 过滤作品
-  const filteredWorks = mockWorks.filter((work) => {
+  const filteredWorks = works.filter((work) => {
     const matchesSearch = work.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = !selectedType || work.type === selectedType;
     return matchesSearch && matchesType;
@@ -92,9 +140,7 @@ const MyWorks = () => {
             <p className="text-muted-foreground text-sm">管理你创作的所有作品</p>
           </div>
         </div>
-        <div className="hidden md:block text-sm text-muted-foreground">
-          共 {filteredWorks.length} 个作品
-        </div>
+        <div className="hidden md:block text-sm text-muted-foreground">共 {filteredWorks.length} 个作品</div>
       </div>
 
       {/* 工具栏 */}
@@ -156,7 +202,7 @@ const MyWorks = () => {
             </div>
 
             {/* 视图切换 */}
-            <div className="flex items-center gap-1 p-1 bg-secondary/50 rounded-lg flex-shrink-0">
+            <div className="flex items-center gap-1 p-1 bg-secondary/50 rounded-lg">
               <button
                 onClick={() => setViewMode("grid")}
                 className={cn(
@@ -181,19 +227,22 @@ const MyWorks = () => {
       </div>
 
       {/* 移动端作品数量 */}
-      <div className="md:hidden text-sm text-muted-foreground mb-3">
-        共 {filteredWorks.length} 个作品
-      </div>
+      <div className="md:hidden text-sm text-muted-foreground mb-3">共 {filteredWorks.length} 个作品</div>
 
       {/* 作品列表 */}
-      {filteredWorks.length > 0 ? (
+      {loading ? (
+        <div className="text-center py-12 text-muted-foreground">加载中...</div>
+      ) : filteredWorks.length > 0 ? (
         viewMode === "grid" ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
             {filteredWorks.map((work) => (
               <div
                 key={work.id}
-                className="glass-card rounded-xl overflow-hidden group hover:shadow-lg transition-all cursor-pointer active:scale-[0.98]"
-                onClick={() => setSelectedWork(work.id)}
+                className={cn(
+                  "glass-card rounded-xl overflow-hidden group hover:shadow-lg transition-all cursor-pointer active:scale-[0.98]",
+                  selectedWork === work.id && "ring-2 ring-primary/30"
+                )}
+                onClick={() => handlePreview(work)}
               >
                 {/* 缩略图 */}
                 <div className="aspect-[4/3] bg-secondary/30 relative overflow-hidden">
@@ -206,20 +255,36 @@ const MyWorks = () => {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center p-3 md:p-4">
-                      <p className="text-xs md:text-sm text-muted-foreground line-clamp-3 md:line-clamp-4 text-center">
-                        {work.content}
-                      </p>
+                      <p className="text-xs md:text-sm text-muted-foreground line-clamp-3 md:line-clamp-4 text-center">{work.content}</p>
                     </div>
                   )}
                   {/* 悬浮操作 - 桌面端显示 */}
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity hidden md:flex items-center justify-center gap-2">
-                    <button className="p-2 bg-white rounded-lg hover:bg-gray-100 transition-colors">
+                    <button
+                      className="p-2 bg-white rounded-lg hover:bg-gray-100 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDownload(work);
+                      }}
+                    >
                       <Download className="w-4 h-4 text-gray-700" />
                     </button>
-                    <button className="p-2 bg-white rounded-lg hover:bg-gray-100 transition-colors">
+                    <button
+                      className="p-2 bg-white rounded-lg hover:bg-gray-100 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (work.thumbnail) window.open(work.thumbnail, "_blank");
+                      }}
+                    >
                       <Share2 className="w-4 h-4 text-gray-700" />
                     </button>
-                    <button className="p-2 bg-white rounded-lg hover:bg-red-50 transition-colors">
+                    <button
+                      className="p-2 bg-white rounded-lg hover:bg-red-50 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteWork(work.id);
+                      }}
+                    >
                       <Trash2 className="w-4 h-4 text-red-500" />
                     </button>
                   </div>
@@ -248,6 +313,7 @@ const MyWorks = () => {
               <div
                 key={work.id}
                 className="glass-card rounded-xl p-3 md:p-4 flex items-center gap-3 md:gap-4 hover:shadow-md transition-all cursor-pointer group active:scale-[0.99]"
+                onClick={() => handlePreview(work)}
               >
                 {/* 缩略图 */}
                 <div className="w-14 h-14 md:w-16 md:h-16 rounded-lg bg-secondary/30 overflow-hidden flex-shrink-0">
@@ -280,13 +346,31 @@ const MyWorks = () => {
                 </div>
                 {/* 操作按钮 - 桌面端悬浮显示 */}
                 <div className="hidden md:flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button className="p-2 hover:bg-secondary rounded-lg transition-colors">
+                  <button
+                    className="p-2 hover:bg-secondary rounded-lg transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDownload(work);
+                    }}
+                  >
                     <Download className="w-4 h-4 text-muted-foreground" />
                   </button>
-                  <button className="p-2 hover:bg-secondary rounded-lg transition-colors">
+                  <button
+                    className="p-2 hover:bg-secondary rounded-lg transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (work.thumbnail) window.open(work.thumbnail, "_blank");
+                    }}
+                  >
                     <Share2 className="w-4 h-4 text-muted-foreground" />
                   </button>
-                  <button className="p-2 hover:bg-red-50 rounded-lg transition-colors">
+                  <button
+                    className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteWork(work.id);
+                    }}
+                  >
                     <Trash2 className="w-4 h-4 text-red-500" />
                   </button>
                 </div>

@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { generateImage } from "@/lib/ai-image";
 import { compressImage } from "@/lib/image-utils";
+import { saveGeneratedImageWork } from "@/lib/repositories/works";
 
 // 提示词类型
 interface PromptPreset {
@@ -327,6 +328,23 @@ const AIDrawing = () => {
       const resultImage = data.imageUrl || data.imageBase64;
       if (resultImage) {
         setGeneratedImage(resultImage);
+        const title = prompt.trim() ? `绘图：${prompt.trim().slice(0, 24)}` : "AI 绘图作品";
+        void saveGeneratedImageWork({
+          title,
+          type: "drawing",
+          tool: "AI 绘图",
+          prompt: finalPrompt,
+          imageDataUrl: resultImage,
+          metadata: {
+            selectedFramework,
+            selectedVisualStyle,
+            selectedRatio,
+            selectedLine,
+            selectedLanguage,
+          },
+        }).catch((error) => {
+          console.error("自动保存绘图作品失败", error);
+        });
       } else {
         throw new Error('未能获取生成的图片');
       }

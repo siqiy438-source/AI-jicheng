@@ -21,6 +21,7 @@ import Clothing from "./pages/Clothing";
 import FashionOutfit from "./pages/FashionOutfit";
 import FashionModelOutfit from "./pages/FashionModelOutfit";
 import CreativeTools from "./pages/CreativeTools";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -44,8 +45,8 @@ const App = () => (
             <Route path="/fashion-outfit" element={<FashionOutfit />} />
             <Route path="/fashion-model-outfit" element={<FashionModelOutfit />} />
             <Route path="/creative-tools" element={<CreativeTools />} />
-            <Route path="/my-works" element={<MyWorks />} />
-            <Route path="/my-materials" element={<MyMaterials />} />
+            <Route path="/my-works" element={<ProtectedRoute><MyWorks /></ProtectedRoute>} />
+            <Route path="/my-materials" element={<ProtectedRoute><MyMaterials /></ProtectedRoute>} />
             <Route path="/more-features" element={<MoreFeatures />} />
             <Route path="/settings" element={<Settings />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

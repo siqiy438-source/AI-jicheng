@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import {
   ArrowLeft,
@@ -22,24 +22,17 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-
-// 文件夹数据 - 新用户为空
-const mockFolders: Array<{
-  id: string;
-  name: string;
-  count: number;
-}> = [];
-
-// 素材数据 - 新用户为空
-const mockMaterials: Array<{
-  id: string;
-  name: string;
-  type: string;
-  thumbnail: string | null;
-  size: string;
-  uploadedAt: string;
-  folder: string | null;
-}> = [];
+import {
+  createMaterialFolder,
+  deleteMaterial,
+  getMaterialDownloadUrl,
+  listMaterialFolders,
+  listMaterials,
+  type MaterialFolderItem,
+  type MaterialListItem,
+  uploadMaterials,
+} from "@/lib/repositories/materials";
+import { toast } from "sonner";
 
 // 获取文件类型图标
 const getFileIcon = (type: string) => {
@@ -65,19 +58,55 @@ const MyMaterials = () => {
   const [showNewFolderInput, setShowNewFolderInput] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [isDragging, setIsDragging] = useState(false);
+  const [folders, setFolders] = useState<MaterialFolderItem[]>([]);
+  const [materials, setMaterials] = useState<MaterialListItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const refreshData = async () => {
+    try {
+      setLoading(true);
+      const [folderRows, materialRows] = await Promise.all([listMaterialFolders(), listMaterials()]);
+      setFolders(folderRows);
+      setMaterials(materialRows);
+    } catch (error) {
+      console.error("加载素材失败", error);
+      toast.error("加载素材失败");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    refreshData();
+  }, []);
 
   // 过滤素材
-  const filteredMaterials = mockMaterials.filter((material) => {
-    const matchesSearch = material.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFolder = !currentFolder || material.folder === currentFolder;
-    return matchesSearch && matchesFolder;
-  });
+  const filteredMaterials = useMemo(() => {
+    return materials.filter((material) => {
+      const matchesSearch = material.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesFolder = !currentFolder || material.folder === currentFolder;
+      return matchesSearch && matchesFolder;
+    });
+  }, [materials, searchQuery, currentFolder]);
 
   // 处理文件上传
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (files && files.length > 0) {
-      alert(`已选择 ${files.length} 个文件，将上传到素材库`);
+    if (!files || files.length === 0) {
+      return;
+    }
+
+    try {
+      await uploadMaterials(files, currentFolder);
+      toast.success(`已上传 ${files.length} 个文件`);
+      await refreshData();
+    } catch (error) {
+      console.error("上传素材失败", error);
+      toast.error("上传素材失败");
+    }
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
@@ -92,19 +121,42 @@ const MyMaterials = () => {
     setIsDragging(false);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      alert(`已拖入 ${files.length} 个文件，将上传到素材库`);
+
+    if (!files || files.length === 0) {
+      return;
+    }
+
+    try {
+      await uploadMaterials(files, currentFolder);
+      toast.success(`已上传 ${files.length} 个文件`);
+      await refreshData();
+    } catch (error) {
+      console.error("拖拽上传失败", error);
+      toast.error("拖拽上传失败");
     }
   };
 
   // 创建新文件夹
-  const createNewFolder = () => {
-    if (newFolderName.trim()) {
-      alert(`创建文件夹: ${newFolderName}`);
+  const createNewFolder = async () => {
+    if (!newFolderName.trim()) {
+      return;
+    }
+
+    try {
+      const folder = await createMaterialFolder(newFolderName);
+      if (folder) {
+        toast.success("文件夹创建成功");
+        setCurrentFolder(folder.name);
+        await refreshData();
+      }
+    } catch (error) {
+      console.error("创建文件夹失败", error);
+      toast.error("创建文件夹失败，可能名称重复");
+    } finally {
       setNewFolderName("");
       setShowNewFolderInput(false);
     }
@@ -115,6 +167,47 @@ const MyMaterials = () => {
     setSelectedItems((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
+  };
+
+  const handleDownload = async (material: MaterialListItem) => {
+    try {
+      const signedUrl = await getMaterialDownloadUrl(material.storageBucket, material.storagePath);
+      if (!signedUrl) {
+        toast.error("获取下载链接失败");
+        return;
+      }
+
+      const a = document.createElement("a");
+      a.href = signedUrl;
+      a.download = material.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("下载失败", error);
+      toast.error("下载失败");
+    }
+  };
+
+  const handleDelete = async (materialId: string) => {
+    try {
+      await deleteMaterial(materialId);
+      setSelectedItems((prev) => prev.filter((id) => id !== materialId));
+      setMaterials((prev) => prev.filter((item) => item.id !== materialId));
+      setFolders((prev) =>
+        prev.map((folder) => {
+          const material = materials.find((item) => item.id === materialId);
+          if (!material || material.folder !== folder.name) {
+            return folder;
+          }
+          return { ...folder, count: Math.max(0, folder.count - 1) };
+        })
+      );
+      toast.success("素材已删除");
+    } catch (error) {
+      console.error("删除素材失败", error);
+      toast.error("删除素材失败");
+    }
   };
 
   return (
@@ -169,9 +262,9 @@ const MyMaterials = () => {
           >
             <Folder className="w-3.5 h-3.5" />
             <span>全部</span>
-            <span className="text-sm opacity-70">{mockMaterials.length}</span>
+            <span className="text-sm opacity-70">{materials.length}</span>
           </button>
-          {mockFolders.map((folder) => (
+          {folders.map((folder) => (
             <button
               key={folder.id}
               onClick={() => setCurrentFolder(folder.name)}
@@ -258,9 +351,9 @@ const MyMaterials = () => {
               >
                 <Folder className="w-4 h-4" />
                 <span className="flex-1">全部</span>
-                <span className="text-xs text-muted-foreground">{mockMaterials.length}</span>
+                <span className="text-xs text-muted-foreground">{materials.length}</span>
               </button>
-              {mockFolders.map((folder) => (
+              {folders.map((folder) => (
                 <button
                   key={folder.id}
                   onClick={() => setCurrentFolder(folder.name)}
@@ -300,13 +393,20 @@ const MyMaterials = () => {
                 {/* 批量操作 */}
                 {selectedItems.length > 0 && (
                   <div className="flex items-center gap-1 md:gap-2 mr-1 md:mr-2">
-                    <span className="text-xs md:text-sm text-muted-foreground hidden sm:inline">
-                      已选 {selectedItems.length} 项
-                    </span>
+                    <span className="text-xs md:text-sm text-muted-foreground hidden sm:inline">已选 {selectedItems.length} 项</span>
                     <button className="p-2 hover:bg-secondary rounded-lg transition-colors touch-target">
                       <Move className="w-4 h-4 text-muted-foreground" />
                     </button>
-                    <button className="p-2 hover:bg-red-50 rounded-lg transition-colors touch-target">
+                    <button
+                      className="p-2 hover:bg-red-50 rounded-lg transition-colors touch-target"
+                      onClick={async () => {
+                        const ids = [...selectedItems];
+                        for (const id of ids) {
+                          await handleDelete(id);
+                        }
+                        setSelectedItems([]);
+                      }}
+                    >
                       <Trash2 className="w-4 h-4 text-red-500" />
                     </button>
                   </div>
@@ -350,13 +450,13 @@ const MyMaterials = () => {
             )}
           >
             <Upload className={cn("w-6 h-6 md:w-8 md:h-8 mx-auto mb-2", isDragging ? "text-amber-500" : "text-muted-foreground")} />
-            <p className={cn("text-xs md:text-sm", isDragging ? "text-amber-600" : "text-muted-foreground")}>
-              {isDragging ? "松开鼠标上传文件" : "拖拽文件到此处上传"}
-            </p>
+            <p className={cn("text-xs md:text-sm", isDragging ? "text-amber-600" : "text-muted-foreground")}>{isDragging ? "松开鼠标上传文件" : "拖拽文件到此处上传"}</p>
           </div>
 
           {/* 素材列表 */}
-          {filteredMaterials.length > 0 ? (
+          {loading ? (
+            <div className="text-center py-12 text-muted-foreground">加载中...</div>
+          ) : filteredMaterials.length > 0 ? (
             viewMode === "grid" ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
                 {filteredMaterials.map((material) => (
@@ -390,9 +490,7 @@ const MyMaterials = () => {
                             : "border-white/70 bg-black/20 md:opacity-0 md:group-hover:opacity-100"
                         )}
                       >
-                        {selectedItems.includes(material.id) && (
-                          <Check className="w-3 h-3 text-white" />
-                        )}
+                        {selectedItems.includes(material.id) && <Check className="w-3 h-3 text-white" />}
                       </div>
                     </div>
                     <div className="p-2 md:p-3">
@@ -422,22 +520,30 @@ const MyMaterials = () => {
                           loading="lazy"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          {getFileIcon(material.type)}
-                        </div>
+                        <div className="w-full h-full flex items-center justify-center">{getFileIcon(material.type)}</div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">{material.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {material.size} · {material.uploadedAt}
-                      </p>
+                      <p className="text-xs text-muted-foreground">{material.size} · {material.uploadedAt}</p>
                     </div>
                     <div className="flex items-center gap-1 md:gap-2">
-                      <button className="p-2 hover:bg-secondary rounded-lg transition-colors touch-target">
+                      <button
+                        className="p-2 hover:bg-secondary rounded-lg transition-colors touch-target"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDownload(material);
+                        }}
+                      >
                         <Download className="w-4 h-4 text-muted-foreground" />
                       </button>
-                      <button className="p-2 hover:bg-red-50 rounded-lg transition-colors touch-target">
+                      <button
+                        className="p-2 hover:bg-red-50 rounded-lg transition-colors touch-target"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(material.id);
+                        }}
+                      >
                         <Trash2 className="w-4 h-4 text-red-500" />
                       </button>
                     </div>

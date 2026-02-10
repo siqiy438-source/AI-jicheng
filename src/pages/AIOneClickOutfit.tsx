@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { compressImage, mergeImagesToGrid } from "@/lib/image-utils";
 import { generateImage } from "@/lib/ai-image";
+import { saveGeneratedImageWork } from "@/lib/repositories/works";
 import {
   ArrowLeft,
   Download,
@@ -158,6 +159,23 @@ cropped garments, partial view, flat lay, frontal view, low quality, blurry, dis
       }
 
       setGeneratedImage(result);
+
+      const title = additionalNotes.trim()
+        ? `一键挂搭：${additionalNotes.trim().slice(0, 24)}`
+        : "AI 一键挂搭图";
+      void saveGeneratedImageWork({
+        title,
+        type: "drawing",
+        tool: "AI 一键挂搭图",
+        prompt: `${prompt}\n\n${additionalNotes}`,
+        imageDataUrl: result,
+        metadata: {
+          line: selectedLine,
+          hasAdditionalNotes: Boolean(additionalNotes.trim()),
+        },
+      }).catch((error) => {
+        console.error("自动保存挂搭图失败", error);
+      });
     } catch (error) {
       console.error("一键挂搭图生成失败:", error);
       alert(`生成失败：${error instanceof Error ? error.message : "未知错误"}`);

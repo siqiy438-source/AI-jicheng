@@ -21,6 +21,7 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { generateCopywriting, continueConversation, isZenmuxConfigured, type ChatMessage } from "@/lib/zenmux";
 import ReactMarkdown from "react-markdown";
+import { saveTextWork } from "@/lib/repositories/works";
 
 // 智能体选项
 const agentOptions = [
@@ -207,6 +208,25 @@ const AICopywriting = () => {
                 : m
             )
           );
+
+          if (finalContent.trim()) {
+            const title = currentPrompt.trim()
+              ? `文案：${currentPrompt.trim().slice(0, 24)}`
+              : `AI 文案-${new Date().toLocaleDateString('zh-CN')}`;
+            void saveTextWork({
+              title,
+              type: "copywriting",
+              tool: `AI 文案-${selectedAgent.name}`,
+              text: finalContent,
+              metadata: {
+                agentId: selectedAgent.id,
+                prompt: currentPrompt,
+              },
+            }).catch((error) => {
+              console.error("自动保存文案失败", error);
+            });
+          }
+
           setIsGenerating(false);
           setStreamingContent("");
           // 滚动到底部

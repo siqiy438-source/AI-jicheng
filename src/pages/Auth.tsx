@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,6 +15,8 @@ export default function Auth() {
   const [loading, setLoading] = useState(false)
   const { signIn, signUp } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const fromPath = (location.state as { from?: string } | null)?.from || '/'
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,7 +28,7 @@ export default function Auth() {
       toast.error('登录失败', { description: error.message })
     } else {
       toast.success('登录成功')
-      navigate('/')
+      navigate(fromPath)
     }
 
     setLoading(false)
@@ -41,8 +43,8 @@ export default function Auth() {
     if (error) {
       toast.error('注册失败', { description: error.message })
     } else {
-      toast.success('注册成功', { description: '欢迎加入！' })
-      navigate('/')
+      toast.success('注册成功', { description: '欢迎加入，已自动登录！' })
+      navigate(fromPath)
     }
 
     setLoading(false)
