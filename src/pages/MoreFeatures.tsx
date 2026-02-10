@@ -6,7 +6,6 @@ import {
   Sparkles,
   Zap,
   Clock,
-  ShirtIcon,
 } from "lucide-react";
 
 interface FeatureItemProps {
@@ -46,7 +45,7 @@ const FeatureItem = ({ icon, title, description, status, color, to }: FeatureIte
 const MoreFeatures = () => {
   const features: FeatureItemProps[] = [
     {
-      icon: <ShirtIcon className="w-8 h-8 text-indigo-500" />,
+      icon: <img src="/icons/ai-one-click-outfit-custom.png" alt="AI 一键挂搭图" className="w-10 h-10 object-contain" />,
       title: "AI 一键挂搭图",
       description: "上传内搭、上衣、裤子，自动补全包包与配饰",
       status: "available",

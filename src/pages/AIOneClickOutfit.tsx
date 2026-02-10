@@ -201,8 +201,12 @@ cropped garments, partial view, flat lay, frontal view, low quality, blurry, dis
       </button>
 
       <div className="hidden md:flex items-center gap-4 mb-8">
-        <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-indigo-500/10">
-          <ShirtIcon className="w-8 h-8 text-indigo-500" />
+        <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-indigo-500/10 p-1.5">
+          <img
+            src="/icons/ai-one-click-outfit-custom.png"
+            alt="AI 一键挂搭图"
+            className="w-full h-full object-contain"
+          />
         </div>
         <div>
           <h1 className="text-2xl font-bold text-foreground">AI 一键挂搭图</h1>
