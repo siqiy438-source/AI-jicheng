@@ -16,6 +16,7 @@ import Lingxi from "./pages/Lingxi";
 import MoreFeatures from "./pages/MoreFeatures";
 import Settings from "./pages/Settings";
 import AIDisplay from "./pages/AIDisplay";
+import AIOneClickOutfit from "./pages/AIOneClickOutfit";
 import Auth from "./pages/Auth";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/ai-poster" element={<AIPoster />} />
             <Route path="/ai-drawing" element={<AIDrawing />} />
             <Route path="/ai-display" element={<AIDisplay />} />
+            <Route path="/ai-hangoutfit" element={<AIOneClickOutfit />} />
             <Route path="/ai-ppt" element={<AIPPT />} />
             <Route path="/ai-copywriting" element={<AICopywriting />} />
             <Route path="/my-works" element={<MyWorks />} />
