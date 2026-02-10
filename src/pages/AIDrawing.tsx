@@ -6,7 +6,6 @@ import {
   X,
   Sparkles,
   Download,
-  RefreshCw,
   Loader2,
   Wand2,
   Send,
@@ -22,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { generateImage } from "@/lib/ai-image";
+import type { ConversationMessage } from "@/lib/ai-image";
 import { compressImage } from "@/lib/image-utils";
 import { saveGeneratedImageWork } from "@/lib/repositories/works";
 
@@ -165,6 +165,11 @@ const AIDrawing = () => {
   const [selectedLine, setSelectedLine] = useState("standard");
   const [selectedLanguage, setSelectedLanguage] = useState("zh");
 
+  // 多轮对话状态
+  const [conversationHistory, setConversationHistory] = useState<ConversationMessage[]>([]);
+  const [currentRound, setCurrentRound] = useState(1);
+  const MAX_ROUNDS = 3;
+
   // 风格预设列表（从数据库加载）- 保留用于兼容性
   const [stylePresets, setStylePresets] = useState<PromptPreset[]>([]);
 
@@ -263,42 +268,66 @@ const AIDrawing = () => {
     setPrompt(prompt + "，高清，细节丰富，光影效果好");
   };
 
+  // 开始新对话（清除历史）
+  const startNewConversation = () => {
+    setConversationHistory([]);
+    setCurrentRound(1);
+    setGeneratedImage(null);
+    setPrompt("");
+  };
+
   // 调用 AI 生成
   const handleGenerate = async () => {
     if (!prompt.trim() && imagePreviews.length === 0) return;
     setIsGenerating(true);
-    setGeneratedImage(null);
+
+    // 多轮续写时不清除上一张图片，让用户能对比
+    if (conversationHistory.length === 0) {
+      setGeneratedImage(null);
+    }
 
     try {
       // 构建最终提示词：组合内容框架 + 视觉风格
       let finalPrompt = prompt || "";
 
-      // 添加内容框架提示词
-      const framework = contentFrameworks.find(f => f.id === selectedFramework);
-      if (framework && framework.prompt) {
-        if (framework.prompt.includes('{user_prompt}')) {
-          // 替换占位符为用户输入
-          finalPrompt = framework.prompt.replace('{user_prompt}', finalPrompt || '参考上传的图片');
-        } else {
-          finalPrompt = framework.prompt + (finalPrompt ? ` Content: ${finalPrompt}` : "");
+      // 首轮才添加框架和风格提示词，续写轮次只用用户的修改指令
+      const isFirstRound = conversationHistory.length === 0;
+
+      if (isFirstRound) {
+        // 添加内容框架提示词
+        const framework = contentFrameworks.find(f => f.id === selectedFramework);
+        if (framework && framework.prompt) {
+          if (framework.prompt.includes('{user_prompt}')) {
+            finalPrompt = framework.prompt.replace('{user_prompt}', finalPrompt || '参考上传的图片');
+          } else {
+            finalPrompt = framework.prompt + (finalPrompt ? ` Content: ${finalPrompt}` : "");
+          }
         }
+
+        // 添加视觉风格提示词
+        const visualStyle = visualStyles.find(s => s.id === selectedVisualStyle);
+        if (visualStyle && visualStyle.prompt) {
+          finalPrompt = finalPrompt + " " + visualStyle.prompt;
+        }
+
+        // 添加语言要求
+        const languageInstruction = selectedLanguage === "zh"
+          ? "IMPORTANT: ALL text in the image must be in Chinese (Simplified Chinese characters only). Do not mix English with Chinese. Use pure Chinese for all labels, titles, descriptions, and annotations."
+          : "IMPORTANT: ALL text in the image must be in English only. Do not mix Chinese with English. Use pure English for all labels, titles, descriptions, and annotations.";
+
+        finalPrompt = `${languageInstruction} ${finalPrompt}`;
+      } else {
+        // 续写轮次：明确指示模型基于参考图进行修改
+        const langNote = selectedLanguage === "zh"
+          ? "IMPORTANT: ALL text in the image must be in Chinese (Simplified Chinese characters only)."
+          : "IMPORTANT: ALL text in the image must be in English only.";
+        finalPrompt = `${langNote} The first reference image provided is my previous result. Please modify it based on this instruction: ${finalPrompt}. Keep the overall style and layout similar, only change what I asked for.`;
       }
-
-      // 添加视觉风格提示词
-      const visualStyle = visualStyles.find(s => s.id === selectedVisualStyle);
-      if (visualStyle && visualStyle.prompt) {
-        finalPrompt = finalPrompt + " " + visualStyle.prompt;
-      }
-
-      // 添加语言要求
-      const languageInstruction = selectedLanguage === "zh"
-        ? "IMPORTANT: ALL text in the image must be in Chinese (Simplified Chinese characters only). Do not mix English with Chinese. Use pure Chinese for all labels, titles, descriptions, and annotations."
-        : "IMPORTANT: ALL text in the image must be in English only. Do not mix Chinese with English. Use pure English for all labels, titles, descriptions, and annotations.";
-
-      finalPrompt = `${languageInstruction} ${finalPrompt}`;
 
       // 调试信息
       console.log('=== AI 绘图调试信息 ===');
+      console.log('当前轮次:', isFirstRound ? 1 : currentRound);
+      console.log('对话历史长度:', conversationHistory.length);
       console.log('内容框架:', selectedFramework);
       console.log('视觉风格:', selectedVisualStyle);
       console.log('最终提示词长度:', finalPrompt.length);
@@ -308,14 +337,22 @@ const AIDrawing = () => {
       console.log('图片数量:', imagePreviews.length);
 
       const selectedLineOption = lineOptions.find(l => l.id === selectedLine) || lineOptions[1];
+
+      // 续写轮次：将上一轮生成的图片作为参考图传入（所有线路统一处理）
+      let requestImages = imagePreviews.length > 0 ? [...imagePreviews] : undefined;
+      if (!isFirstRound && generatedImage) {
+        // 把上一轮生成的图片放在最前面作为主参考图
+        requestImages = [generatedImage, ...(imagePreviews || [])];
+      }
+
       const data = await generateImage({
         prompt: finalPrompt,
-        styleId: undefined, // 不再使用 styleId，完全由提示词控制
+        styleId: undefined,
         aspectRatio: selectedRatio,
-        images: imagePreviews.length > 0 ? imagePreviews : undefined,
+        images: requestImages,
         line: selectedLineOption.line,
         resolution: selectedLineOption.resolution,
-        hasFrameworkPrompt: !!(framework && framework.prompt),
+        hasFrameworkPrompt: isFirstRound ? !!(contentFrameworks.find(f => f.id === selectedFramework)?.prompt) : true,
       });
 
       console.log('API 返回结果:', data);
@@ -327,7 +364,17 @@ const AIDrawing = () => {
       // 优先使用 imageUrl，其次使用 base64
       const resultImage = data.imageUrl || data.imageBase64;
       if (resultImage) {
+        // 更新轮次计数（不再存储完整的 base64 对话历史，避免内存和请求体过大）
+        setConversationHistory(prev => [
+          ...prev,
+          { role: 'user', parts: [{ text: finalPrompt }] },
+          { role: 'model', parts: [{ text: 'image generated' }] },
+        ]);
+        setCurrentRound(prev => prev + 1);
+
         setGeneratedImage(resultImage);
+        setPrompt(""); // 清空输入框，准备接收下一轮指令
+
         const title = prompt.trim() ? `绘图：${prompt.trim().slice(0, 24)}` : "AI 绘图作品";
         void saveGeneratedImageWork({
           title,
@@ -341,6 +388,7 @@ const AIDrawing = () => {
             selectedRatio,
             selectedLine,
             selectedLanguage,
+            round: isFirstRound ? 1 : currentRound,
           },
         }).catch((error) => {
           console.error("自动保存绘图作品失败", error);
@@ -526,7 +574,7 @@ const AIDrawing = () => {
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="输入你想要可视化的内容..."
+            placeholder={conversationHistory.length > 0 ? "描述你想修改的地方，如：把背景换成蓝色..." : "输入你想要可视化的内容..."}
             rows={2}
             enterKeyHint="send"
             className="w-full bg-transparent text-foreground placeholder:text-muted-foreground resize-none focus:outline-none text-base leading-relaxed"
@@ -803,10 +851,10 @@ const AIDrawing = () => {
               {/* 发送按钮 */}
               <button
                 onClick={handleGenerate}
-                disabled={(!prompt.trim() && imagePreviews.length === 0) || isGenerating}
+                disabled={(!prompt.trim() && imagePreviews.length === 0) || isGenerating || (conversationHistory.length > 0 && !prompt.trim()) || currentRound > MAX_ROUNDS}
                 className={cn(
                   "w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all duration-200 touch-target flex-shrink-0",
-                  ((prompt.trim() || imagePreviews.length > 0) && !isGenerating)
+                  ((prompt.trim() || (imagePreviews.length > 0 && conversationHistory.length === 0)) && !isGenerating && currentRound <= MAX_ROUNDS)
                     ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)]"
                     : "bg-secondary/50 text-muted-foreground/50 cursor-not-allowed"
                 )}
@@ -829,13 +877,20 @@ const AIDrawing = () => {
               <h2 className="text-sm md:text-lg font-semibold text-foreground flex items-center gap-1.5 md:gap-2">
                 <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-purple-500" />
                 生成结果
+                {conversationHistory.length > 0 && (
+                  <span className="text-[10px] md:text-xs font-normal px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-600">
+                    第 {Math.ceil(conversationHistory.length / 2)} 轮
+                  </span>
+                )}
               </h2>
               {generatedImage && !isGenerating && (
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={handleGenerate} className="touch-target">
-                    <RefreshCw className="w-4 h-4 mr-1" />
-                    <span className="hidden sm:inline">重新生成</span>
-                  </Button>
+                  {conversationHistory.length > 0 && (
+                    <Button variant="outline" size="sm" onClick={startNewConversation} className="touch-target">
+                      <Sparkles className="w-4 h-4 mr-1" />
+                      <span className="hidden sm:inline">重新开始</span>
+                    </Button>
+                  )}
                   <Button variant="outline" size="sm" className="touch-target" onClick={handleDownload}>
                     <Download className="w-4 h-4 mr-1" />
                     <span className="hidden sm:inline">下载</span>
@@ -844,7 +899,7 @@ const AIDrawing = () => {
                     variant="outline"
                     size="sm"
                     className="touch-target"
-                    onClick={() => setGeneratedImage(null)}
+                    onClick={startNewConversation}
                     title="关闭"
                   >
                     <X className="w-4 h-4" />
@@ -856,15 +911,30 @@ const AIDrawing = () => {
             {isGenerating ? (
               <div className="flex flex-col items-center justify-center py-8 md:py-16">
                 <Loader2 className="w-8 h-8 md:w-12 md:h-12 text-purple-500 animate-spin mb-3 md:mb-4" />
-                <p className="text-muted-foreground text-xs md:text-base">正在生成中...</p>
+                <p className="text-muted-foreground text-xs md:text-base">
+                  {conversationHistory.length > 0 ? "正在根据你的要求修改中..." : "正在生成中..."}
+                </p>
               </div>
             ) : generatedImage ? (
-              <div className="rounded-lg md:rounded-xl overflow-hidden bg-secondary/30 p-2 md:p-4">
-                <img
-                  src={generatedImage}
-                  alt="生成结果"
-                  className="max-h-[300px] md:max-h-[400px] w-full mx-auto rounded-lg object-contain"
-                />
+              <div>
+                <div className="rounded-lg md:rounded-xl overflow-hidden bg-secondary/30 p-2 md:p-4">
+                  <img
+                    src={generatedImage}
+                    alt="生成结果"
+                    className="max-h-[300px] md:max-h-[400px] w-full mx-auto rounded-lg object-contain"
+                  />
+                </div>
+                {/* 多轮对话提示 */}
+                {conversationHistory.length > 0 && currentRound <= MAX_ROUNDS && (
+                  <p className="text-center text-xs text-muted-foreground mt-3">
+                    不满意？在上方输入框描述修改要求，继续优化（还可修改 {MAX_ROUNDS - Math.ceil(conversationHistory.length / 2)} 轮）
+                  </p>
+                )}
+                {currentRound > MAX_ROUNDS && (
+                  <p className="text-center text-xs text-muted-foreground mt-3">
+                    已达到最大修改轮次，点击「重新开始」发起新对话
+                  </p>
+                )}
               </div>
             ) : null}
           </div>

@@ -22,7 +22,7 @@ serve(async (req) => {
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
     const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
-    const { prompt, style, aspectRatio, negativePrompt, styleId, images, line, resolution, hasFrameworkPrompt } = await req.json()
+    const { prompt, style, aspectRatio, negativePrompt, styleId, images, line, resolution, hasFrameworkPrompt, conversationHistory } = await req.json()
     const resolvedLine = getImageProvider(line)
     // 优质线路固定走 2K HD
     const resolvedResolution = resolvedLine === "premium" ? "2k" : (resolution || "default")
@@ -232,6 +232,18 @@ Flat-lay product showcase requirements:
       }
     }
 
+    // 构建 contents 数组：支持多轮对话
+    type ContentType = { role: string; parts: PartType[] }
+    let contents: ContentType[] = []
+
+    if (conversationHistory && Array.isArray(conversationHistory) && conversationHistory.length > 0) {
+      // 多轮对话模式：使用历史记录 + 当前新消息
+      contents = [...conversationHistory, { role: 'user', parts }]
+    } else {
+      // 单轮模式（首次生成）
+      contents = [{ role: 'user', parts }]
+    }
+
     // 调用对应线路 API 生成图像
     const apiUrl = buildGenerateContentUrl(providerConfig)
     const generationConfig = {
@@ -246,12 +258,7 @@ Flat-lay product showcase requirements:
         'Authorization': `Bearer ${providerApiKey}`,
       },
       body: JSON.stringify({
-        contents: [
-          {
-            role: 'user',
-            parts
-          }
-        ],
+        contents,
         generationConfig,
       }),
     })

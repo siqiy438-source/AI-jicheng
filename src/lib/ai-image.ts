@@ -5,6 +5,12 @@
 
 import { supabaseAnonKey } from './supabase';
 
+// 对话消息类型（用于多轮对话）
+export interface ConversationMessage {
+  role: 'user' | 'model';
+  parts: Array<{ text?: string } | { inlineData?: { mimeType: string; data: string } }>;
+}
+
 // 图像生成参数
 export interface ImageGenerationParams {
   prompt?: string;
@@ -16,6 +22,7 @@ export interface ImageGenerationParams {
   line?: "standard" | "premium";
   resolution?: "default" | "2k" | "4k";
   hasFrameworkPrompt?: boolean;
+  conversationHistory?: ConversationMessage[];
 }
 
 // 图像生成结果
