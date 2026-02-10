@@ -12,20 +12,21 @@ import {
   Clock,
   ImageIcon,
   FileText,
-  Palette,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { deleteWork, listWorks, type WorkListItem } from "@/lib/repositories/works";
 import { toast } from "sonner";
 
+type WorkCategory = "image" | "copywriting";
+
+const getWorkCategory = (workType: string): WorkCategory => {
+  return workType === "copywriting" ? "copywriting" : "image";
+};
+
 // 获取类型图标
-const getTypeIcon = (type: string) => {
-  switch (type) {
-    case "poster":
-      return <Palette className="w-4 h-4" />;
-    case "drawing":
-      return <ImageIcon className="w-4 h-4" />;
+const getTypeIcon = (category: WorkCategory) => {
+  switch (category) {
     case "copywriting":
       return <FileText className="w-4 h-4" />;
     default:
@@ -34,16 +35,12 @@ const getTypeIcon = (type: string) => {
 };
 
 // 获取类型颜色
-const getTypeColor = (type: string) => {
-  switch (type) {
-    case "poster":
-      return "bg-blue-100 text-blue-600";
-    case "drawing":
-      return "bg-purple-100 text-purple-600";
+const getTypeColor = (category: WorkCategory) => {
+  switch (category) {
     case "copywriting":
       return "bg-orange-100 text-orange-600";
     default:
-      return "bg-gray-100 text-gray-600";
+      return "bg-purple-100 text-purple-600";
   }
 };
 
@@ -51,7 +48,7 @@ const MyWorks = () => {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [selectedType, setSelectedType] = useState<WorkCategory | null>(null);
   const [selectedWork, setSelectedWork] = useState<string | null>(null);
   const [works, setWorks] = useState<WorkListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -114,7 +111,7 @@ const MyWorks = () => {
   // 过滤作品
   const filteredWorks = works.filter((work) => {
     const matchesSearch = work.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = !selectedType || work.type === selectedType;
+    const matchesType = !selectedType || getWorkCategory(work.type) === selectedType;
     return matchesSearch && matchesType;
   });
 
@@ -173,22 +170,13 @@ const MyWorks = () => {
                 全部
               </button>
               <button
-                onClick={() => setSelectedType("poster")}
+                onClick={() => setSelectedType("image")}
                 className={cn(
                   "px-2.5 md:px-3 py-1.5 rounded-md text-sm transition-all whitespace-nowrap",
-                  selectedType === "poster" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground active:text-foreground"
+                  selectedType === "image" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground active:text-foreground"
                 )}
               >
-                海报
-              </button>
-              <button
-                onClick={() => setSelectedType("drawing")}
-                className={cn(
-                  "px-2.5 md:px-3 py-1.5 rounded-md text-sm transition-all whitespace-nowrap",
-                  selectedType === "drawing" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground active:text-foreground"
-                )}
-              >
-                绘图
+                图片
               </button>
               <button
                 onClick={() => setSelectedType("copywriting")}
@@ -293,8 +281,8 @@ const MyWorks = () => {
                 <div className="p-3 md:p-4">
                   <div className="flex items-start justify-between gap-2 mb-1.5 md:mb-2">
                     <h3 className="font-medium text-foreground text-sm md:text-base truncate">{work.title}</h3>
-                    <span className={cn("flex items-center gap-1 px-1.5 md:px-2 py-0.5 rounded-full text-xs flex-shrink-0", getTypeColor(work.type))}>
-                      {getTypeIcon(work.type)}
+                    <span className={cn("flex items-center gap-1 px-1.5 md:px-2 py-0.5 rounded-full text-xs flex-shrink-0", getTypeColor(getWorkCategory(work.type)))}>
+                      {getTypeIcon(getWorkCategory(work.type))}
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5 md:gap-2 text-xs md:text-xs text-muted-foreground">
@@ -334,8 +322,8 @@ const MyWorks = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="font-medium text-foreground text-sm md:text-base truncate">{work.title}</h3>
-                    <span className={cn("flex items-center gap-1 px-1.5 md:px-2 py-0.5 rounded-full text-xs flex-shrink-0", getTypeColor(work.type))}>
-                      {getTypeIcon(work.type)}
+                    <span className={cn("flex items-center gap-1 px-1.5 md:px-2 py-0.5 rounded-full text-xs flex-shrink-0", getTypeColor(getWorkCategory(work.type)))}>
+                      {getTypeIcon(getWorkCategory(work.type))}
                       <span className="hidden md:inline">{work.tool}</span>
                     </span>
                   </div>
