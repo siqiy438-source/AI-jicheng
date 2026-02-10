@@ -77,18 +77,6 @@ const contentFrameworks = [
     icon: "⚖️",
     prompt: "professional comparison analysis layout with SIDE-BY-SIDE structure: 1) TITLE at top center showing 'A vs B' or 'A 对比 B', 2) TWO MAIN COLUMNS divided by a vertical line or VS symbol in the middle, 3) LEFT COLUMN for Item A with icon/illustration at top, 4) RIGHT COLUMN for Item B with icon/illustration at top, 5) COMPARISON ROWS showing key dimensions (price, features, pros/cons, performance, design, etc.), 6) each row aligned horizontally across both columns for easy comparison, 7) use different background colors or borders to distinguish the two items (e.g., blue tint for left, orange tint for right), 8) include visual indicators like checkmarks ✓ for advantages, X marks for disadvantages, or star ratings, 9) summary section at bottom highlighting key differences, 10) clean table-like structure with clear labels. CRITICAL: Make it easy to scan and compare - align corresponding features horizontally, use consistent spacing, and maintain visual balance between both sides."
   },
-  {
-    id: "fashion-outfit",
-    name: "女装搭配",
-    icon: "👗",
-    prompt: "创建一张专业的女装平铺搭配图(flat lay)。\n\n【关键布局规则 - 必须遵守】\n- 每件服装单品必须单独、独立展示\n- 所有单品按网格布局排列，单品之间必须有清晰的间隔\n- 禁止重叠、禁止层叠、禁止堆叠\n- 每件单品平铺展示，从上到下完整可见\n- 布局参考：杂志lookbook风格、Pinterest穿搭网格图\n\n【女装风格要求】\n- 配饰：精致优雅（珍珠耳环、细链项链、丝巾、精致手表、时尚墨镜等）\n- 鞋子：女性化风格（高跟鞋、芭蕾平底鞋、尖头鞋、优雅凉鞋、小白鞋等）\n- 整体风格：优雅、精致、女人味、时髦感\n\n【技术要求】\n1. 分析上传服装的颜色和风格，选择和谐的纯色背景（柔和高级色调如奶油色、浅灰色、淡粉色）\n2. 根据服装风格，智能添加：\n   - 一件女性配饰（选择最能提升整体精致感的）\n   - 一双女鞋（选择最能完善整套look的）\n3. 所有单品分散平铺排列，每件单品之间保持清晰间隔\n4. 每件单品带柔和自然投影，专业产品摄影质感\n5. 无文字、无水印、无模特、无人台\n6. 竖版 9:16 比例\n\n风格参考：Pinterest穿搭平铺图、时尚杂志单品展示、lookbook造型图"
-  },
-  {
-    id: "outfit-model",
-    name: "女装搭配模特图",
-    icon: "👗",
-    prompt: "生成一张真实的时尚穿搭模特照片，要求极致真实，完全看不出AI生成痕迹。\n\n【模特要求 - 必须严格遵守】\n- 中国女性模特，年龄25-35岁\n- 五官精致自然，符合中国主流审美（不要网红脸、不要过度修图感）\n- 身材匀称，气质优雅大方\n- 表情自然放松，可以是微笑、回眸、自然行走等姿态\n- 皮肤质感真实自然，有正常的光影和肤色过渡\n- 发型时尚得体，与整体穿搭风格协调\n\n【穿搭展示 - 关键要求】\n- 模特必须完整穿着上传的所有服装单品\n- 画面必须展示：外套/上衣 + 内搭 + 裤子/裙子，三者缺一不可\n- 全身照，从头到脚完整展示，确保每件衣服都清晰可见\n- 衣服的颜色、款式、面料质感必须与上传图片高度一致\n- 衣服穿着自然合身，有真实的褶皱和垂坠感\n- 根据服装风格智能搭配：\n  - 一双合适的鞋子（与整体风格协调）\n  - 1-2件精致配饰（如耳环、项链、手表、包包、墨镜等，选择最能提升整体质感的）\n\n【背景与氛围 - 必须自然】\n- 根据服装风格自动匹配场景背景：\n  - 休闲风 → 街头、咖啡店、公园小径\n  - 通勤风 → 都市街景、写字楼大厅、简约室内\n  - 优雅风 → 精致餐厅、艺术展览、欧式建筑\n  - 运动风 → 户外、体育场、城市绿道\n- 背景要有适当的景深虚化，突出模特和服装\n- 光线自然柔和，像是黄金时段或阴天柔光拍摄\n- 整体氛围感要与服装风格统一\n\n【技术要求 - 真实感是第一优先级】\n1. 照片级真实感，模拟专业时尚摄影师拍摄效果\n2. 自然的光影关系，避免平面打光\n3. 真实的景深效果和镜头质感\n4. 无文字、无水印、无任何UI元素\n5. 竖版 9:16 比例\n6. 禁止出现：过度磨皮、不自然的肤色、扭曲的手指、异常的身体比例、诡异的表情\n7. 风格参考：小红书穿搭博主实拍、时尚杂志街拍、Instagram时尚KOL日常穿搭照\n\n用户上传的服装单品：{user_prompt}"
-  },
 ];
 
 // 视觉风格选项（第二栏）- 定义视觉呈现风格
@@ -561,10 +549,6 @@ const AIDrawing = () => {
                         onClick={() => {
                           setSelectedFramework(framework.id);
                           setShowFrameworkMenu(false);
-                          // 如果是女装搭配类框架，自动设置比例为 9:16
-                          if (framework.id === 'fashion-outfit' || framework.id === 'outfit-model') {
-                            setSelectedRatio('9:16');
-                          }
                         }}
                         className={cn(
                           "w-full flex items-center gap-2 px-3 py-2.5 text-sm hover:bg-secondary/50 transition-all duration-200 text-left touch-target",

@@ -1,12 +1,5 @@
 import { PageLayout } from "@/components/PageLayout";
-import { SearchBar } from "@/components/SearchBar";
 import { FeatureCard } from "@/components/FeatureCard";
-import {
-  ImageIcon,
-  FileText,
-  Presentation,
-  Wand2,
-} from "lucide-react";
 
 const Index = () => {
   const features = [
@@ -32,11 +25,11 @@ const Index = () => {
       to: "/ai-copywriting",
     },
     {
-      customIcon: "/icons/more-features-custom.png",
-      title: "更多功能",
-      description: "持续更新中",
+      customIcon: "/icons/ai-one-click-outfit-custom.png",
+      title: "服装",
+      description: "挂搭图、陈列、模特搭配",
       color: "violet" as const,
-      to: "/more-features",
+      to: "/clothing",
     },
   ];
 
@@ -63,11 +56,6 @@ const Index = () => {
           <br />
           <span className="text-foreground/70">我是你的专属创作助手</span>
         </p>
-      </div>
-
-      {/* Search Bar */}
-      <div className="mb-10 md:mb-16 opacity-0 animate-fade-in" style={{ animationDelay: '100ms' }}>
-        <SearchBar />
       </div>
 
       {/* Feature Cards Section */}

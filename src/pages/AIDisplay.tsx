@@ -284,11 +284,11 @@ OUTPUT: Photorealistic editorial boutique photo with cinematic depth. Clothes ke
       <div onClick={closeAllMenus}>
         {/* 返回按钮 - 仅桌面端 */}
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/clothing")}
           className="hidden md:flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>返回首页</span>
+          <span>返回服装</span>
         </button>
 
         {/* 页面标题 */}

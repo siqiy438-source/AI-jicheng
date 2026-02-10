@@ -5,6 +5,7 @@ import {
   ImageIcon,
   FileText,
   User,
+  Shirt,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -62,9 +63,10 @@ export const MobileNav = () => {
   // 移动端核心导航项
   const navItems = [
     { icon: <LayoutDashboard className="w-5 h-5" />, label: "首页", to: "/" },
-    { icon: <Presentation className="w-5 h-5" />, label: "PPT", to: "/ai-ppt" },
+    { icon: <Presentation className="w-5 h-5" />, label: "创意", to: "/creative-tools" },
     { icon: <ImageIcon className="w-5 h-5" />, label: "绘图", to: "/ai-drawing" },
     { icon: <FileText className="w-5 h-5" />, label: "文案", to: "/ai-copywriting" },
+    { icon: <Shirt className="w-5 h-5" />, label: "服装", to: "/clothing" },
     { icon: <User className="w-5 h-5" />, label: "我的", to: "/my-works" },
   ];
 

@@ -193,11 +193,11 @@ cropped garments, partial view, flat lay, frontal view, low quality, blurry, dis
   return (
     <PageLayout className="py-2 md:py-8">
       <button
-        onClick={() => navigate("/more-features")}
+        onClick={() => navigate("/clothing")}
         className="hidden md:flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
-        <span>返回更多功能</span>
+        <span>返回服装</span>
       </button>
 
       <div className="hidden md:flex items-center gap-4 mb-8">

@@ -12,12 +12,15 @@ import AIPPT from "./pages/AIPPT";
 import AICopywriting from "./pages/AICopywriting";
 import MyWorks from "./pages/MyWorks";
 import MyMaterials from "./pages/MyMaterials";
-import Lingxi from "./pages/Lingxi";
 import MoreFeatures from "./pages/MoreFeatures";
 import Settings from "./pages/Settings";
 import AIDisplay from "./pages/AIDisplay";
 import AIOneClickOutfit from "./pages/AIOneClickOutfit";
 import Auth from "./pages/Auth";
+import Clothing from "./pages/Clothing";
+import FashionOutfit from "./pages/FashionOutfit";
+import FashionModelOutfit from "./pages/FashionModelOutfit";
+import CreativeTools from "./pages/CreativeTools";
 
 const queryClient = new QueryClient();
 
@@ -37,9 +40,12 @@ const App = () => (
             <Route path="/ai-hangoutfit" element={<AIOneClickOutfit />} />
             <Route path="/ai-ppt" element={<AIPPT />} />
             <Route path="/ai-copywriting" element={<AICopywriting />} />
+            <Route path="/clothing" element={<Clothing />} />
+            <Route path="/fashion-outfit" element={<FashionOutfit />} />
+            <Route path="/fashion-model-outfit" element={<FashionModelOutfit />} />
+            <Route path="/creative-tools" element={<CreativeTools />} />
             <Route path="/my-works" element={<MyWorks />} />
             <Route path="/my-materials" element={<MyMaterials />} />
-            <Route path="/lingxi" element={<Lingxi />} />
             <Route path="/more-features" element={<MoreFeatures />} />
             <Route path="/settings" element={<Settings />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

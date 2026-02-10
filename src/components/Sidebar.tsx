@@ -2,17 +2,14 @@ import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
-  ImageIcon,
   FileText,
-  Sparkles,
-  Star,
+  Shirt,
   Settings,
   FolderOpen,
   Upload,
   ChevronLeft,
   ChevronRight,
   Palette,
-  Presentation,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -113,6 +110,20 @@ export const Sidebar = () => {
   const isMobile = useIsMobile();
 
   const isActive = (path: string) => location.pathname === path;
+  const isClothingActive = [
+    "/clothing",
+    "/ai-hangoutfit",
+    "/ai-display",
+    "/fashion-outfit",
+    "/fashion-model-outfit",
+  ].includes(location.pathname);
+  const isCreativeToolsActive = [
+    "/creative-tools",
+    "/more-features",
+    "/ai-poster",
+    "/ai-drawing",
+    "/ai-ppt",
+  ].includes(location.pathname);
 
   // 移动端不渲染 Sidebar
   if (isMobile) {
@@ -190,50 +201,29 @@ export const Sidebar = () => {
             collapsed={collapsed}
             to="/"
           />
-          <NavItem
-            icon={<Sparkles className="w-[18px] h-[18px]" />}
-            label="灵犀"
-            active={isActive("/lingxi")}
-            collapsed={collapsed}
-            to="/lingxi"
-          />
         </NavSection>
 
         <NavSection title="智能工具" collapsed={collapsed}>
           <NavItem
+            icon={<Shirt className="w-[18px] h-[18px]" />}
+            label="服装创意工具"
+            active={isClothingActive}
+            collapsed={collapsed}
+            to="/clothing"
+          />
+          <NavItem
             icon={<Palette className="w-[18px] h-[18px]" />}
-            label="AI 海报"
-            active={isActive("/ai-poster")}
+            label="创意工具"
+            active={isCreativeToolsActive}
             collapsed={collapsed}
-            to="/ai-poster"
-          />
-          <NavItem
-            icon={<ImageIcon className="w-[18px] h-[18px]" />}
-            label="AI 绘图"
-            active={isActive("/ai-drawing")}
-            collapsed={collapsed}
-            to="/ai-drawing"
-          />
-          <NavItem
-            icon={<Presentation className="w-[18px] h-[18px]" />}
-            label="AI PPT"
-            active={isActive("/ai-ppt")}
-            collapsed={collapsed}
-            to="/ai-ppt"
+            to="/creative-tools"
           />
           <NavItem
             icon={<FileText className="w-[18px] h-[18px]" />}
-            label="AI 文案"
+            label="文案工具"
             active={isActive("/ai-copywriting")}
             collapsed={collapsed}
             to="/ai-copywriting"
-          />
-          <NavItem
-            icon={<Star className="w-[18px] h-[18px]" />}
-            label="更多功能"
-            active={isActive("/more-features")}
-            collapsed={collapsed}
-            to="/more-features"
           />
         </NavSection>
 
