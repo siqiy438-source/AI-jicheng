@@ -52,7 +52,7 @@ const contentFrameworks = [
     id: "comic-story",
     name: "漫画故事",
     icon: "📖",
-    prompt: "manga/comic story narrative layout with SEQUENTIAL PANELS: 1) 4-8 comic panels arranged in reading order (left-to-right, top-to-bottom), 2) each panel tells part of the story with characters, scenes, and actions, 3) speech bubbles and thought bubbles with dialogue/narration, 4) expressive character faces showing emotions, 5) dynamic poses and action lines for movement, 6) panel transitions showing story progression, 7) sound effects text (e.g., 'BOOM', 'whoosh'), 8) varied panel sizes for pacing and emphasis, 9) clear narrative flow that tells a complete mini-story about the topic."
+    prompt: "Create a COLORFUL, warm and cute comic strip illustration.\n\n【STYLE - Warm Illustrated Comic】\n- Cute, warm hand-drawn illustration style with FULL COLOR (NOT black and white, NOT manga style)\n- Soft warm color palette: cream backgrounds, warm browns, soft oranges, gentle yellows, muted reds\n- Colored pencil / watercolor texture feel, like a cozy picture book or journal\n- Characters drawn in adorable chibi-like proportions with big expressive eyes and round faces\n- Warm ambient lighting in scenes (desk lamps, sunlight, cozy indoor settings)\n\n【COMPOSITION】\n- 4 to 6 comic panels depending on content complexity (2x2 or 2x3 grid layout)\n- Each panel tells part of the story with cute characters and scenes\n- Speech bubbles and thought bubbles with short dialogue\n- A title banner at the top of the comic\n- Decorative elements: small doodles, hearts, stars, light bulbs for ideas\n- Panel borders with slightly rounded corners\n\n【TECHNICAL REQUIREMENTS】\n1. MUST be full color with warm tones - absolutely NO black and white\n2. NOT Japanese manga style - use a softer, warmer Western picture-book illustration style\n3. Characters should look cute and friendly, not sharp or angular\n4. Background details in each panel (bookshelves, desks, windows with warm light)\n5. Consistent character design across all panels\n6. Text should be clean and readable\n7. Overall feeling: cozy, warm, inviting, like a hand-drawn storybook\n\nUser request: {user_prompt}"
   },
   {
     id: "flowchart",
@@ -551,7 +551,7 @@ const AIDrawing = () => {
                   <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showFrameworkMenu && "rotate-180")} />
                 </button>
                 {showFrameworkMenu && (
-                  <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 w-[160px] max-w-[calc(100vw-2rem)] animate-dropdown max-h-[128px] overflow-y-auto scrollbar-thin dropdown-panel">
+                  <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 w-[160px] max-w-[calc(100vw-2rem)] animate-dropdown max-h-[168px] overflow-y-auto scrollbar-thin dropdown-panel">
                     {contentFrameworks.map((framework) => (
                       <button
                         key={framework.id}
@@ -594,7 +594,7 @@ const AIDrawing = () => {
                   <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showVisualStyleMenu && "rotate-180")} />
                 </button>
                 {showVisualStyleMenu && (
-                  <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 w-[140px] max-w-[calc(100vw-2rem)] animate-dropdown max-h-[128px] overflow-y-auto scrollbar-thin dropdown-panel">
+                  <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 w-[140px] max-w-[calc(100vw-2rem)] animate-dropdown max-h-[168px] overflow-y-auto scrollbar-thin dropdown-panel">
                     {visualStyles.map((style) => (
                       <button
                         key={style.id}
@@ -632,7 +632,7 @@ const AIDrawing = () => {
                   <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showRatioMenu && "rotate-180")} />
                 </button>
                 {showRatioMenu && (
-                  <div className="absolute top-full left-0 right-0 sm:right-auto mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 sm:w-[100px] max-w-[calc(100vw-2rem)] animate-dropdown max-h-[128px] overflow-y-auto scrollbar-thin dropdown-panel">
+                  <div className="absolute top-full left-0 right-0 sm:right-auto mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 sm:w-[100px] max-w-[calc(100vw-2rem)] animate-dropdown max-h-[168px] overflow-y-auto scrollbar-thin dropdown-panel">
                     {ratioOptions.map((ratio) => (
                       <button
                         key={ratio.id}
@@ -752,7 +752,7 @@ const AIDrawing = () => {
                   <Languages className="w-3.5 h-3.5" />
                 </button>
                 {showLanguageMenu && (
-                  <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 w-[120px] max-w-[calc(100vw-2rem)] animate-dropdown max-h-[128px] overflow-y-auto scrollbar-thin dropdown-panel">
+                  <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 w-[120px] max-w-[calc(100vw-2rem)] animate-dropdown max-h-[168px] overflow-y-auto scrollbar-thin dropdown-panel">
                     {languageOptions.map((lang) => (
                       <button
                         key={lang.id}

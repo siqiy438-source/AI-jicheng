@@ -379,7 +379,7 @@ const AIPPT = () => {
               <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", showPageCountMenu && "rotate-180")} />
             </button>
             {showPageCountMenu && (
-              <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 w-[100px] max-w-[calc(100vw-2rem)] max-h-[128px] overflow-y-auto scrollbar-thin dropdown-panel">
+              <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 w-[100px] max-w-[calc(100vw-2rem)] max-h-[168px] overflow-y-auto scrollbar-thin dropdown-panel">
                 {PAGE_COUNTS.map((c) => (
                   <button
                     key={c}
@@ -404,7 +404,7 @@ const AIPPT = () => {
               <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", showStyleMenu && "rotate-180")} />
             </button>
             {showStyleMenu && (
-              <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 w-[140px] max-w-[calc(100vw-2rem)] max-h-[128px] overflow-y-auto scrollbar-thin dropdown-panel">
+              <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 w-[140px] max-w-[calc(100vw-2rem)] max-h-[168px] overflow-y-auto scrollbar-thin dropdown-panel">
                 {PPT_STYLES.map((s) => (
                   <button
                     key={s.id}
@@ -455,7 +455,7 @@ const AIPPT = () => {
               <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", showRatioMenu && "rotate-180")} />
             </button>
             {showRatioMenu && (
-              <div className="absolute top-full right-0 sm:left-0 sm:right-auto mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 w-[90px] max-w-[calc(100vw-2rem)] max-h-[128px] overflow-y-auto scrollbar-thin dropdown-panel">
+              <div className="absolute top-full right-0 sm:left-0 sm:right-auto mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 w-[90px] max-w-[calc(100vw-2rem)] max-h-[168px] overflow-y-auto scrollbar-thin dropdown-panel">
                 {PPT_RATIOS.map((r) => (
                   <button
                     key={r.id}
@@ -785,7 +785,7 @@ const AIPPT = () => {
               <ChevronDown className="w-3 h-3" />
             </button>
             {showStyleMenu && (
-              <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 w-[130px] max-w-[calc(100vw-2rem)] max-h-[128px] overflow-y-auto scrollbar-thin dropdown-panel">
+              <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 w-[130px] max-w-[calc(100vw-2rem)] max-h-[168px] overflow-y-auto scrollbar-thin dropdown-panel">
                 {PPT_STYLES.map((s) => (
                   <button
                     key={s.id}
