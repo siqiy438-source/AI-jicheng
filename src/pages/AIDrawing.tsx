@@ -52,7 +52,7 @@ const contentFrameworks = [
     id: "comic-story",
     name: "漫画故事",
     icon: "📖",
-    prompt: "colorful warm hand-drawn comic strip, 6 panels in 3x2 grid layout: 1) bold title banner at top, 2) each panel has a colored sub-topic header and a vivid scene with 3-5 cute characters doing things in real settings, 3) warm color palette with cream background, soft browns, oranges and yellows, 4) colored pencil and marker hand-drawn texture, 5) characters have big expressive eyes and round faces with varied poses, 6) speech bubbles and text labels on signs and objects, 7) rich scene details with furniture, props and environmental elements in every panel, 8) panels can vary in size for emphasis. Topic: {user_prompt}"
+    prompt: "colorful warm hand-drawn comic strip, kawaii chibi style for children, 6 panels in 3x2 grid layout: 1) bold title banner at top, 2) each panel has a colored sub-topic header and a vivid scene with 3-5 super cute chibi characters (oversized round heads, tiny bodies, big sparkly eyes, rosy cheeks), 3) warm color palette with cream background, soft pastels, browns, oranges and yellows, 4) colored pencil and marker hand-drawn texture, 5) characters are adorable and child-friendly with exaggerated cute expressions and playful poses, 6) speech bubbles and text labels on signs and objects, 7) rich scene details with furniture, props and environmental elements in every panel, 8) panels can vary in size for emphasis. Topic: {user_prompt}"
   },
   {
     id: "flowchart",
