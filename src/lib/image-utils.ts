@@ -219,3 +219,38 @@ export async function mergeImagesToGrid(
 
   return canvas.toDataURL('image/jpeg', 0.85);
 }
+
+/**
+ * 下载/保存生成的图片
+ * 手机端：优先 Web Share API（可直接存相册）→ 回退 <a download> 触发下载
+ * 桌面端：直接触发下载
+ */
+export async function downloadGeneratedImage(
+  imageSrc: string,
+  filename: string = `ai-image-${Date.now()}.png`,
+): Promise<void> {
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+  const response = await fetch(imageSrc);
+  const blob = await response.blob();
+
+  // 手机端：优先 Web Share API（支持直接保存到相册）
+  if (isMobile && navigator.share && navigator.canShare) {
+    const file = new File([blob], filename, { type: 'image/png' });
+    const shareData = { files: [file] };
+    if (navigator.canShare(shareData)) {
+      await navigator.share(shareData);
+      return;
+    }
+  }
+
+  // 通用：<a download> 触发下载（手机端弹出下载对话框，桌面端直接下载）
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}

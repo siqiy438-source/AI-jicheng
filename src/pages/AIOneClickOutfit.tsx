@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { PageLayout } from "@/components/PageLayout";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { compressImage, mergeImagesToGrid } from "@/lib/image-utils";
+import { compressImage, mergeImagesToGrid, downloadGeneratedImage } from "@/lib/image-utils";
 import { generateImage } from "@/lib/ai-image";
 import { saveGeneratedImageWork } from "@/lib/repositories/works";
 import {
@@ -187,20 +187,8 @@ cropped garments, partial view, flat lay, frontal view, low quality, blurry, dis
 
   const handleDownload = async () => {
     if (!generatedImage) return;
-
     try {
-      const filename = `ai-one-click-outfit-${Date.now()}.png`;
-      const response = await fetch(generatedImage);
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      await downloadGeneratedImage(generatedImage, `ai-one-click-outfit-${Date.now()}.png`);
     } catch {
       window.open(generatedImage, "_blank");
     }

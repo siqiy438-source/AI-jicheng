@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { generateImage } from "@/lib/ai-image";
 import type { ConversationMessage } from "@/lib/ai-image";
-import { compressImage } from "@/lib/image-utils";
+import { compressImage, downloadGeneratedImage } from "@/lib/image-utils";
 import { saveGeneratedImageWork } from "@/lib/repositories/works";
 
 // 提示词类型
@@ -407,67 +407,10 @@ const AIDrawing = () => {
   // 下载生成的图片
   const handleDownload = async () => {
     if (!generatedImage) return;
-
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
     try {
-      const filename = `ai-drawing-${Date.now()}.png`;
-
-      // 获取图片 blob
-      const response = await fetch(generatedImage);
-      const blob = await response.blob();
-
-      // 手机端：使用 Web Share API（如果支持）或打开新窗口让用户长按保存
-      if (isMobile) {
-        // 尝试使用 Web Share API（支持分享/保存到相册）
-        if (navigator.share && navigator.canShare) {
-          const file = new File([blob], filename, { type: 'image/png' });
-          const shareData = { files: [file] };
-
-          if (navigator.canShare(shareData)) {
-            await navigator.share(shareData);
-            return;
-          }
-        }
-
-        // 如果 Web Share API 不支持，打开图片让用户长按保存
-        const url = URL.createObjectURL(blob);
-        const newWindow = window.open('', '_blank');
-        if (newWindow) {
-          newWindow.document.write(`
-            <html>
-              <head>
-                <meta name="viewport" content="width=device-width, initial-scale=1">
-                <title>保存图片</title>
-                <style>
-                  body { margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background: #000; }
-                  img { max-width: 100%; max-height: 80vh; object-fit: contain; }
-                  p { color: #fff; text-align: center; padding: 20px; font-family: system-ui, sans-serif; }
-                </style>
-              </head>
-              <body>
-                <p>长按图片保存到相册</p>
-                <img src="${url}" alt="AI生成图片" />
-              </body>
-            </html>
-          `);
-          newWindow.document.close();
-        }
-        return;
-      }
-
-      // 桌面端：直接下载
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      await downloadGeneratedImage(generatedImage, `ai-drawing-${Date.now()}.png`);
     } catch (error) {
       console.error('下载失败:', error);
-      // 如果失败，直接打开图片
       window.open(generatedImage, '_blank');
     }
   };

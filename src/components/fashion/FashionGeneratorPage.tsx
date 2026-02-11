@@ -18,7 +18,7 @@ import {
 import { PageLayout } from "@/components/PageLayout";
 import { Button } from "@/components/ui/button";
 import { generateImage } from "@/lib/ai-image";
-import { compressImage } from "@/lib/image-utils";
+import { compressImage, downloadGeneratedImage } from "@/lib/image-utils";
 import { cn } from "@/lib/utils";
 
 interface FashionGeneratorPageProps {
@@ -217,57 +217,8 @@ export const FashionGeneratorPage = ({
 
   const handleDownload = async () => {
     if (!generatedImage) return;
-
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
     try {
-      const filename = `${downloadPrefix}-${Date.now()}.png`;
-      const response = await fetch(generatedImage);
-      const blob = await response.blob();
-
-      if (isMobile) {
-        if (navigator.share && navigator.canShare) {
-          const file = new File([blob], filename, { type: "image/png" });
-          const shareData = { files: [file] };
-          if (navigator.canShare(shareData)) {
-            await navigator.share(shareData);
-            return;
-          }
-        }
-
-        const url = URL.createObjectURL(blob);
-        const newWindow = window.open("", "_blank");
-        if (newWindow) {
-          newWindow.document.write(`
-            <html>
-              <head>
-                <meta name="viewport" content="width=device-width, initial-scale=1" />
-                <title>保存图片</title>
-                <style>
-                  body { margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background: #000; }
-                  img { max-width: 100%; max-height: 80vh; object-fit: contain; }
-                  p { color: #fff; text-align: center; padding: 20px; font-family: system-ui, sans-serif; }
-                </style>
-              </head>
-              <body>
-                <p>长按图片保存到相册</p>
-                <img src="${url}" alt="${resultAlt}" />
-              </body>
-            </html>
-          `);
-          newWindow.document.close();
-        }
-        return;
-      }
-
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      await downloadGeneratedImage(generatedImage, `${downloadPrefix}-${Date.now()}.png`);
     } catch {
       window.open(generatedImage, "_blank");
     }
