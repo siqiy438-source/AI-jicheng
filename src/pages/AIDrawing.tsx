@@ -46,7 +46,7 @@ const contentFrameworks = [
     id: "sketch",
     name: "手绘风格",
     icon: "🖌️",
-    prompt: "Create a hand-drawn style poster illustration.\n\n【STYLE - Hand-drawn Journal Aesthetic】\n- Hand-drawn illustration style, like a cute travel journal or planner\n- Clean sketch aesthetic with soft pastel colors\n- Doodle icons and decorative elements\n- Whimsical hand-lettering for titles and text\n- Cozy, warm illustration style\n- White or light cream background\n\n【COMPOSITION】\n- Clear visual hierarchy with main title at top\n- Organized sections with cute dividers\n- Small illustrated icons and doodles scattered throughout\n- Balance between text areas and illustrations\n- Easy to read layout\n\n【TECHNICAL REQUIREMENTS】\n1. Soft, harmonious color palette (pastels preferred)\n2. Clean lines, not messy or over-sketched\n3. Include relevant illustrated elements based on the topic\n4. Professional but approachable hand-drawn look\n5. NO photorealistic elements\n6. NO AI-generated perfection - keep it warm and human\n\nUser request: {user_prompt}"
+    prompt: "hand-drawn poster like a cute journal: 1) soft pastel colors on cream background, 2) main title at top, 3) organized sections with cute dividers and doodle icons, 4) whimsical hand-lettering, 5) balance between text and illustrations, 6) cozy warm style. User request: {user_prompt}"
   },
   {
     id: "comic-story",
@@ -70,13 +70,13 @@ const contentFrameworks = [
     id: "infographic",
     name: "图文并茂",
     icon: "📊",
-    prompt: "detailed infographic layout: 1) MULTIPLE BOXES each containing BOTH relevant illustrations/icons AND concise text descriptions (60% images, 40% text), 2) clear hierarchical structure with main title at top, 3) various sized rectangular frames connected by arrows, 4) visual hierarchy using different box sizes and colors, 5) proper visual labels and annotations, 6) organized layout showing relationships and flow."
+    prompt: "detailed infographic layout: 1) multiple boxes each containing relevant illustrations and concise text (60% images, 40% text), 2) clear hierarchy with main title at top, 3) various sized frames connected by arrows, 4) visual hierarchy using different box sizes and colors, 5) proper visual labels and annotations, 6) organized layout showing relationships and flow."
   },
   {
     id: "comparison",
     name: "对比分析",
     icon: "⚖️",
-    prompt: "professional comparison analysis layout with SIDE-BY-SIDE structure: 1) TITLE at top center showing 'A vs B' or 'A 对比 B', 2) TWO MAIN COLUMNS divided by a vertical line or VS symbol in the middle, 3) LEFT COLUMN for Item A with icon/illustration at top, 4) RIGHT COLUMN for Item B with icon/illustration at top, 5) COMPARISON ROWS showing key dimensions (price, features, pros/cons, performance, design, etc.), 6) each row aligned horizontally across both columns for easy comparison, 7) use different background colors or borders to distinguish the two items (e.g., blue tint for left, orange tint for right), 8) include visual indicators like checkmarks ✓ for advantages, X marks for disadvantages, or star ratings, 9) summary section at bottom highlighting key differences, 10) clean table-like structure with clear labels. CRITICAL: Make it easy to scan and compare - align corresponding features horizontally, use consistent spacing, and maintain visual balance between both sides."
+    prompt: "professional comparison layout: 1) title at top showing A vs B, 2) two columns divided by VS symbol, 3) each column has icon at top, 4) comparison rows aligned horizontally, 5) different background colors per side, 6) checkmarks for advantages and X for disadvantages, 7) summary at bottom."
   },
 ];
 
@@ -92,31 +92,31 @@ const visualStyles = [
     id: "cute",
     name: "可爱风",
     icon: "🎀",
-    prompt: "Visual style: kawaii cute aesthetic with 1) pastel colors (pink, lavender, mint, peach), 2) rounded shapes and soft edges, 3) cute decorative elements (hearts, stars, sparkles), 4) soft lighting and gentle features, 5) dreamy atmosphere, 6) playful and friendly appearance."
+    prompt: "Visual style: kawaii cute aesthetic with pastel colors (pink, lavender, mint, peach), rounded shapes, soft edges, cute decorative elements (hearts, stars, sparkles), dreamy atmosphere, playful and friendly."
   },
   {
     id: "chibi",
     name: "Q版",
     icon: "🧸",
-    prompt: "Visual style: chibi Q-version cartoon style with 1) bold outlines and simplified features, 2) oversized heads and small bodies, 3) exaggerated expressions, 4) bright vibrant colors, 5) playful and cute character representations, 6) cartoon aesthetic with rounded shapes."
+    prompt: "Visual style: chibi Q-version cartoon with bold outlines, oversized heads, small bodies, exaggerated expressions, bright vibrant colors, playful cute characters, rounded shapes."
   },
   {
     id: "minimalist",
     name: "简约风",
     icon: "✨",
-    prompt: "Visual style: minimalist clean aesthetic with 1) simple elegant lines and geometric shapes, 2) monochromatic or limited color palette (black, white, one accent color), 3) plenty of white space for clarity, 4) clean straight lines, 5) 'less is more' principle, 6) modern and sophisticated look."
+    prompt: "Visual style: minimalist clean aesthetic with simple elegant lines, geometric shapes, limited color palette (black, white, one accent color), plenty of white space, clean straight lines, modern sophisticated look."
   },
   {
     id: "watercolor",
     name: "水彩风",
     icon: "🎨",
-    prompt: "Visual style: watercolor artistic aesthetic with 1) soft watercolor washes and flowing colors, 2) artistic color blending and gradients, 3) watercolor splashes and organic textures, 4) soft edges and natural flow, 5) painted artistic quality, 6) gentle and artistic appearance."
+    prompt: "Visual style: watercolor artistic aesthetic with soft washes and flowing colors, artistic blending and gradients, watercolor splashes and organic textures, soft edges, painted artistic quality."
   },
   {
     id: "vintage",
     name: "复古风",
     icon: "📜",
-    prompt: "Visual style: vintage retro aesthetic with 1) nostalgic warm tones (sepia, cream, brown, muted colors), 2) ornate decorative borders and flourishes, 3) aged paper texture, 4) classic typography, 5) retro ornamental elements, 6) nostalgic and timeless appearance."
+    prompt: "Visual style: vintage retro aesthetic with nostalgic warm tones (sepia, cream, brown), ornate decorative borders, aged paper texture, classic typography, retro ornamental elements."
   },
 ];
 
