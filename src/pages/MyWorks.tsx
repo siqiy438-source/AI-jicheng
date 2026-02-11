@@ -16,6 +16,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { deleteWork, listWorks, type WorkListItem } from "@/lib/repositories/works";
+import { downloadGeneratedImage } from "@/lib/image-utils";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -104,19 +105,8 @@ const MyWorks = () => {
 
   const handleDownload = async (work: WorkListItem) => {
     if (!work.thumbnail) return;
-
     try {
-      const response = await fetch(work.thumbnail);
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${work.title || "work"}-${Date.now()}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      await downloadGeneratedImage(work.thumbnail, `${work.title || "work"}-${Date.now()}.png`);
     } catch {
       window.open(work.thumbnail, "_blank");
     }

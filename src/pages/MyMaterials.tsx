@@ -33,6 +33,7 @@ import {
   uploadMaterials,
 } from "@/lib/repositories/materials";
 import { toast } from "sonner";
+import { downloadGeneratedImage } from "@/lib/image-utils";
 
 // 获取文件类型图标
 const getFileIcon = (type: string) => {
@@ -176,13 +177,7 @@ const MyMaterials = () => {
         toast.error("获取下载链接失败");
         return;
       }
-
-      const a = document.createElement("a");
-      a.href = signedUrl;
-      a.download = material.name;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      await downloadGeneratedImage(signedUrl, material.name);
     } catch (error) {
       console.error("下载失败", error);
       toast.error("下载失败");
