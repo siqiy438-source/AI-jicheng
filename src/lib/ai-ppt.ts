@@ -76,7 +76,7 @@ const getHeaders = () => ({
 export async function generateOutline(params: GenerateOutlineParams): Promise<GenerateOutlineResult> {
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 120000);
+    const timeoutId = setTimeout(() => controller.abort(), 180000);
 
     const response = await fetch(getEdgeFunctionUrl(), {
       method: 'POST',
@@ -113,7 +113,7 @@ export async function generateOutline(params: GenerateOutlineParams): Promise<Ge
 export async function generateSlideDescription(params: GenerateDescriptionParams): Promise<GenerateDescriptionResult> {
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 120000);
+    const timeoutId = setTimeout(() => controller.abort(), 180000);
 
     const response = await fetch(getEdgeFunctionUrl(), {
       method: 'POST',
@@ -191,7 +191,7 @@ export async function generateSlideImage(params: {
     const imageUrl = `${supabaseUrl}/functions/v1/ai-image`;
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 120000);
+    const timeoutId = setTimeout(() => controller.abort(), 180000);
 
     // 风格提示词
     const stylePrompts: Record<string, string> = {

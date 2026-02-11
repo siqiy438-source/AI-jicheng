@@ -54,9 +54,9 @@ export async function generateImage(params: ImageGenerationParams): Promise<Imag
       'Authorization': `Bearer ${supabaseAnonKey}`,
     };
 
-    // 设置 120 秒超时（AI 图像生成可能需要较长时间）
+    // 设置 180 秒超时（AI 图像生成 + Storage 上传可能需要较长时间）
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 120000);
+    const timeoutId = setTimeout(() => controller.abort(), 180000);
 
     const response = await fetch(getEdgeFunctionUrl(), {
       method: 'POST',
