@@ -353,7 +353,7 @@ const AIPoster = () => {
         <div className="flex items-center gap-2.5 md:gap-4 mb-4 md:mb-8">
           <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center flex-shrink-0">
             <img 
-              src="/icons/ai-poster-custom.png" 
+              src="/icons/ai-poster-custom.webp" 
               alt="AI 海报" 
               className="w-10 h-10 md:w-14 md:h-14 object-contain"
             />

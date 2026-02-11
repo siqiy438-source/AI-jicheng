@@ -33,8 +33,10 @@ export const Header = () => {
           <Link to="/" className="flex items-center gap-2">
             {/* Logo 图标 - 直接铺满 */}
             <img 
-              src="/logo.png" 
+              src="/logo.webp" 
               alt="灵犀 Logo" 
+              loading="eager"
+              decoding="async"
               className="w-8 h-8 object-cover flex-shrink-0"
             />
             <span className="font-semibold text-foreground text-sm">灵犀</span>

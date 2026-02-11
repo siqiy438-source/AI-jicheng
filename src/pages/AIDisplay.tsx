@@ -200,7 +200,7 @@ const AIDisplay = () => {
         <div className="hidden md:flex items-center gap-4 mb-8">
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0">
             <img
-              src="/icons/ai-display-custom.png"
+              src="/icons/ai-display-custom.webp"
               alt="AI 陈列"
               className="w-14 h-14 object-contain"
             />

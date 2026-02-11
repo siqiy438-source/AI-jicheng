@@ -10,10 +10,6 @@
 /* ─────────────────────────────────────────────────────────────────────────────
    字体系统
    ───────────────────────────────────────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&display=swap');
-
-/* 霞鹜文楷 - 中文显示字体 */
-@import url('https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css');
 
 @layer base {
   :root {
@@ -193,7 +189,7 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Outfit', 'LXGW WenKai', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
     font-feature-settings: 'cv11', 'ss01';
     font-variation-settings: 'wght' 400;
     /* Mobile-First 字体：正文不低于 16px（防 iOS 输入框缩放） */
@@ -238,7 +234,7 @@
 
   /* 标题使用 Fraunces 衬线体 */
   h1, h2, h3 {
-    font-family: 'Fraunces', 'LXGW WenKai', Georgia, serif;
+    font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, sans-serif;
     font-variation-settings: 'wght' 600, 'opsz' 36;
     letter-spacing: -0.02em;
   }

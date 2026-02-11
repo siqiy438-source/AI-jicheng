@@ -11,7 +11,7 @@ const FashionOutfit = () => {
     <FashionGeneratorPage
       title="服装搭配"
       subtitle="上传服装图片或文件，快速生成女装搭配图"
-      iconSrc="/icons/fashion-outfit-custom.png"
+      iconSrc="/icons/fashion-outfit-custom.webp"
       basePrompt={FASHION_OUTFIT_FLATLAY_PROMPT}
       styleOptions={outfitStyles}
       resultAlt="服装搭配图"

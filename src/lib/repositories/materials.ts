@@ -59,37 +59,78 @@ const getSignedUrl = async (bucket: string, path: string) => {
   return data.signedUrl;
 };
 
+const getSignedUrlMapByBucket = async (
+  rows: Array<{ storage_bucket: string | null; storage_path: string; file_type: string; preview_url: string | null }>
+) => {
+  const bucketPathMap = new Map<string, string[]>();
+
+  rows.forEach((row) => {
+    if (row.file_type !== 'image') return;
+    const bucket = row.storage_bucket || MATERIALS_BUCKET;
+    const list = bucketPathMap.get(bucket) || [];
+    list.push(row.storage_path);
+    bucketPathMap.set(bucket, list);
+  });
+
+  const signedMap = new Map<string, string | null>();
+
+  for (const [bucket, paths] of bucketPathMap.entries()) {
+    const uniquePaths = [...new Set(paths)];
+    if (uniquePaths.length === 0) continue;
+
+    const storage = supabase.storage.from(bucket);
+    const { data, error } = await storage.createSignedUrls(uniquePaths, 60 * 60);
+
+    if (error) {
+      await Promise.all(
+        uniquePaths.map(async (path) => {
+          const singleUrl = await getSignedUrl(bucket, path);
+          signedMap.set(`${bucket}:${path}`, singleUrl);
+        })
+      );
+      continue;
+    }
+
+    (data || []).forEach((item, index) => {
+      const path = uniquePaths[index];
+      signedMap.set(`${bucket}:${path}`, item?.signedUrl || null);
+    });
+  }
+
+  return (bucket: string, path: string) => signedMap.get(`${bucket}:${path}`) || null;
+};
+
 export const listMaterials = async (): Promise<MaterialListItem[]> => {
   const { data, error } = await supabase
     .from('materials')
     .select('id, name, file_type, size_bytes, folder_name, created_at, storage_bucket, storage_path, mime_type, preview_url')
     .order('created_at', { ascending: false })
-    .limit(500);
+    .limit(60);
 
   if (error) {
     throw error;
   }
 
   const rows = data ?? [];
-  const mapped = await Promise.all(
-    rows.map(async (row) => {
-      const thumbnail = row.file_type === 'image'
-        ? await getSignedUrl(row.storage_bucket || MATERIALS_BUCKET, row.storage_path)
-        : row.preview_url || null;
+  const getSignedUrlFromMap = await getSignedUrlMapByBucket(rows);
+  const mapped = rows.map((row) => {
+    const bucket = row.storage_bucket || MATERIALS_BUCKET;
+    const thumbnail = row.file_type === 'image'
+      ? getSignedUrlFromMap(bucket, row.storage_path)
+      : row.preview_url || null;
 
-      return {
-        id: row.id,
-        name: row.name,
-        type: row.file_type,
-        thumbnail,
-        size: formatBytes(row.size_bytes || 0),
-        uploadedAt: formatUploadedAt(row.created_at),
-        folder: row.folder_name || null,
-        storageBucket: row.storage_bucket || MATERIALS_BUCKET,
-        storagePath: row.storage_path,
-      };
-    })
-  );
+    return {
+      id: row.id,
+      name: row.name,
+      type: row.file_type,
+      thumbnail,
+      size: formatBytes(row.size_bytes || 0),
+      uploadedAt: formatUploadedAt(row.created_at),
+      folder: row.folder_name || null,
+      storageBucket: bucket,
+      storagePath: row.storage_path,
+    };
+  });
 
   return mapped;
 };

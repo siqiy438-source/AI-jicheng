@@ -16,25 +16,25 @@ const tools: ToolItem[] = [
   {
     title: "AI 一键挂搭图",
     description: "上传内搭、上衣、裤子，自动补全包包与配饰",
-    iconSrc: "/icons/ai-one-click-outfit-custom.png",
+    iconSrc: "/icons/ai-one-click-outfit-custom.webp",
     to: "/ai-hangoutfit",
   },
   {
     title: "AI 陈列",
     description: "智能搭配，一键生成专业店铺陈列方案",
-    iconSrc: "/icons/ai-display-custom.png",
+    iconSrc: "/icons/ai-display-custom.webp",
     to: "/ai-display",
   },
   {
     title: "服装搭配",
     description: "生成女装平铺搭配图，展示完整单品组合",
-    iconSrc: "/icons/fashion-outfit-custom.png",
+    iconSrc: "/icons/fashion-outfit-custom.webp",
     to: "/fashion-outfit",
   },
   {
     title: "服装模特搭配",
     description: "生成真实模特上身效果图，突出穿搭氛围",
-    iconSrc: "/icons/fashion-model-custom.png",
+    iconSrc: "/icons/fashion-model-custom.webp",
     to: "/fashion-model-outfit",
   },
 ];

@@ -282,7 +282,7 @@ const AICopywriting = () => {
       <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
         <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center">
           <img 
-            src="/icons/ai-copywriting-custom.png" 
+            src="/icons/ai-copywriting-custom.webp" 
             alt="AI 文案" 
             className="w-12 h-12 md:w-14 md:h-14 object-contain"
           />

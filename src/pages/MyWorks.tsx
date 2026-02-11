@@ -243,6 +243,8 @@ const MyWorks = () => {
                       src={work.thumbnail}
                       alt={work.title}
                       loading="lazy"
+                      decoding="async"
+                      fetchPriority="low"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
@@ -347,6 +349,8 @@ const MyWorks = () => {
                       src={work.thumbnail}
                       alt={work.title}
                       loading="lazy"
+                      decoding="async"
+                      fetchPriority="low"
                       className="w-full h-full object-cover"
                     />
                   ) : (

@@ -321,7 +321,7 @@ const AIPPT = () => {
         <div className="text-center mb-8 md:mb-12 pt-4 md:pt-8">
           <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <img 
-              src="/icons/ai-ppt-custom.png" 
+              src="/icons/ai-ppt-custom.webp" 
               alt="AI PPT" 
               className="w-14 h-14 md:w-16 md:h-16 object-contain"
             />

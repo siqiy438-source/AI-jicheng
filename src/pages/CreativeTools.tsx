@@ -16,19 +16,19 @@ const tools: ToolItem[] = [
   {
     title: "AI 海报",
     description: "专业场景海报，一键智能设计",
-    iconSrc: "/icons/ai-poster-custom.png",
+    iconSrc: "/icons/ai-poster-custom.webp",
     to: "/ai-poster",
   },
   {
     title: "AI 绘图",
     description: "一句话生成图片，灵感即刻呈现",
-    iconSrc: "/icons/ai-drawing-custom.png",
+    iconSrc: "/icons/ai-drawing-custom.webp",
     to: "/ai-drawing",
   },
   {
     title: "AI PPT",
     description: "文字变演示，快速生成幻灯片",
-    iconSrc: "/icons/ai-ppt-custom.png",
+    iconSrc: "/icons/ai-ppt-custom.webp",
     to: "/ai-ppt",
   },
 ];

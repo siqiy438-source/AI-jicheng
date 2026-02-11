@@ -470,6 +470,8 @@ const MyMaterials = () => {
                           alt={material.name}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           loading="lazy"
+                          decoding="async"
+                          fetchPriority="low"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
@@ -513,6 +515,8 @@ const MyMaterials = () => {
                           alt={material.name}
                           className="w-full h-full object-cover"
                           loading="lazy"
+                          decoding="async"
+                          fetchPriority="low"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">{getFileIcon(material.type)}</div>

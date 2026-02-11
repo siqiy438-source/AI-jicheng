@@ -209,7 +209,7 @@ cropped garments, partial view, flat lay, frontal view, low quality, blurry, dis
       <div className="hidden md:flex items-center gap-4 mb-8">
         <div className="w-14 h-14 rounded-2xl flex items-center justify-center p-1.5">
           <img
-            src="/icons/ai-one-click-outfit-custom.png"
+            src="/icons/ai-one-click-outfit-custom.webp"
             alt="AI 一键挂搭图"
             className="w-full h-full object-contain"
           />

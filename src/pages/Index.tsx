@@ -4,28 +4,28 @@ import { FeatureCard } from "@/components/FeatureCard";
 const Index = () => {
   const features = [
     {
-      customIcon: "/icons/ai-ppt-custom.png",
+      customIcon: "/icons/ai-ppt-custom.webp",
       title: "AI PPT",
       description: "文字变演示，智能生成幻灯片",
       color: "amber" as const,
       to: "/ai-ppt",
     },
     {
-      customIcon: "/icons/ai-drawing-custom.png",
+      customIcon: "/icons/ai-drawing-custom.webp",
       title: "AI 绘图",
       description: "一句话生成，灵感即刻呈现",
       color: "indigo" as const,
       to: "/ai-drawing",
     },
     {
-      customIcon: "/icons/ai-copywriting-custom.png",
+      customIcon: "/icons/ai-copywriting-custom.webp",
       title: "AI 文案",
       description: "智能写作，助力内容创造",
       color: "emerald" as const,
       to: "/ai-copywriting",
     },
     {
-      customIcon: "/icons/ai-one-click-outfit-custom.png",
+      customIcon: "/icons/ai-one-click-outfit-custom.webp",
       title: "服装",
       description: "挂搭图、陈列、模特搭配",
       color: "violet" as const,

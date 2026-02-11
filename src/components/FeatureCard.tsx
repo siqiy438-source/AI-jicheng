@@ -133,6 +133,8 @@ export const FeatureCard = ({
           <img
             src={customIcon}
             alt={title}
+            loading="lazy"
+            decoding="async"
             className={cn(
               "w-full h-full object-contain transition-all duration-300",
               "group-hover:scale-110"

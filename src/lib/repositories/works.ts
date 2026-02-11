@@ -20,6 +20,8 @@ interface SaveWorkInput {
 
 const WORKS_BUCKET = 'works-assets';
 
+const isDataUrl = (value: string) => value.startsWith('data:');
+
 const formatCreatedAt = (iso: string) => {
   const date = new Date(iso);
   return date.toLocaleString('zh-CN', {
@@ -72,32 +74,72 @@ const getSignedPreviewUrl = async (bucket: string | null, path: string | null) =
   return data.signedUrl;
 };
 
+const getSignedPreviewUrlMap = async (rows: Array<{ storage_bucket: string | null; storage_path: string | null }>) => {
+  const bucketPathMap = new Map<string, string[]>();
+
+  rows.forEach((row) => {
+    if (!row.storage_bucket || !row.storage_path) return;
+    const list = bucketPathMap.get(row.storage_bucket) || [];
+    list.push(row.storage_path);
+    bucketPathMap.set(row.storage_bucket, list);
+  });
+
+  const signedMap = new Map<string, string | null>();
+
+  for (const [bucket, paths] of bucketPathMap.entries()) {
+    if (paths.length === 0) continue;
+
+    const uniquePaths = [...new Set(paths)];
+    const storage = supabase.storage.from(bucket);
+    const { data, error } = await storage.createSignedUrls(uniquePaths, 60 * 60);
+
+    if (error) {
+      await Promise.all(
+        uniquePaths.map(async (path) => {
+          const singleUrl = await getSignedPreviewUrl(bucket, path);
+          const mapKey = `${bucket}:${path}`;
+          signedMap.set(mapKey, singleUrl);
+        })
+      );
+      continue;
+    }
+
+    (data || []).forEach((item, index) => {
+      const path = uniquePaths[index];
+      const mapKey = `${bucket}:${path}`;
+      signedMap.set(mapKey, item?.signedUrl || null);
+    });
+  }
+
+  return (row: { storage_bucket: string | null; storage_path: string | null }) => {
+    if (!row.storage_bucket || !row.storage_path) return null;
+    const mapKey = `${row.storage_bucket}:${row.storage_path}`;
+    return signedMap.get(mapKey) || null;
+  };
+};
+
 export const listWorks = async (): Promise<WorkListItem[]> => {
   const { data, error } = await supabase
     .from('works')
-    .select('id, title, type, tool, content_json, created_at, storage_bucket, storage_path, thumbnail_url')
+    .select('id, title, type, tool, content_json, created_at, storage_bucket, storage_path')
     .order('created_at', { ascending: false })
-    .limit(200);
+    .limit(40);
 
   if (error) {
     throw error;
   }
 
   const rows = data ?? [];
-  const mapped = await Promise.all(
-    rows.map(async (row) => {
-      const signedUrl = await getSignedPreviewUrl(row.storage_bucket, row.storage_path);
-      return {
-        id: row.id,
-        title: row.title,
-        type: row.type,
-        tool: row.tool || 'AI 创作',
-        content: (row.content_json?.text as string | undefined) || undefined,
-        thumbnail: signedUrl || row.thumbnail_url || null,
-        createdAt: formatCreatedAt(row.created_at),
-      };
-    })
-  );
+  const getSignedUrlFromMap = await getSignedPreviewUrlMap(rows);
+  const mapped = rows.map((row) => ({
+    id: row.id,
+    title: row.title,
+    type: row.type,
+    tool: row.tool || 'AI 创作',
+    content: typeof row.content_json?.text === 'string' ? row.content_json.text : undefined,
+    thumbnail: getSignedUrlFromMap(row),
+    createdAt: formatCreatedAt(row.created_at),
+  }));
 
   return mapped;
 };
@@ -114,7 +156,7 @@ export const saveWork = async (input: SaveWorkInput) => {
     const uploaded = await uploadWorkPreview(userId, input.thumbnailDataUrl);
     storageBucket = uploaded.bucket;
     storagePath = uploaded.path;
-    thumbnailUrl = input.thumbnailDataUrl;
+    thumbnailUrl = isDataUrl(input.thumbnailDataUrl) ? null : input.thumbnailDataUrl;
   }
 
   const { data, error } = await supabase

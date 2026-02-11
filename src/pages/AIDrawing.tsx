@@ -456,7 +456,7 @@ const AIDrawing = () => {
         <div className="hidden md:flex items-center gap-4 mb-8">
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0">
             <img 
-              src="/icons/ai-drawing-custom.png" 
+              src="/icons/ai-drawing-custom.webp" 
               alt="AI 绘图" 
               className="w-14 h-14 object-contain"
             />

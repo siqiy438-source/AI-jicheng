@@ -145,8 +145,10 @@ export const Sidebar = () => {
           <div className="flex items-center gap-3">
             {/* Logo 图标 - 直接铺满 */}
             <img 
-              src="/logo.png" 
+              src="/logo.webp" 
               alt="灵犀 Logo" 
+              loading="eager"
+              decoding="async"
               className="w-9 h-9 object-cover flex-shrink-0"
             />
             <div className="flex flex-col min-w-0">
