@@ -7,6 +7,7 @@ import {
   FolderUp,
   Image,
   Loader2,
+  Palette,
   RefreshCw,
   Send,
   Sparkles,
@@ -21,11 +22,19 @@ import { generateImage } from "@/lib/ai-image";
 import { compressImage, downloadGeneratedImage } from "@/lib/image-utils";
 import { cn } from "@/lib/utils";
 
+export interface StyleOption {
+  id: string;
+  name: string;
+  prompt: string;
+  icon?: string;
+}
+
 interface FashionGeneratorPageProps {
   title: string;
   subtitle: string;
   iconSrc: string;
   basePrompt: string;
+  styleOptions?: StyleOption[];
   resultAlt: string;
   downloadPrefix: string;
 }
@@ -51,6 +60,7 @@ export const FashionGeneratorPage = ({
   subtitle,
   iconSrc,
   basePrompt,
+  styleOptions,
   resultAlt,
   downloadPrefix,
 }: FashionGeneratorPageProps) => {
@@ -62,8 +72,10 @@ export const FashionGeneratorPage = ({
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [selectedRatio, setSelectedRatio] = useState("9:16");
   const [selectedLine, setSelectedLine] = useState("standard");
+  const [selectedStyleId, setSelectedStyleId] = useState(styleOptions?.[0]?.id ?? "");
   const [showRatioMenu, setShowRatioMenu] = useState(false);
   const [showLineMenu, setShowLineMenu] = useState(false);
+  const [showStyleMenu, setShowStyleMenu] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
 
@@ -72,6 +84,7 @@ export const FashionGeneratorPage = ({
   const closeAllMenus = () => {
     setShowRatioMenu(false);
     setShowLineMenu(false);
+    setShowStyleMenu(false);
   };
 
   const handleImageUpload = async (files: FileList | null) => {
@@ -169,9 +182,10 @@ export const FashionGeneratorPage = ({
 
   const buildPrompt = () => {
     const userPrompt = prompt.trim();
-    const replacedPrompt = basePrompt.includes("{user_prompt}")
-      ? basePrompt.replace("{user_prompt}", userPrompt || "参考上传服装图片")
-      : `${basePrompt}${userPrompt ? `\n\n用户补充需求：${userPrompt}` : ""}`;
+    const activePrompt = styleOptions?.find((s) => s.id === selectedStyleId)?.prompt ?? basePrompt;
+    const replacedPrompt = activePrompt.includes("{user_prompt}")
+      ? activePrompt.replace("{user_prompt}", userPrompt || "参考上传服装图片")
+      : `${activePrompt}${userPrompt ? `\n\n用户补充需求：${userPrompt}` : ""}`;
 
     if (uploadedFiles.length === 0) {
       return replacedPrompt;
@@ -319,11 +333,49 @@ export const FashionGeneratorPage = ({
 
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1 md:gap-1.5 flex-1 min-w-0 flex-wrap overflow-visible" style={{ rowGap: "6px" }}>
+              {styleOptions && styleOptions.length > 1 && (
+                <div className="relative flex-shrink-0" onClick={(event) => event.stopPropagation()}>
+                  <button
+                    onClick={() => {
+                      setShowStyleMenu(!showStyleMenu);
+                      setShowRatioMenu(false);
+                      setShowLineMenu(false);
+                    }}
+                    className="flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-full text-[11px] md:text-sm bg-secondary/50 text-muted-foreground hover:bg-secondary transition-all duration-200 border border-transparent touch-target whitespace-nowrap"
+                  >
+                    <Palette className="w-3.5 h-3.5" />
+                    <span>{styleOptions.find((s) => s.id === selectedStyleId)?.name}</span>
+                    <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showStyleMenu && "rotate-180")} />
+                  </button>
+                  {showStyleMenu && (
+                    <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 w-[120px] max-w-[calc(100vw-2rem)] animate-dropdown max-h-[128px] overflow-y-auto scrollbar-thin dropdown-panel">
+                      {styleOptions.map((style) => (
+                        <button
+                          key={style.id}
+                          onClick={() => {
+                            setSelectedStyleId(style.id);
+                            setShowStyleMenu(false);
+                          }}
+                          className={cn(
+                            "w-full flex items-center gap-1.5 px-3 py-2.5 text-sm hover:bg-secondary/50 transition-all duration-200 text-left touch-target",
+                            selectedStyleId === style.id && "bg-orange-50 text-orange-700",
+                          )}
+                        >
+                          {style.icon && <span>{style.icon}</span>}
+                          <span>{style.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="relative flex-shrink-0" onClick={(event) => event.stopPropagation()}>
                 <button
                   onClick={() => {
                     setShowRatioMenu(!showRatioMenu);
                     setShowLineMenu(false);
+                    setShowStyleMenu(false);
                   }}
                   className="flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-full text-[11px] md:text-sm bg-secondary/50 text-muted-foreground hover:bg-secondary transition-all duration-200 border border-transparent touch-target whitespace-nowrap"
                 >
@@ -357,6 +409,7 @@ export const FashionGeneratorPage = ({
                   onClick={() => {
                     setShowLineMenu(!showLineMenu);
                     setShowRatioMenu(false);
+                    setShowStyleMenu(false);
                   }}
                   className="flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-full text-[11px] md:text-sm bg-secondary/50 text-muted-foreground hover:bg-secondary transition-all duration-200 border border-transparent touch-target whitespace-nowrap"
                 >
