@@ -185,7 +185,7 @@ export async function generateSlideImage(params: {
   aspectRatio: string;
   line?: "standard" | "premium";
   resolution?: "default" | "2k" | "4k";
-}): Promise<{ success: boolean; imageBase64?: string; error?: string }> {
+}): Promise<{ success: boolean; imageBase64?: string; imageUrl?: string; error?: string }> {
   try {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://kzdjqqinkonqlclbwleh.supabase.co';
     const imageUrl = `${supabaseUrl}/functions/v1/ai-image`;
@@ -257,6 +257,7 @@ Requirements:
     return {
       success: result.success,
       imageBase64: result.imageBase64,
+      imageUrl: result.imageUrl,
       error: result.error,
     };
   } catch (error) {

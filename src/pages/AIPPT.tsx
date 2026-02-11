@@ -245,9 +245,9 @@ const AIPPT = () => {
 
     setIsGeneratingImage(false);
 
-    if (result.success && result.imageBase64) {
+    if (result.success && (result.imageUrl || result.imageBase64)) {
       const newSlides = [...slides];
-      newSlides[slideIndex] = { ...newSlides[slideIndex], generatedImage: result.imageBase64 };
+      newSlides[slideIndex] = { ...newSlides[slideIndex], generatedImage: result.imageUrl || result.imageBase64 };
       setSlides(newSlides);
     } else {
       toast({ title: "图片生成失败", description: result.error || "请稍后重试", variant: "destructive" });
@@ -274,8 +274,8 @@ const AIPPT = () => {
         line: selectedLineOption2.line,
         resolution: selectedLineOption2.resolution,
       });
-      if (result.success && result.imageBase64) {
-        newSlides[i] = { ...newSlides[i], generatedImage: result.imageBase64 };
+      if (result.success && (result.imageUrl || result.imageBase64)) {
+        newSlides[i] = { ...newSlides[i], generatedImage: result.imageUrl || result.imageBase64 };
         setSlides([...newSlides]);
       }
     }

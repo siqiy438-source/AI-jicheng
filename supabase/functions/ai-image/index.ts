@@ -12,6 +12,61 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+/** 将 base64 图片上传到 Supabase Storage，返回签名 URL（失败返回 null） */
+async function uploadImageToStorage(
+  supabaseUrl: string,
+  serviceKey: string,
+  imageBase64: string,
+): Promise<string | null> {
+  try {
+    const supabaseAdmin = createClient(supabaseUrl, serviceKey)
+    const matches = imageBase64.match(/^data:([^;]+);base64,(.+)$/)
+    if (!matches) return null
+
+    const mimeType = matches[1]
+    const raw = atob(matches[2])
+    const bytes = new Uint8Array(raw.length)
+    for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i)
+
+    const ext = mimeType.includes('png') ? 'png' : 'jpg'
+    const path = `temp/${crypto.randomUUID()}.${ext}`
+
+    const { error: upErr } = await supabaseAdmin.storage
+      .from('works-assets')
+      .upload(path, bytes, { contentType: mimeType, upsert: false })
+    if (upErr) { console.error('[ai-image] Storage upload error:', upErr); return null }
+
+    const { data, error: urlErr } = await supabaseAdmin.storage
+      .from('works-assets')
+      .createSignedUrl(path, 3600) // 1 小时有效
+    if (urlErr) { console.error('[ai-image] Signed URL error:', urlErr); return null }
+
+    return data.signedUrl
+  } catch (e) {
+    console.error('[ai-image] uploadImageToStorage failed:', e)
+    return null
+  }
+}
+
+/** 如果 image 是 http(s) URL 则下载并转为 data URL，否则原样返回 */
+async function resolveImageToDataUrl(image: string): Promise<string> {
+  if (image.startsWith('data:')) return image
+  if (image.startsWith('http')) {
+    const resp = await fetch(image)
+    const buf = await resp.arrayBuffer()
+    const bytes = new Uint8Array(buf)
+    let binary = ''
+    const chunk = 8192
+    for (let i = 0; i < bytes.length; i += chunk) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunk))
+    }
+    const b64 = btoa(binary)
+    const ct = resp.headers.get('content-type') || 'image/png'
+    return `data:${ct};base64,${b64}`
+  }
+  return image
+}
+
 serve(async (req) => {
   // 处理 CORS preflight
   if (req.method === 'OPTIONS') {
@@ -29,6 +84,11 @@ serve(async (req) => {
     const providerConfig = getProviderConfig(resolvedLine)
     const providerApiKey = Deno.env.get(providerConfig.apiKeyEnv)
     const providerName = "BLTCY"
+
+    // 调试日志：确认线路和模型选择
+    const actualModel = isHDResolution(resolvedResolution) ? getHDModel(resolvedResolution) : providerConfig.model
+    console.log(`[ai-image] 请求参数 → line=${line}, resolution=${resolution}`)
+    console.log(`[ai-image] 解析结果 → resolvedLine=${resolvedLine}, resolvedResolution=${resolvedResolution}, HD=${isHDResolution(resolvedResolution)}, model=${actualModel}`)
 
     if (!providerApiKey) {
       console.error(`[ai-image] Missing API key: ${providerConfig.apiKeyEnv} for ${providerName} provider`)
@@ -141,7 +201,7 @@ Flat-lay product showcase requirements:
       // images/edits 接口要求 image 参数
       // 如果用户上传了参考图片，使用第一张；否则发送一个 1x1 透明占位图
       if (images && Array.isArray(images) && images.length > 0) {
-        const firstImage = images[0]
+        const firstImage = await resolveImageToDataUrl(images[0])
         const matches = firstImage.match(/^data:([^;]+);base64,(.+)$/)
         if (matches) {
           const binaryStr = atob(matches[2])
@@ -190,7 +250,13 @@ Flat-lay product showcase requirements:
           // 如果返回的是 URL，需要下载图片
           const imgResp = await fetch(item.url)
           const imgBuffer = await imgResp.arrayBuffer()
-          const base64 = btoa(String.fromCharCode(...new Uint8Array(imgBuffer)))
+          const imgBytes = new Uint8Array(imgBuffer)
+          let imgBinary = ''
+          const chunkSize = 8192
+          for (let i = 0; i < imgBytes.length; i += chunkSize) {
+            imgBinary += String.fromCharCode(...imgBytes.subarray(i, i + chunkSize))
+          }
+          const base64 = btoa(imgBinary)
           imageBase64 = `data:image/png;base64,${base64}`
         }
       }
@@ -199,6 +265,24 @@ Flat-lay product showcase requirements:
         throw new Error('未能生成高清图片')
       }
 
+      // 尝试上传到 Storage 返回 URL（减小响应体积，优化手机端）
+      let imageUrl: string | null = null
+      if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
+        imageUrl = await uploadImageToStorage(SUPABASE_URL, SUPABASE_SERVICE_KEY, imageBase64)
+      }
+
+      if (imageUrl) {
+        console.log(`[ai-image] HD 图片已上传 Storage，返回 URL`)
+        return new Response(JSON.stringify({
+          success: true,
+          imageUrl,
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      // Storage 上传失败时回退到 base64
+      console.log(`[ai-image] HD Storage 上传失败，回退 base64`)
       return new Response(JSON.stringify({
         success: true,
         imageBase64,
@@ -216,11 +300,12 @@ Flat-lay product showcase requirements:
     // 添加文本提示词
     parts.push({ text: fullPrompt })
 
-    // 如果有上传的图片，添加到请求中
+    // 如果有上传的图片，添加到请求中（支持 data URL 和 http URL）
     if (images && Array.isArray(images) && images.length > 0) {
-      for (const imageBase64 of images) {
+      for (const img of images) {
+        const resolved = await resolveImageToDataUrl(img)
         // 从 base64 data URL 中提取实际数据
-        const matches = imageBase64.match(/^data:([^;]+);base64,(.+)$/)
+        const matches = resolved.match(/^data:([^;]+);base64,(.+)$/)
         if (matches) {
           parts.push({
             inlineData: {
@@ -308,6 +393,25 @@ Flat-lay product showcase requirements:
       throw new Error('未能生成图片')
     }
 
+    // 尝试上传到 Storage 返回 URL（减小响应体积，优化手机端）
+    let imageUrl: string | null = null
+    if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
+      imageUrl = await uploadImageToStorage(SUPABASE_URL, SUPABASE_SERVICE_KEY, imageBase64)
+    }
+
+    if (imageUrl) {
+      console.log(`[ai-image] 标准线路图片已上传 Storage，返回 URL`)
+      return new Response(JSON.stringify({
+        success: true,
+        imageUrl,
+        textContent,
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    // Storage 上传失败时回退到 base64
+    console.log(`[ai-image] 标准线路 Storage 上传失败，回退 base64`)
     return new Response(JSON.stringify({
       success: true,
       imageBase64,
