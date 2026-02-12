@@ -13,6 +13,7 @@ interface AnalysisReviewProps {
   onConfirm: () => void;
   onReanalyze: () => void;
   isGenerating?: boolean;
+  hideButtons?: boolean;
 }
 
 const AnalysisReview = ({
@@ -20,6 +21,7 @@ const AnalysisReview = ({
   onConfirm,
   onReanalyze,
   isGenerating = false,
+  hideButtons = false,
 }: AnalysisReviewProps) => {
   const [expandedAgent, setExpandedAgent] = useState<string | null>("color");
   const [imageLoadFailed, setImageLoadFailed] = useState<Record<string, boolean>>({});
@@ -92,29 +94,31 @@ const AnalysisReview = ({
       ))}
 
       {/* 操作按钮 */}
-      <div className="flex items-center gap-3 pt-2">
-        <button
-          onClick={onReanalyze}
-          disabled={isGenerating}
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-foreground bg-secondary/50 hover:bg-secondary transition-all touch-target"
-        >
-          <RefreshCw className="w-3.5 h-3.5" />
-          重新分析
-        </button>
-        <button
-          onClick={onConfirm}
-          disabled={isGenerating}
-          className={cn(
-            "flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all touch-target",
-            isGenerating
-              ? "bg-secondary/50 text-muted-foreground/50 cursor-not-allowed"
-              : "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25"
-          )}
-        >
-          <Sparkles className="w-4 h-4" />
-          {isGenerating ? "生成中..." : "确认方案，开始生成"}
-        </button>
-      </div>
+      {!hideButtons && (
+        <div className="flex items-center gap-3 pt-2">
+          <button
+            onClick={onReanalyze}
+            disabled={isGenerating}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-foreground bg-secondary/50 hover:bg-secondary transition-all touch-target"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            重新分析
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={isGenerating}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all touch-target",
+              isGenerating
+                ? "bg-secondary/50 text-muted-foreground/50 cursor-not-allowed"
+                : "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25"
+            )}
+          >
+            <Sparkles className="w-4 h-4" />
+            {isGenerating ? "生成中..." : "确认方案，开始生成"}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

@@ -11,55 +11,61 @@ const corsHeaders = {
 }
 
 // VM 陈列分析专用系统提示词
-const VM_ANALYSIS_SYSTEM_PROMPT = `你是一个由 4 位视觉陈列专家组成的团队，正在为专业店铺陈列分析服装。你必须只返回有效的 JSON 格式——不要 markdown、不要解释、不要多余文字。所有字符串值必须使用中文。
+const VM_ANALYSIS_SYSTEM_PROMPT = `你是顶级奢侈品女装陈列师（Celine/The Row 级别），正在帮女装店主做陈列指导。只返回有效 JSON，不要 markdown 和多余文字。所有内容用中文。
 
-分析上传的服装图片，从 4 个专家角度提供建议：
+## 规则
+1. 用户会给你一份已识别的衣服清单。你的所有建议必须严格基于这份清单中的衣服来写，用清单中的名称提到每件衣服，绝对不能编造清单中没有的衣服
+2. 不说废话：不要说"颜色相近放一起"这种谁都知道的话，直接说哪件和哪件放一起、为什么
+3. 不给装修建议：店已装修好，只管衣服怎么挂、怎么搭
+4. 客户视角：所有建议都是为了帮店主把衣服卖出去
 
-1. **色彩分析师**：仔细观察每件衣服的实际颜色。提取主色调（精确到具体颜色名称，如"藏青色"而非"蓝色"，"驼色"而非"棕色"）。识别整体色系。推荐同色系但更低饱和度的背景色（Tone-on-Tone 策略）。提供准确的 hex 色值。
-   - 示例：棕色大衣 → 奶油色/米色背景墙（Maillard 氛围）
-   - 示例：蓝色衬衫 → 冷灰色/水泥色背景墙（莫兰迪氛围）
-   - 注意：仔细辨别面料的真实颜色，不要猜测。黑色就是黑色，不要说成深蓝。
+## displayGuide 要求
 
-2. **风格识别师**：识别风格类别并推荐对应道具组合：
-   - 职场简约：皮质配饰、金属台灯、建筑杂志
-   - 休闲度假：编织篮、干花植物、亚麻织物
-   - 艺术复古：油画框（靠墙放置）、复古陶瓷
-   - 注意：仔细观察面料材质（棉、麻、丝、毛、化纤等），在描述中体现。
+garmentList：直接复制用户提供的衣服清单描述，不要修改
 
-3. **构图规划师**：规划无限金属挂杆上的"疏朗水平流动"布局。用户会在提示中告诉你实际衣服件数，totalPieces 必须等于用户提供的实际件数。规划间距（15-20%）、地面三角构图锚点、下摆高度节奏（长-短-长）、叠挂与单挂的分配。
+railStyle：这一杆的风格定位 + 适合什么客户，如"法式轻通勤风 — 适合25-35岁职场女性"
 
-4. **灯光指导**：推荐灯光方案。默认为左上方柔和漫射光。根据色调调整色温。
+arrangementSteps（4-6步）：用清单中的衣服名称说明从左到右怎么挂。如"最左边单挂深蓝色高腰阔腿裤，旁边把白色长袖衬衫和藏青色圆领马甲叠挂"
 
-只返回以下 JSON 结构：
+pairingAdvice（3-4条）：用衣服名称说明具体搭配和原因。如"黑色西装+白色丝质衬衫：面料一硬一软，对比高级"
+
+heightRhythmDescription：从左到右每个位置的衣服名称和大致长度，说明波浪节奏
+
+salesTalk（3-4条）：店主向顾客推荐的口语化话术，自然不生硬，每条对应一组搭配。如"姐这件风衣您看一下，搭配里面白衬衫特别显气质，通勤约会都能穿"
+
+overallNarrative（80-120字）：口语化整体思路，提到风格和卖点
+
+返回 JSON（注意：colorAnalysis/styleDetection/compositionPlan/lightingPlan 尽量简短，把重点放在 displayGuide）：
 {
   "colorAnalysis": {
-    "dominantColors": [{"name": "中文颜色名", "hex": "#XXXXXX"}],
-    "colorFamily": "中文色系名称",
-    "backgroundRecommendation": {"color": "中文颜色名", "hex": "#XXXXXX", "reasoning": "中文推荐理由"}
+    "dominantColors": [{"name": "颜色", "hex": "#XXX"}],
+    "colorFamily": "色系",
+    "backgroundRecommendation": {"color": "颜色", "hex": "#XXX", "reasoning": "简短理由"}
   },
   "styleDetection": {
-    "styleCategory": "职场简约 | 休闲度假 | 艺术复古",
-    "styleDescription": "中文风格描述",
-    "recommendedProps": ["中文道具1", "中文道具2", "中文道具3"],
-    "propPlacement": "中文摆放建议"
+    "styleCategory": "风格类别",
+    "styleDescription": "简短描述",
+    "recommendedProps": ["道具"],
+    "propPlacement": "简短建议"
   },
   "compositionPlan": {
-    "totalPieces": "必须等于用户提供的实际衣服件数",
-    "soloHangers": "单挂数量",
-    "layeredHangers": "叠挂数量",
-    "spacingPercent": 18,
-    "hemRhythm": "中文节奏描述",
-    "anchorItems": "中文地面锚点描述",
-    "railDescription": "中文挂杆描述"
+    "totalPieces": 0, "soloHangers": 0, "layeredHangers": 0, "spacingPercent": 18,
+    "hemRhythm": "简短", "anchorItems": "简短", "railDescription": "简短"
   },
   "lightingPlan": {
-    "direction": "中文方向描述",
-    "warmth": "中文色温描述",
-    "colorTemperature": "3200K",
-    "shadowStyle": "中文阴影描述",
-    "specialNotes": "中文特别说明"
+    "direction": "简短", "warmth": "简短", "colorTemperature": "3200K",
+    "shadowStyle": "简短", "specialNotes": "简短"
   },
-  "summary": "2-3句中文总结推荐"
+  "displayGuide": {
+    "garmentList": ["复制用户清单"],
+    "railStyle": "风格定位",
+    "arrangementSteps": ["步骤1", "步骤2", "步骤3", "步骤4"],
+    "pairingAdvice": ["建议1", "建议2", "建议3"],
+    "heightRhythmDescription": "高度节奏描述",
+    "salesTalk": ["话术1", "话术2", "话术3"],
+    "overallNarrative": "整体思路"
+  },
+  "summary": "总结"
 }`
 
 // 生成式报告专用系统提示词
@@ -241,6 +247,55 @@ serve(async (req) => {
       throw new Error('prompt is required')
     }
 
+    // ========== VM 单件衣服识别模式 ==========
+    if (mode === 'vm-identify') {
+      const userContent: Array<{type: string; text?: string; image_url?: {url: string}}> = []
+      userContent.push({
+        type: 'text',
+        text: prompt,
+      })
+      if (images && Array.isArray(images)) {
+        for (const imageBase64 of images) {
+          if (typeof imageBase64 === 'string' && imageBase64.startsWith('data:')) {
+            userContent.push({
+              type: 'image_url',
+              image_url: { url: imageBase64 },
+            })
+          }
+        }
+      }
+
+      const identifyMessages = [
+        { role: 'system', content: '你是一位专业的女装买手和陈列师。看图片中的这件衣服，用中文描述以下信息，用一段话写完，不要分行：\n1. 颜色和款式（如"深蓝色高腰阔腿牛仔裤"）\n2. 面料质感（如"厚实牛仔面料"、"轻薄雪纺"、"挺括西装面料"）\n3. 大致长度（短款/中长/长款，约多少cm）\n4. 适合搭配什么类型的单品（如"适合搭配衬衫、针织衫等上装，可通勤可休闲"）\n\n示例："深蓝色高腰阔腿牛仔裤，厚实牛仔面料，长款约100cm，适合搭配衬衫或针织衫，通勤休闲都合适"\n\n只返回描述文字，不要任何其他内容。' },
+        { role: 'user', content: userContent },
+      ]
+
+      const identifyResponse = await fetch(`${ZENMUX_BASE_URL}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${ZENMUX_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: ZENMUX_MODEL,
+          messages: identifyMessages,
+          temperature: 0.1,
+          max_tokens: 200,
+          stream: false,
+        }),
+      })
+
+      if (!identifyResponse.ok) {
+        const errorText = await identifyResponse.text()
+        throw new Error(`VM Identify error: ${identifyResponse.status} - ${errorText}`)
+      }
+
+      const identifyData = await identifyResponse.json()
+      return new Response(JSON.stringify(identifyData), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
     // ========== VM 陈列分析模式 ==========
     if (mode === 'vm-analysis') {
       // 构建多模态消息（OpenAI vision 格式）
@@ -279,7 +334,7 @@ serve(async (req) => {
           model: ZENMUX_MODEL,
           messages: vmMessages,
           temperature: 0.3,
-          max_tokens: 4000,
+          max_tokens: 8000,
           stream: false,
         }),
       })
