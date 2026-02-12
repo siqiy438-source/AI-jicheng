@@ -20,6 +20,7 @@ import { PageLayout } from "@/components/PageLayout";
 import { Button } from "@/components/ui/button";
 import { generateImage } from "@/lib/ai-image";
 import { compressImage, downloadGeneratedImage } from "@/lib/image-utils";
+import { saveGeneratedImageWork } from "@/lib/repositories/works";
 import { cn } from "@/lib/utils";
 
 export interface StyleOption {
@@ -211,8 +212,9 @@ export const FashionGeneratorPage = ({
 
     try {
       const selectedLineOption = lineOptions.find((lineOption) => lineOption.id === selectedLine) || lineOptions[1];
+      const finalPrompt = buildPrompt();
       const data = await generateImage({
-        prompt: buildPrompt(),
+        prompt: finalPrompt,
         aspectRatio: selectedRatio,
         images: imagePreviews.length > 0 ? imagePreviews : undefined,
         line: selectedLineOption.line,
@@ -230,6 +232,24 @@ export const FashionGeneratorPage = ({
       }
 
       setGeneratedImage(resultImage);
+
+      const workTitle = prompt.trim() ? `${title}：${prompt.trim().slice(0, 24)}` : `${title}作品`;
+      void saveGeneratedImageWork({
+        title: workTitle,
+        type: "drawing",
+        tool: title,
+        prompt: finalPrompt,
+        imageDataUrl: resultImage,
+        metadata: {
+          selectedStyleId,
+          selectedRatio,
+          selectedLine,
+          referenceImageCount: imagePreviews.length,
+          fileCount: uploadedFiles.length,
+        },
+      }).catch((error) => {
+        console.error("自动保存服装作品失败", error);
+      });
     } catch (error) {
       alert(`生成失败: ${error instanceof Error ? error.message : "未知错误"}`);
     } finally {

@@ -18,6 +18,14 @@ interface SaveWorkInput {
   thumbnailDataUrl?: string | null;
 }
 
+interface UpdateWorkInput {
+  title?: string;
+  type?: string;
+  tool?: string;
+  content?: Record<string, unknown>;
+  thumbnailDataUrl?: string | null;
+}
+
 const WORKS_BUCKET = 'works-assets';
 
 const isDataUrl = (value: string) => value.startsWith('data:');
@@ -121,7 +129,7 @@ const getSignedPreviewUrlMap = async (rows: Array<{ storage_bucket: string | nul
 export const listWorks = async (): Promise<WorkListItem[]> => {
   const { data, error } = await supabase
     .from('works')
-    .select('id, title, type, tool, content_json, created_at, storage_bucket, storage_path')
+    .select('id, title, type, tool, content_json, thumbnail_url, created_at, storage_bucket, storage_path')
     .order('created_at', { ascending: false })
     .limit(40);
 
@@ -137,7 +145,7 @@ export const listWorks = async (): Promise<WorkListItem[]> => {
     type: row.type,
     tool: row.tool || 'AI 创作',
     content: typeof row.content_json?.text === 'string' ? row.content_json.text : undefined,
-    thumbnail: getSignedUrlFromMap(row),
+    thumbnail: getSignedUrlFromMap(row) || row.thumbnail_url || null,
     createdAt: formatCreatedAt(row.created_at),
   }));
 
@@ -153,10 +161,18 @@ export const saveWork = async (input: SaveWorkInput) => {
   let thumbnailUrl: string | null = null;
 
   if (input.thumbnailDataUrl) {
-    const uploaded = await uploadWorkPreview(userId, input.thumbnailDataUrl);
-    storageBucket = uploaded.bucket;
-    storagePath = uploaded.path;
-    thumbnailUrl = isDataUrl(input.thumbnailDataUrl) ? null : input.thumbnailDataUrl;
+    if (isDataUrl(input.thumbnailDataUrl)) {
+      try {
+        const uploaded = await uploadWorkPreview(userId, input.thumbnailDataUrl);
+        storageBucket = uploaded.bucket;
+        storagePath = uploaded.path;
+      } catch (error) {
+        // 缩略图上传失败不阻断作品保存，避免作品“消失”
+        console.warn('uploadWorkPreview failed, saving work without uploaded thumbnail', error);
+      }
+    } else {
+      thumbnailUrl = input.thumbnailDataUrl;
+    }
   }
 
   const { data, error } = await supabase
@@ -171,6 +187,60 @@ export const saveWork = async (input: SaveWorkInput) => {
       storage_path: storagePath,
       thumbnail_url: thumbnailUrl,
     })
+    .select('id')
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+};
+
+export const updateWork = async (workId: string, input: UpdateWorkInput) => {
+  const userId = await getCurrentUserId();
+  if (!userId) return null;
+
+  let storageBucket: string | null | undefined = undefined;
+  let storagePath: string | null | undefined = undefined;
+  let thumbnailUrl: string | null | undefined = undefined;
+
+  if (input.thumbnailDataUrl !== undefined) {
+    if (input.thumbnailDataUrl && isDataUrl(input.thumbnailDataUrl)) {
+      try {
+        const uploaded = await uploadWorkPreview(userId, input.thumbnailDataUrl);
+        storageBucket = uploaded.bucket;
+        storagePath = uploaded.path;
+        thumbnailUrl = null;
+      } catch (error) {
+        console.warn('uploadWorkPreview failed while updating work thumbnail', error);
+      }
+    } else {
+      thumbnailUrl = input.thumbnailDataUrl;
+      if (input.thumbnailDataUrl === null) {
+        storageBucket = null;
+        storagePath = null;
+      }
+    }
+  }
+
+  const payload: Record<string, unknown> = {
+    updated_at: new Date().toISOString(),
+  };
+
+  if (input.title !== undefined) payload.title = input.title;
+  if (input.type !== undefined) payload.type = input.type;
+  if (input.tool !== undefined) payload.tool = input.tool;
+  if (input.content !== undefined) payload.content_json = input.content || null;
+  if (storageBucket !== undefined) payload.storage_bucket = storageBucket;
+  if (storagePath !== undefined) payload.storage_path = storagePath;
+  if (thumbnailUrl !== undefined) payload.thumbnail_url = thumbnailUrl;
+
+  const { data, error } = await supabase
+    .from('works')
+    .update(payload)
+    .eq('id', workId)
+    .eq('user_id', userId)
     .select('id')
     .single();
 

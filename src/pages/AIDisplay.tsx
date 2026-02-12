@@ -20,6 +20,7 @@ import { generateImage } from "@/lib/ai-image";
 import { compressImage, mergeImagesToGrid, downloadGeneratedImage } from "@/lib/image-utils";
 import { analyzeClothingForDisplay, type VMAnalysisResult } from "@/lib/vm-analysis";
 import { buildVMGenerationPrompt } from "@/lib/vm-prompt-builder";
+import { saveGeneratedImageWork } from "@/lib/repositories/works";
 import AnalyzingAnimation from "@/components/display/AnalyzingAnimation";
 import AnalysisReview from "@/components/display/AnalysisReview";
 
@@ -153,6 +154,24 @@ const AIDisplay = () => {
       if (resultImage) {
         setGeneratedImage(resultImage);
         setPhase("result");
+
+        const title = additionalNotes.trim()
+          ? `AI 陈列：${additionalNotes.trim().slice(0, 24)}`
+          : "AI 陈列作品";
+        void saveGeneratedImageWork({
+          title,
+          type: "display",
+          tool: "AI 陈列",
+          prompt: displayPrompt,
+          imageDataUrl: resultImage,
+          metadata: {
+            clothingCount: clothingImages.length,
+            line: selectedLine,
+            hasAdditionalNotes: Boolean(additionalNotes.trim()),
+          },
+        }).catch((error) => {
+          console.error("自动保存陈列作品失败", error);
+        });
       } else {
         throw new Error("未能获取生成的图片");
       }

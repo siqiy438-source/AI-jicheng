@@ -32,6 +32,7 @@ import {
   exportToImages,
 } from "@/lib/ai-ppt";
 import { useToast } from "@/hooks/use-toast";
+import { saveWork, updateWork } from "@/lib/repositories/works";
 
 // ==================== Types ====================
 interface SlideData {
@@ -115,6 +116,7 @@ const AIPPT = () => {
   // Step 3 states
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [projectTitle, setProjectTitle] = useState("");
+  const [savedWorkId, setSavedWorkId] = useState<string | null>(null);
 
   // Dropdown states
   const [showPageCountMenu, setShowPageCountMenu] = useState(false);
@@ -131,6 +133,44 @@ const AIPPT = () => {
 
   const { toast } = useToast();
 
+  const persistPptWork = async (options?: {
+    format?: "pptx" | "pdf" | "images";
+    nextSlides?: SlideData[];
+    nextProjectTitle?: string;
+    forceCreate?: boolean;
+  }) => {
+    const activeSlides = options?.nextSlides ?? slides;
+    const firstSlideImage = activeSlides.find((slide) => Boolean(slide.generatedImage))?.generatedImage || null;
+    const payload = {
+      title: (options?.nextProjectTitle ?? projectTitle)?.trim() || "AI PPT 作品",
+      type: "ppt",
+      tool: "AI PPT",
+      thumbnailDataUrl: firstSlideImage,
+      content: {
+        text: inputContent.trim() || "AI PPT 项目",
+        format: options?.format || "draft",
+        slideCount: activeSlides.length,
+        generatedSlideCount: activeSlides.filter((slide) => Boolean(slide.generatedImage)).length,
+        aspectRatio,
+        style,
+        template,
+      },
+    };
+
+    try {
+      if (!options?.forceCreate && savedWorkId) {
+        await updateWork(savedWorkId, payload);
+      } else {
+        const created = await saveWork(payload);
+        if (created?.id) {
+          setSavedWorkId(created.id);
+        }
+      }
+    } catch (error) {
+      console.error("自动保存 AI PPT 作品失败", error);
+    }
+  };
+
   const handleStartGenerate = async () => {
     if (!inputContent.trim()) return;
     setIsGeneratingOutline(true);
@@ -145,10 +185,16 @@ const AIPPT = () => {
     setIsGeneratingOutline(false);
 
     if (result.success && result.slides) {
+      const nextTitle = result.projectTitle || inputContent.trim().slice(0, 30);
       setSlides(result.slides);
-      setProjectTitle(result.projectTitle || inputContent.trim().slice(0, 30));
+      setProjectTitle(nextTitle);
       setSelectedSlideIndex(0);
       setCurrentStep(2);
+      void persistPptWork({
+        nextSlides: result.slides,
+        nextProjectTitle: nextTitle,
+        forceCreate: true,
+      });
     } else {
       toast({ title: "生成失败", description: result.error || "请稍后重试", variant: "destructive" });
     }
@@ -249,6 +295,7 @@ const AIPPT = () => {
       const newSlides = [...slides];
       newSlides[slideIndex] = { ...newSlides[slideIndex], generatedImage: result.imageUrl || result.imageBase64 };
       setSlides(newSlides);
+      void persistPptWork({ nextSlides: newSlides });
     } else {
       toast({ title: "图片生成失败", description: result.error || "请稍后重试", variant: "destructive" });
     }
@@ -282,6 +329,7 @@ const AIPPT = () => {
 
     setIsGeneratingImage(false);
     toast({ title: "批量出图完成" });
+    void persistPptWork({ nextSlides: newSlides });
   };
 
   const handleExport = async (format: "pptx" | "pdf" | "images" = "pptx") => {
@@ -293,6 +341,8 @@ const AIPPT = () => {
       } else {
         await exportToPPTX(slides, projectTitle);
       }
+      void persistPptWork({ format });
+
       toast({ title: "导出成功" });
     } catch (error) {
       toast({ title: "导出失败", description: error instanceof Error ? error.message : "请稍后重试", variant: "destructive" });

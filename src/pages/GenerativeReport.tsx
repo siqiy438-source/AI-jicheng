@@ -30,6 +30,7 @@ import {
   type VisualFocusArea,
 } from "@/lib/generative-report";
 import { useToast } from "@/hooks/use-toast";
+import { saveWork, updateWork } from "@/lib/repositories/works";
 
 type ReportPhase = "config" | "ready" | "analyzing" | "review" | "exporting";
 
@@ -204,6 +205,7 @@ const GenerativeReport = () => {
   const [analysisProgress, setAnalysisProgress] = useState<{ current: number; total: number } | null>(null);
   const [isGeneratingSlideId, setIsGeneratingSlideId] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
+  const [savedWorkId, setSavedWorkId] = useState<string | null>(null);
 
   const selectedDepth = useMemo(
     () => REPORT_DEPTH_OPTIONS.find((option) => option.depth === reportDepth),
@@ -221,6 +223,45 @@ const GenerativeReport = () => {
     !isGeneratingSlideId;
 
   const canExport = Boolean(report) && phase === "review" && allSlidesReady && !isGeneratingSlideId;
+
+  const persistReportWork = async (nextReport?: GenerativeReportDocument, stage: "draft" | "exported" = "draft") => {
+    const activeReport = nextReport ?? report;
+    if (!activeReport) return;
+
+    const firstPageImage =
+      activeReport.cover_generated_image_url ||
+      activeReport.slides.find((slide) => Boolean(slide.explanation_image_url))?.explanation_image_url ||
+      null;
+
+    const payload = {
+      title: (reportTitle || "AI 生成式报告").trim(),
+      type: "report",
+      tool: "生成式报告",
+      thumbnailDataUrl: firstPageImage,
+      content: {
+        text: activeReport.summary || userNote.trim() || "生成式报告",
+        stage,
+        domain,
+        reportDepth,
+        hospitalName: hospitalName || "",
+        slideCount: activeReport.slides.length,
+        generatedSlideCount: activeReport.slides.filter((slide) => Boolean(slide.explanation_image_url)).length,
+      },
+    };
+
+    try {
+      if (savedWorkId) {
+        await updateWork(savedWorkId, payload);
+      } else {
+        const created = await saveWork(payload);
+        if (created?.id) {
+          setSavedWorkId(created.id);
+        }
+      }
+    } catch (error) {
+      console.error("自动保存生成式报告失败", error);
+    }
+  };
 
   const runAnalysis = async (nextImages?: UploadedImage[]) => {
     const activeImages = nextImages ?? images;
@@ -250,6 +291,7 @@ const GenerativeReport = () => {
       setReport(result.report);
       setPhase("review");
       setAnalysisWarning(result.usedFallback ? result.message || "当前为本地草稿结果，非真实 AI 视觉分析" : null);
+      void persistReportWork(result.report, "draft");
 
       if (result.usedFallback) {
         toast({
@@ -312,6 +354,7 @@ const GenerativeReport = () => {
 
       setImages(processed);
       setReport(null);
+      setSavedWorkId(null);
       setAnalysisWarning(null);
       setPreviewImage(null);
       setPhase("ready");
@@ -440,7 +483,7 @@ const GenerativeReport = () => {
 
       setReport((prev) => {
         if (!prev) return prev;
-        return {
+        const nextReport = {
           ...prev,
           slides: prev.slides.map((item) =>
             item.slide_id === slideId
@@ -451,6 +494,8 @@ const GenerativeReport = () => {
               : item,
           ),
         };
+        void persistReportWork(nextReport, "draft");
+        return nextReport;
       });
 
       toast({
@@ -560,6 +605,9 @@ const GenerativeReport = () => {
         handDrawnFont: "STKaiti",
         preferFullPageIllustration: true,
       });
+
+      void persistReportWork(exportReport, "exported");
+
       setPhase("review");
       toast({
         title: "导出成功",
@@ -583,6 +631,7 @@ const GenerativeReport = () => {
     setAnalysisProgress(null);
     setIsGeneratingSlideId(null);
     setPreviewImage(null);
+    setSavedWorkId(null);
     if (inputRef.current) {
       inputRef.current.value = "";
     }
