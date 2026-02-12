@@ -24,6 +24,7 @@ const Clothing = lazy(() => import("./pages/Clothing"));
 const FashionOutfit = lazy(() => import("./pages/FashionOutfit"));
 const FashionModelOutfit = lazy(() => import("./pages/FashionModelOutfit"));
 const CreativeTools = lazy(() => import("./pages/CreativeTools"));
+const GenerativeReport = lazy(() => import("./pages/GenerativeReport"));
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => (
               <Route path="/fashion-outfit" element={<ProtectedRoute><FashionOutfit /></ProtectedRoute>} />
               <Route path="/fashion-model-outfit" element={<ProtectedRoute><FashionModelOutfit /></ProtectedRoute>} />
               <Route path="/creative-tools" element={<ProtectedRoute><CreativeTools /></ProtectedRoute>} />
+              <Route path="/generative-report" element={<ProtectedRoute><GenerativeReport /></ProtectedRoute>} />
               <Route path="/my-works" element={<ProtectedRoute><MyWorks /></ProtectedRoute>} />
               <Route path="/my-materials" element={<ProtectedRoute><MyMaterials /></ProtectedRoute>} />
               <Route path="/more-features" element={<ProtectedRoute><MoreFeatures /></ProtectedRoute>} />

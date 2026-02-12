@@ -31,6 +31,12 @@ const tools: ToolItem[] = [
     iconSrc: "/icons/ai-ppt-custom.webp",
     to: "/ai-ppt",
   },
+  {
+    title: "生成式报告",
+    description: "上传图片自动分析，校正后一键生成 PPT",
+    iconSrc: "/icons/ai-display-custom.webp",
+    to: "/generative-report",
+  },
 ];
 
 const CreativeTools = () => {

@@ -123,6 +123,7 @@ export const Sidebar = () => {
     "/ai-poster",
     "/ai-drawing",
     "/ai-ppt",
+    "/generative-report",
   ].includes(location.pathname);
 
   // 移动端不渲染 Sidebar

@@ -80,6 +80,7 @@ export const MobileNav = () => {
         "/ai-poster",
         "/ai-drawing",
         "/ai-ppt",
+        "/generative-report",
         "/ai-copywriting",
         "/more-features",
       ],

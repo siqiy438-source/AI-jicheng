@@ -62,6 +62,51 @@ const VM_ANALYSIS_SYSTEM_PROMPT = `你是一个由 4 位视觉陈列专家组成
   "summary": "2-3句中文总结推荐"
 }`
 
+// 生成式报告专用系统提示词
+const GENERATIVE_REPORT_SYSTEM_PROMPT = `你是一位跨行业的视觉分析报告专家，擅长把专业结论翻译成用户听得懂的大白话。
+
+核心要求：
+1) 你必须阅读用户上传图片并基于图片内容分析，不能只复述模板。
+2) 你必须只输出合法 JSON，不要 Markdown，不要额外解释。
+3) 每一页都必须包含：title, visual_focus_area, plain_language_explanation, key_metaphor, action_items, image_refs。
+4) plain_language_explanation 必须是通俗中文，避免术语堆砌。
+5) key_metaphor 必须是生活化比喻，不能为空。
+6) action_items 必须是可执行建议，2-4 条。
+7) 如果用户要求 6/8 页且上传多图，必须包含 comparison 页并填写 compare_pair。
+
+输出 JSON 必须满足：
+{
+  "version": "1.0",
+  "domain": "dental|veterinary|k12_education|gym|general",
+  "report_depth": 4|6|8,
+  "generated_at": "ISO8601",
+  "summary": "一句话总结",
+  "assets": {
+    "images": [
+      {"image_id":"img_1","url":"原图地址","label":"术前"}
+    ]
+  },
+  "slides": [
+    {
+      "slide_id": "slide_1",
+      "page_number": 1,
+      "slide_type": "overview|finding|comparison|action|summary",
+      "title": "页面标题",
+      "visual_focus_area": "文字描述或坐标对象",
+      "plain_language_explanation": "大白话解释",
+      "key_metaphor": "生活化比喻",
+      "action_items": ["建议1", "建议2"],
+      "image_refs": [{"image_id":"img_1","note":"重点区域"}],
+      "compare_pair": {
+        "before_image_id": "img_1",
+        "after_image_id": "img_2",
+        "improvement_points": ["改进点"],
+        "advantages": ["优势点"]
+      }
+    }
+  ]
+}`
+
 // 智能体系统提示词
 const AGENT_SYSTEM_PROMPTS: Record<string, string> = {
   xiaohongshu: `你是一个专业的小红书文案创作专家。
@@ -140,7 +185,29 @@ const AGENT_SYSTEM_PROMPTS: Record<string, string> = {
 - 根据场景调整语气风格
 - 使用适当的格式排版
 
-请直接输出文案内容，不要解释你在做什么。`,
+  请直接输出文案内容，不要解释你在做什么。`,
+}
+
+function dataUrlToInlineData(dataUrl: string): { mimeType: string; data: string } | null {
+  const matches = dataUrl.match(/^data:([^;]+);base64,(.+)$/)
+  if (!matches) return null
+  return {
+    mimeType: matches[1],
+    data: matches[2],
+  }
+}
+
+function extractTextFromGeminiResponse(payload: Record<string, any>): string {
+  const candidates = payload?.candidates || []
+  for (const candidate of candidates) {
+    const parts = candidate?.content?.parts || []
+    for (const part of parts) {
+      if (typeof part?.text === 'string' && part.text.trim()) {
+        return part.text
+      }
+    }
+  }
+  return ''
 }
 
 serve(async (req) => {
@@ -156,9 +223,16 @@ serve(async (req) => {
     // 文案生成使用 Gemini 2.5 Flash
     const ZENMUX_MODEL = Deno.env.get('ZENMUX_MODEL') || 'google/gemini-2.5-flash'
 
-    if (!ZENMUX_API_KEY) {
-      throw new Error('ZENMUX_API_KEY not configured')
-    }
+    // 生成式报告独立 API（仅使用报告专用 Key，避免误用图像 Key）
+    const REPORT_API_KEY =
+      Deno.env.get('REPORT_API_KEY') ||
+      Deno.env.get('GENERATIVE_REPORT_API_KEY')
+    const REPORT_API_BASE_URL = (Deno.env.get('REPORT_API_BASE_URL') || 'https://api.bltcy.ai').replace(/\/$/, '')
+    const REPORT_API_PROVIDER =
+      Deno.env.get('REPORT_API_PROVIDER') ||
+      (REPORT_API_BASE_URL.includes('bltcy.ai') ? 'openai-compatible' : 'openai-compatible')
+    const REPORT_API_CHAT_PATH = Deno.env.get('REPORT_API_CHAT_PATH') || '/v1/chat/completions'
+    const REPORT_API_MODEL = Deno.env.get('REPORT_API_MODEL') || 'gemini-3-flash-preview'
 
     // 解析请求
     const { prompt, agentId, history, stream = true, mode, images } = await req.json()
@@ -219,6 +293,130 @@ serve(async (req) => {
       return new Response(JSON.stringify(vmData), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
+    }
+
+    // ========== 生成式报告模式 ==========
+    if (mode === 'generative-report') {
+      if (!REPORT_API_KEY) {
+        throw new Error('REPORT_API_KEY not configured for generative-report mode')
+      }
+
+      // BLTCY Gemini generateContent 协议
+      if (REPORT_API_PROVIDER === 'bltcy-gemini') {
+        const parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = []
+
+        parts.push({
+          text: `${GENERATIVE_REPORT_SYSTEM_PROMPT}\n\n用户任务：\n${prompt}\n\n注意：仅输出 JSON。`,
+        })
+
+        if (images && Array.isArray(images)) {
+          for (const imageBase64 of images) {
+            if (typeof imageBase64 !== 'string') continue
+            const inline = dataUrlToInlineData(imageBase64)
+            if (inline) {
+              parts.push({ inlineData: inline })
+            }
+          }
+        }
+
+        const reportApiUrl = `${REPORT_API_BASE_URL}/v1beta/models/${REPORT_API_MODEL}:generateContent`
+        const reportResponse = await fetch(reportApiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${REPORT_API_KEY}`,
+          },
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts }],
+            generationConfig: {
+              temperature: 0.2,
+              maxOutputTokens: 6000,
+              responseMimeType: 'application/json',
+            },
+          }),
+        })
+
+        if (!reportResponse.ok) {
+          const errorText = await reportResponse.text()
+          throw new Error(`Generative Report API error: ${reportResponse.status} - ${errorText}`)
+        }
+
+        const reportData = await reportResponse.json()
+        const responseText = extractTextFromGeminiResponse(reportData)
+        if (!responseText) {
+          throw new Error('Generative Report API returned empty content')
+        }
+
+        // 对齐前端既有解析格式（OpenAI 风格）
+        const normalized = {
+          id: crypto.randomUUID(),
+          model: REPORT_API_MODEL,
+          choices: [
+            {
+              finish_reason: 'stop',
+              message: {
+                role: 'assistant',
+                content: responseText,
+              },
+            },
+          ],
+        }
+
+        return new Response(JSON.stringify(normalized), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      const userContent: Array<{ type: string; text?: string; image_url?: { url: string } }> = [
+        { type: 'text', text: prompt },
+      ]
+
+      if (images && Array.isArray(images)) {
+        for (const imageBase64 of images) {
+          if (typeof imageBase64 === 'string' && imageBase64.startsWith('data:')) {
+            userContent.push({
+              type: 'image_url',
+              image_url: { url: imageBase64 },
+            })
+          }
+        }
+      }
+
+      const reportMessages = [
+        { role: 'system', content: GENERATIVE_REPORT_SYSTEM_PROMPT },
+        { role: 'user', content: userContent },
+      ]
+
+      const reportResponse = await fetch(`${REPORT_API_BASE_URL}${REPORT_API_CHAT_PATH}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${REPORT_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: REPORT_API_MODEL,
+          messages: reportMessages,
+          temperature: 0.2,
+          max_tokens: 5000,
+          stream: false,
+          response_format: { type: 'json_object' },
+        }),
+      })
+
+      if (!reportResponse.ok) {
+        const errorText = await reportResponse.text()
+        throw new Error(`Generative Report API error: ${reportResponse.status} - ${errorText}`)
+      }
+
+      const reportData = await reportResponse.json()
+      return new Response(JSON.stringify(reportData), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    // 其它模式仍使用 ZenMux
+    if (!ZENMUX_API_KEY) {
+      throw new Error('ZENMUX_API_KEY not configured')
     }
 
     // ========== 原有文案生成模式 ==========
