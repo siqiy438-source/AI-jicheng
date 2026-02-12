@@ -43,12 +43,6 @@ const contentFrameworks = [
     prompt: "" // 无框架限制
   },
   {
-    id: "sketch",
-    name: "手绘风格",
-    icon: "🖌️",
-    prompt: "hand-drawn poster like a cute journal: 1) soft pastel colors on cream background, 2) main title at top, 3) organized sections with cute dividers and doodle icons, 4) whimsical hand-lettering, 5) balance between text and illustrations, 6) cozy warm style. User request: {user_prompt}"
-  },
-  {
     id: "comic-story",
     name: "漫画故事",
     icon: "📖",
@@ -78,6 +72,12 @@ const contentFrameworks = [
     icon: "⚖️",
     prompt: "professional comparison layout: 1) title at top showing A vs B, 2) two columns divided by VS symbol, 3) each column has icon at top, 4) comparison rows aligned horizontally, 5) different background colors per side, 6) checkmarks for advantages and X for disadvantages, 7) summary at bottom."
   },
+  {
+    id: "presentation",
+    name: "演示文稿",
+    icon: "🖥️",
+    prompt: "professional one-page PPT slide design: 1) 16:9 presentation layout, 2) clear title area with subtitle, 3) 3-5 structured content blocks with concise bullet points, 4) strong visual hierarchy with balanced whitespace, 5) presentation-ready infographic style with icons, 6) clear business storytelling flow from overview to key takeaways."
+  },
 ];
 
 // 视觉风格选项（第二栏）- 定义视觉呈现风格
@@ -87,6 +87,12 @@ const visualStyles = [
     name: "默认风格",
     icon: "🎭",
     prompt: "" // 无特殊风格
+  },
+  {
+    id: "hand-drawn",
+    name: "手绘风格",
+    icon: "🖌️",
+    prompt: "Visual style: hand-drawn sketch style with cream paper texture, soft warm pastel colors, marker-like outlines, doodle icons and arrows, gentle imperfect strokes, clean and readable information design."
   },
   {
     id: "cute",
