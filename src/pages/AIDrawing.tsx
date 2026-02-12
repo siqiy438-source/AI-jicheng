@@ -73,6 +73,18 @@ const contentFrameworks = [
     prompt: "professional comparison layout: 1) title at top showing A vs B, 2) two columns divided by VS symbol, 3) each column has icon at top, 4) comparison rows aligned horizontally, 5) different background colors per side, 6) checkmarks for advantages and X for disadvantages, 7) summary at bottom."
   },
   {
+    id: "timeline",
+    name: "时间线",
+    icon: "🕒",
+    prompt: "professional timeline infographic layout: 1) clear main title with one-line subtitle at the top, 2) 5-8 chronological milestones arranged horizontally or vertically, 3) each milestone includes time or stage label, one key event sentence, and one matching icon or mini illustration, 4) milestones are connected with arrows or connector lines to show sequence clearly, 5) highlight 1-2 major milestones with stronger visual emphasis (larger node, accent color, badge), 6) maintain strong hierarchy and balanced whitespace for high readability, 7) visual rendering style should follow any additional style instructions. Topic: {user_prompt}"
+  },
+  {
+    id: "step-breakdown",
+    name: "步骤拆解",
+    icon: "🧩",
+    prompt: "professional step-by-step breakdown diagram: 1) clear title and goal statement at the top, 2) 4-7 sequential steps with explicit numbering (Step 1, Step 2...), 3) each step includes an action-oriented short phrase, key explanation, and one matching icon or visual cue, 4) connect steps with directional arrows to emphasize process flow, 5) include decision nodes only when branching is needed, 6) add a bottom module for common mistakes or key precautions, 7) keep structure clean, tutorial-friendly, and highly scannable, 8) visual rendering style should follow any additional style instructions. Topic: {user_prompt}"
+  },
+  {
     id: "presentation",
     name: "演示文稿",
     icon: "🖥️",

@@ -1,13 +1,31 @@
-import { FashionGeneratorPage } from "@/components/fashion/FashionGeneratorPage";
-import { FASHION_MODEL_PROMPT } from "@/lib/fashion-prompts";
+import { FashionGeneratorPage, StyleOption } from "@/components/fashion/FashionGeneratorPage";
+import { FASHION_MODEL_MIRROR_SELFIE_PROMPT, FASHION_MODEL_STANDARD_PROMPT } from "@/lib/fashion-prompts";
+
+const modelStyles: StyleOption[] = [
+  {
+    id: "mirror-selfie",
+    name: "对镜自拍",
+    prompt: FASHION_MODEL_MIRROR_SELFIE_PROMPT,
+    description: "手机挡脸的镜前全身自拍，日常博主同款氛围",
+    badge: "推荐",
+  },
+  {
+    id: "standard-model",
+    name: "标准模特图",
+    prompt: FASHION_MODEL_STANDARD_PROMPT,
+    description: "常规时尚模特上身图，适合通用服装展示",
+  },
+];
 
 const FashionModelOutfit = () => {
   return (
     <FashionGeneratorPage
       title="服装模特搭配"
-      subtitle="上传服装图片或文件，快速生成模特上身效果"
+      subtitle="上传服装图片，支持对镜自拍与标准模特图两种风格"
       iconSrc="/icons/fashion-model-custom.webp"
-      basePrompt={FASHION_MODEL_PROMPT}
+      basePrompt={FASHION_MODEL_MIRROR_SELFIE_PROMPT}
+      styleOptions={modelStyles}
+      styleSelectorVariant="cards"
       resultAlt="服装模特搭配图"
       downloadPrefix="fashion-model-outfit"
     />

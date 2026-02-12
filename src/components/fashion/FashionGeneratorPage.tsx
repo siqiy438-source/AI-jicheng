@@ -27,6 +27,8 @@ export interface StyleOption {
   name: string;
   prompt: string;
   icon?: string;
+  description?: string;
+  badge?: string;
 }
 
 interface FashionGeneratorPageProps {
@@ -35,6 +37,7 @@ interface FashionGeneratorPageProps {
   iconSrc: string;
   basePrompt: string;
   styleOptions?: StyleOption[];
+  styleSelectorVariant?: "dropdown" | "cards";
   resultAlt: string;
   downloadPrefix: string;
 }
@@ -61,6 +64,7 @@ export const FashionGeneratorPage = ({
   iconSrc,
   basePrompt,
   styleOptions,
+  styleSelectorVariant = "dropdown",
   resultAlt,
   downloadPrefix,
 }: FashionGeneratorPageProps) => {
@@ -78,6 +82,8 @@ export const FashionGeneratorPage = ({
   const [showStyleMenu, setShowStyleMenu] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const shouldShowStyleCards = Boolean(styleOptions && styleOptions.length > 1 && styleSelectorVariant === "cards");
+  const shouldShowStyleDropdown = Boolean(styleOptions && styleOptions.length > 1 && styleSelectorVariant !== "cards");
 
   const canGenerate = (prompt.trim() || imagePreviews.length > 0 || uploadedFiles.length > 0) && !isGenerating;
 
@@ -314,6 +320,44 @@ export const FashionGeneratorPage = ({
             </div>
           )}
 
+          {shouldShowStyleCards && (
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-muted-foreground">生成模式</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {styleOptions?.map((style) => {
+                  const isActive = selectedStyleId === style.id;
+                  return (
+                    <button
+                      key={style.id}
+                      onClick={() => setSelectedStyleId(style.id)}
+                      className={cn(
+                        "text-left rounded-xl border p-3 transition-all duration-200 active:scale-[0.99]",
+                        isActive
+                          ? "border-orange-300 bg-orange-50/90 shadow-[0_8px_24px_-12px_rgba(234,88,12,0.45)]"
+                          : "border-border bg-card/40 hover:border-orange-200 hover:bg-card/70",
+                      )}
+                    >
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          {style.icon && <span className="text-sm">{style.icon}</span>}
+                          <span className="text-sm font-medium text-foreground truncate">{style.name}</span>
+                        </div>
+                        {style.badge && (
+                          <span className="px-1.5 py-0.5 text-[10px] leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded whitespace-nowrap">
+                            {style.badge}
+                          </span>
+                        )}
+                      </div>
+                      {style.description && <p className="text-xs text-muted-foreground leading-relaxed">{style.description}</p>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <textarea
             value={prompt}
             onChange={(event) => setPrompt(event.target.value)}
@@ -333,7 +377,7 @@ export const FashionGeneratorPage = ({
 
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1 md:gap-1.5 flex-1 min-w-0 flex-wrap overflow-visible" style={{ rowGap: "6px" }}>
-              {styleOptions && styleOptions.length > 1 && (
+              {shouldShowStyleDropdown && (
                 <div className="relative flex-shrink-0" onClick={(event) => event.stopPropagation()}>
                   <button
                     onClick={() => {
