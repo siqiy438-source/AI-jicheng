@@ -131,7 +131,7 @@ export const listWorks = async (): Promise<WorkListItem[]> => {
     .from('works')
     .select('id, title, type, tool, content_json, thumbnail_url, created_at, storage_bucket, storage_path')
     .order('created_at', { ascending: false })
-    .limit(40);
+    .limit(30);
 
   if (error) {
     throw error;
