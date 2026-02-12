@@ -27,6 +27,7 @@ export interface StyleOption {
   name: string;
   prompt: string;
   icon?: string;
+  iconSrc?: string;
   description?: string;
   badge?: string;
 }
@@ -84,6 +85,7 @@ export const FashionGeneratorPage = ({
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const shouldShowStyleCards = Boolean(styleOptions && styleOptions.length > 1 && styleSelectorVariant === "cards");
   const shouldShowStyleDropdown = Boolean(styleOptions && styleOptions.length > 1 && styleSelectorVariant !== "cards");
+  const selectedStyleOption = styleOptions?.find((style) => style.id === selectedStyleId);
 
   const canGenerate = (prompt.trim() || imagePreviews.length > 0 || uploadedFiles.length > 0) && !isGenerating;
 
@@ -341,7 +343,11 @@ export const FashionGeneratorPage = ({
                     >
                       <div className="flex items-center justify-between gap-1.5 md:gap-2 mb-0.5 md:mb-1">
                         <div className="flex items-center gap-1 min-w-0">
-                          {style.icon && <span className="text-xs md:text-sm">{style.icon}</span>}
+                          {style.iconSrc ? (
+                            <img src={style.iconSrc} alt={style.name} className="w-4 h-4 rounded object-cover" />
+                          ) : style.icon ? (
+                            <span className="text-xs md:text-sm">{style.icon}</span>
+                          ) : null}
                           <span className="text-xs md:text-sm font-medium text-foreground truncate">{style.name}</span>
                         </div>
                         {style.badge && (
@@ -387,8 +393,14 @@ export const FashionGeneratorPage = ({
                     }}
                     className="flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 rounded-full text-[11px] md:text-sm transition-all duration-200 border bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100 touch-target whitespace-nowrap"
                   >
-                    <Palette className="w-3.5 h-3.5 text-orange-500" />
-                    <span>{styleOptions.find((s) => s.id === selectedStyleId)?.name}</span>
+                    {selectedStyleOption?.iconSrc ? (
+                      <img src={selectedStyleOption.iconSrc} alt={selectedStyleOption.name} className="w-4 h-4 rounded object-cover" />
+                    ) : selectedStyleOption?.icon ? (
+                      <span className="text-xs md:text-sm">{selectedStyleOption.icon}</span>
+                    ) : (
+                      <Palette className="w-3.5 h-3.5 text-orange-500" />
+                    )}
+                    <span>{selectedStyleOption?.name}</span>
                     <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showStyleMenu && "rotate-180")} />
                   </button>
                   {showStyleMenu && (
@@ -405,7 +417,11 @@ export const FashionGeneratorPage = ({
                             selectedStyleId === style.id && "bg-orange-50",
                           )}
                         >
-                          {style.icon && <span className="text-base leading-none mt-0.5">{style.icon}</span>}
+                          {style.iconSrc ? (
+                            <img src={style.iconSrc} alt={style.name} className="w-6 h-6 rounded object-cover mt-0.5" />
+                          ) : style.icon ? (
+                            <span className="text-base leading-none mt-0.5">{style.icon}</span>
+                          ) : null}
                           <div className="min-w-0">
                             <div className={cn("text-sm font-medium", selectedStyleId === style.id ? "text-orange-700" : "text-foreground")}>
                               {style.name}

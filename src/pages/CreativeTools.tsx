@@ -34,7 +34,7 @@ const tools: ToolItem[] = [
   {
     title: "生成式报告",
     description: "上传图片自动分析，校正后一键生成 PPT",
-    iconSrc: "/icons/ai-display-custom.webp",
+    iconSrc: "/icons/generative-report-vintage.png",
     to: "/generative-report",
   },
 ];

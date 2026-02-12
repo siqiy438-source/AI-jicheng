@@ -6,14 +6,14 @@ const outfitStyles: StyleOption[] = [
     id: "flatlay",
     name: "平铺展示",
     prompt: FASHION_OUTFIT_FLATLAY_PROMPT,
-    icon: "🧩",
+    iconSrc: "/icons/outfit-flatlay-vintage.png",
     description: "杂志感单品平铺，适合展示服装细节和面料质感",
   },
   {
     id: "ootd",
     name: "人形摆拍",
     prompt: FASHION_OUTFIT_OOTD_PROMPT,
-    icon: "👤",
+    iconSrc: "/icons/outfit-ootd-vintage.png",
     description: "模拟穿着姿态的人形摆盘，适合日常穿搭氛围图",
   },
 ];

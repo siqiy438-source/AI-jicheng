@@ -32,7 +32,7 @@ const tools: ToolItem[] = [
     to: "/fashion-outfit",
   },
   {
-    title: "镜前模特生成",
+    title: "模特生成",
     description: "支持对镜自拍和标准模特上身图",
     iconSrc: "/icons/fashion-model-custom.webp",
     to: "/fashion-model-outfit",
