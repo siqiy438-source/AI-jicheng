@@ -76,12 +76,6 @@ const Index = () => {
         </div>
       </div>
 
-      {/* 底部装饰 - 移动端简化 */}
-      <div className="mt-12 md:mt-20 pt-6 md:pt-8 border-t border-border/50 opacity-0 animate-fade-in" style={{ animationDelay: '600ms' }}>
-        <p className="text-sm text-muted-foreground/50 text-center">
-          Powered by AI · 让创意触手可及
-        </p>
-      </div>
     </PageLayout>
   );
 };
