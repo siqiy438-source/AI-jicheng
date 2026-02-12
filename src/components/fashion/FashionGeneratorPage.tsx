@@ -325,7 +325,7 @@ export const FashionGeneratorPage = ({
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs text-muted-foreground">生成模式</span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 {styleOptions?.map((style) => {
                   const isActive = selectedStyleId === style.id;
                   return (
@@ -333,16 +333,16 @@ export const FashionGeneratorPage = ({
                       key={style.id}
                       onClick={() => setSelectedStyleId(style.id)}
                       className={cn(
-                        "text-left rounded-xl border p-3 transition-all duration-200 active:scale-[0.99]",
+                        "text-left rounded-xl border p-2.5 md:p-3 transition-all duration-200 active:scale-[0.99]",
                         isActive
                           ? "border-orange-300 bg-orange-50/90 shadow-[0_8px_24px_-12px_rgba(234,88,12,0.45)]"
                           : "border-border bg-card/40 hover:border-orange-200 hover:bg-card/70",
                       )}
                     >
-                      <div className="flex items-center justify-between gap-2 mb-1">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          {style.icon && <span className="text-sm">{style.icon}</span>}
-                          <span className="text-sm font-medium text-foreground truncate">{style.name}</span>
+                      <div className="flex items-center justify-between gap-1.5 md:gap-2 mb-0.5 md:mb-1">
+                        <div className="flex items-center gap-1 min-w-0">
+                          {style.icon && <span className="text-xs md:text-sm">{style.icon}</span>}
+                          <span className="text-xs md:text-sm font-medium text-foreground truncate">{style.name}</span>
                         </div>
                         {style.badge && (
                           <span className="px-1.5 py-0.5 text-[10px] leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded whitespace-nowrap">
@@ -350,7 +350,7 @@ export const FashionGeneratorPage = ({
                           </span>
                         )}
                       </div>
-                      {style.description && <p className="text-xs text-muted-foreground leading-relaxed">{style.description}</p>}
+                      {style.description && <p className="hidden sm:block text-xs text-muted-foreground leading-relaxed">{style.description}</p>}
                     </button>
                   );
                 })}
@@ -375,7 +375,7 @@ export const FashionGeneratorPage = ({
 
           <div className="border-t border-border/50 my-2 md:my-3" />
 
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
             <div className="flex items-center gap-1 md:gap-1.5 flex-1 min-w-0 flex-wrap overflow-visible" style={{ rowGap: "6px" }}>
               {shouldShowStyleDropdown && (
                 <div className="relative flex-shrink-0" onClick={(event) => event.stopPropagation()}>
@@ -527,19 +527,29 @@ export const FashionGeneratorPage = ({
               </button>
             </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 w-full md:w-auto">
               <button
                 onClick={handleGenerate}
                 disabled={!canGenerate}
                 className={cn(
-                  "w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all duration-200 touch-target flex-shrink-0",
+                  "w-full md:w-10 h-10 rounded-xl flex items-center justify-center gap-1 transition-all duration-200 touch-target flex-shrink-0",
                   canGenerate
                     ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)]"
                     : "bg-secondary/50 text-muted-foreground/50 cursor-not-allowed",
                 )}
                 aria-label="开始生成"
               >
-                {isGenerating ? <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" /> : <Send className="w-4 h-4 md:w-5 md:h-5" />}
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
+                    <span className="text-sm md:hidden">生成中</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4 md:w-5 md:h-5" />
+                    <span className="text-sm md:hidden">开始生成</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

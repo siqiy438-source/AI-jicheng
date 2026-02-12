@@ -27,7 +27,7 @@ const Index = () => {
     {
       customIcon: "/icons/ai-one-click-outfit-custom.webp",
       title: "服装",
-      description: "挂搭图、陈列、模特搭配",
+      description: "挂搭图、陈列、镜前模特",
       color: "violet" as const,
       to: "/clothing",
     },
