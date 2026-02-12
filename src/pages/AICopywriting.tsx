@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { PageLayout } from "@/components/PageLayout";
+import { GeneratingLoader } from "@/components/GeneratingLoader";
 import {
   ArrowLeft,
   FileText,
@@ -394,10 +395,7 @@ const AICopywriting = () => {
                 <Bot className="w-4 h-4 md:w-5 md:h-5 text-purple-600" />
               </div>
               <div className="glass-card rounded-xl md:rounded-2xl px-3 py-2 md:px-4 md:py-3">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span className="text-sm">正在生成文案...</span>
-                </div>
+                <GeneratingLoader size="compact" message="正在生成文案..." />
               </div>
             </div>
           )}

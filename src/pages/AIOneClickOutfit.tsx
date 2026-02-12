@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageLayout } from "@/components/PageLayout";
+import { GeneratingLoader } from "@/components/GeneratingLoader";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { compressImage, mergeImagesToGrid, downloadGeneratedImage } from "@/lib/image-utils";
@@ -345,10 +346,7 @@ cropped garments, partial view, flat lay, frontal view, low quality, blurry, dis
           </div>
 
           {isGenerating && (
-            <div className="py-10 text-center">
-              <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">{generationStep || "AI 正在生成中，请稍候..."}</p>
-            </div>
+            <GeneratingLoader message={generationStep || "AI 正在生成中，请稍候..."} />
           )}
 
           {generatedImage && !isGenerating && (

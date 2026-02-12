@@ -43,7 +43,7 @@ const NavItem = ({ icon, label, active, collapsed, to, onClick }: NavItemProps) 
         "group",
         // 左侧指示条
         "before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2",
-        "before:w-[3px] before:rounded-r-full before:transition-all before:duration-200",
+        "before:w-[3px] before:rounded-r-full before:transition-all before:duration-300 before:ease-out",
         // 默认状态
         "text-muted-foreground",
         "hover:bg-sidebar-accent/60 hover:text-foreground",
@@ -209,7 +209,7 @@ export const Sidebar = () => {
         <NavSection title="智能工具" collapsed={collapsed}>
           <NavItem
             icon={<Shirt className="w-[18px] h-[18px]" />}
-            label="服装创意工具"
+            label="服装工具"
             active={isClothingActive}
             collapsed={collapsed}
             to="/clothing"

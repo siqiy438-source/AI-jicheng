@@ -76,9 +76,11 @@ export const Header = () => {
               </div>
             </div>
             <div className="max-h-[400px] overflow-y-auto">
-              {/* 暂无通知 - 空状态 */}
+              {/* 暂无通知 - 品牌化空状态 */}
               <div className="px-4 py-8 text-center">
-                <Bell className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
+                  <Bell className="w-7 h-7 text-primary/40" />
+                </div>
                 <p className="text-sm text-muted-foreground mb-1">暂无新通知</p>
                 <p className="text-xs text-muted-foreground/60">
                   有新的更新时会在这里显示
@@ -110,7 +112,7 @@ export const Header = () => {
 
         {/* 用户区域 */}
         {loading ? (
-          <div className="ml-1 md:ml-2 w-16 md:w-20 h-8 md:h-9 bg-muted animate-pulse rounded-xl" />
+          <div className="ml-1 md:ml-2 w-16 md:w-20 h-8 md:h-9 animate-shimmer rounded-xl" />
         ) : user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

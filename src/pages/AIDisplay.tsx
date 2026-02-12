@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { PageLayout } from "@/components/PageLayout";
+import { GeneratingLoader } from "@/components/GeneratingLoader";
 import {
   ArrowLeft,
   X,
@@ -406,13 +407,10 @@ const AIDisplay = () => {
         {/* ===== 生成中 ===== */}
         {phase === "generating" && (
           <div className="glass-card rounded-xl md:rounded-2xl p-3 md:p-6">
-            <div className="flex flex-col items-center justify-center py-8 md:py-16">
-              <Loader2 className="w-8 h-8 md:w-12 md:h-12 text-primary animate-spin mb-3 md:mb-4" />
-              <p className="text-muted-foreground text-xs md:text-base">{generationStep || "正在生成中..."}</p>
-              <p className="text-muted-foreground/60 text-[10px] md:text-xs mt-2">
-                正在将 {clothingImages.length} 件衣服按专家方案智能陈列...
-              </p>
-            </div>
+            <GeneratingLoader
+              message={generationStep || "正在生成中..."}
+              subMessage={`正在将 ${clothingImages.length} 件衣服按专家方案智能陈列...`}
+            />
           </div>
         )}
 

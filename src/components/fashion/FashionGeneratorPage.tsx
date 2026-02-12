@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import { PageLayout } from "@/components/PageLayout";
+import { GeneratingLoader } from "@/components/GeneratingLoader";
 import { Button } from "@/components/ui/button";
 import { generateImage } from "@/lib/ai-image";
 import { compressImage, downloadGeneratedImage } from "@/lib/image-utils";
@@ -621,10 +622,7 @@ export const FashionGeneratorPage = ({
             </div>
 
             {isGenerating ? (
-              <div className="flex flex-col items-center justify-center py-8 md:py-16">
-                <Loader2 className="w-8 h-8 md:w-12 md:h-12 text-purple-500 animate-spin mb-3 md:mb-4" />
-                <p className="text-muted-foreground text-xs md:text-base">正在生成中...</p>
-              </div>
+              <GeneratingLoader message="正在生成中..." />
             ) : generatedImage ? (
               <div className="rounded-lg md:rounded-xl overflow-hidden bg-secondary/30 p-2 md:p-4">
                 <img src={generatedImage} alt={resultAlt} className="max-h-[300px] md:max-h-[400px] w-full mx-auto rounded-lg object-contain" />

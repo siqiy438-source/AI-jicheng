@@ -22,6 +22,11 @@ export default {
       "2xl": "1536px",
     },
     extend: {
+      fontFamily: {
+        sans: ["'Noto Sans SC'", "-apple-system", "BlinkMacSystemFont", "'Segoe UI'", "'PingFang SC'", "sans-serif"],
+        serif: ["'Noto Serif SC'", "'DM Serif Display'", "'PingFang SC'", "serif"],
+        display: ["'DM Serif Display'", "'Noto Serif SC'", "serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

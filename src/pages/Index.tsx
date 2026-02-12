@@ -36,7 +36,10 @@ const Index = () => {
   return (
     <PageLayout>
       {/* Hero Section - 不对称排版 */}
-      <div className="mb-10 md:mb-16 opacity-0 animate-fade-in">
+      <div className="mb-10 md:mb-16 opacity-0 animate-fade-in relative">
+        {/* 装饰性浮动几何元素 */}
+        <div className="absolute -top-4 right-0 md:right-12 w-20 h-20 md:w-28 md:h-28 rounded-full bg-gradient-to-br from-primary/10 to-accent/10 blur-2xl animate-float pointer-events-none" />
+
         {/* 装饰标签 */}
         <div className="inline-flex items-center gap-2 px-3 py-1.5 mb-4 md:mb-6 rounded-full bg-primary/10 border border-primary/20">
           <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
@@ -61,7 +64,7 @@ const Index = () => {
           <span className="flex-1 h-px bg-gradient-to-r from-border to-transparent" />
         </div>
 
-        {/* 卡片网格 - 移动端保持 2 列，间距调整 */}
+        {/* 卡片网格 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {features.map((feature, index) => (
             <FeatureCard

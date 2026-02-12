@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageLayout } from "@/components/PageLayout";
+import { GeneratingLoader } from "@/components/GeneratingLoader";
 import {
   Zap,
   Loader2,
@@ -1013,10 +1014,7 @@ const AIPPT = () => {
                 ) : (
                   <div className="aspect-video flex flex-col items-center justify-center gap-3 text-muted-foreground">
                     {isGeneratingImage ? (
-                      <>
-                        <Loader2 className="w-8 h-8 animate-spin text-orange-400" />
-                        <p className="text-sm">正在生成图片...</p>
-                      </>
+                      <GeneratingLoader message="正在生成图片..." />
                     ) : (
                       <>
                         <Presentation className="w-10 h-10 text-muted-foreground/30" />

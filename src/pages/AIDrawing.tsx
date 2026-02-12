@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { PageLayout } from "@/components/PageLayout";
+import { GeneratingLoader } from "@/components/GeneratingLoader";
 import {
   ArrowLeft,
   ImageIcon,
@@ -870,12 +871,9 @@ const AIDrawing = () => {
             </div>
 
             {isGenerating ? (
-              <div className="flex flex-col items-center justify-center py-8 md:py-16">
-                <Loader2 className="w-8 h-8 md:w-12 md:h-12 text-purple-500 animate-spin mb-3 md:mb-4" />
-                <p className="text-muted-foreground text-xs md:text-base">
-                  {conversationHistory.length > 0 ? "正在根据你的要求修改中..." : "正在生成中..."}
-                </p>
-              </div>
+              <GeneratingLoader
+                message={conversationHistory.length > 0 ? "正在根据你的要求修改中..." : "正在生成中..."}
+              />
             ) : generatedImage ? (
               <div>
                 <div className="rounded-lg md:rounded-xl overflow-hidden bg-secondary/30 p-2 md:p-4">

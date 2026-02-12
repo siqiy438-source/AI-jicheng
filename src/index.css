@@ -157,8 +157,8 @@
 
     --shadow-btn-inset: inset 0 1px 0 hsl(0 0% 100% / 0.1), inset 0 -1px 0 hsl(0 0% 0% / 0.2);
     --shadow-btn-hover: 0 6px 20px hsl(32 85% 55% / 0.3);
-    --glow-primary: 0 0 24px hsl(32 85% 55% / 0.35);
-    --glow-accent: 0 0 24px hsl(210 50% 55% / 0.35);
+    --glow-primary: 0 0 28px hsl(32 85% 55% / 0.4);
+    --glow-accent: 0 0 28px hsl(210 50% 55% / 0.4);
   }
 }
 
@@ -189,7 +189,7 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
     font-feature-settings: 'cv11', 'ss01';
     font-variation-settings: 'wght' 400;
     /* Mobile-First 字体：正文不低于 16px（防 iOS 输入框缩放） */
@@ -232,9 +232,9 @@
     word-break: break-word;
   }
 
-  /* 标题使用 Fraunces 衬线体 */
+  /* 标题使用衬线体 - 编辑/工坊风格 */
   h1, h2, h3 {
-    font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Noto Serif SC', 'DM Serif Display', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', serif;
     font-variation-settings: 'wght' 600, 'opsz' 36;
     letter-spacing: -0.02em;
   }
@@ -321,6 +321,22 @@
   to { transform: rotate(360deg); }
 }
 
+/* 页面入场动画 */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-enter {
+  animation: page-enter 0.4s ease-out forwards;
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    工具类
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -338,18 +354,9 @@
   .bg-gradient-warm {
     background: linear-gradient(
       135deg,
-      hsl(40 30% 98%) 0%,
-      hsl(35 25% 95%) 50%,
-      hsl(30 20% 93%) 100%
-    );
-  }
-
-  .dark .bg-gradient-warm {
-    background: linear-gradient(
-      135deg,
-      hsl(30 12% 10%) 0%,
-      hsl(28 10% 8%) 50%,
-      hsl(25 8% 6%) 100%
+      hsl(var(--gradient-start)) 0%,
+      hsl(var(--background)) 50%,
+      hsl(var(--gradient-end)) 100%
     );
   }
 
@@ -357,7 +364,37 @@
   .texture-paper {
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
     background-blend-mode: overlay;
-    opacity: 0.03;
+    opacity: 0.06;
+  }
+
+  /* 背景渐变光斑 - 营造氛围感 */
+  .ambient-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.25;
+  }
+
+  /* 桌面端增强光斑效果 */
+  @media (min-width: 768px) {
+    .ambient-orb {
+      filter: blur(80px);
+      opacity: 0.35;
+    }
+  }
+
+  .ambient-orb-primary {
+    background: radial-gradient(circle, hsl(28 80% 52% / 0.4) 0%, transparent 70%);
+  }
+
+  .ambient-orb-accent {
+    background: radial-gradient(circle, hsl(215 60% 50% / 0.3) 0%, transparent 70%);
+  }
+
+  .dark .ambient-orb {
+    opacity: 0.2;
   }
 
   /* 玻璃效果 */
@@ -481,6 +518,40 @@
 
   .transition-bounce {
     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* 滚动触发动画 */
+  .scroll-reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  }
+
+  .scroll-reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .scroll-reveal-left {
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+  }
+
+  .scroll-reveal-left.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .scroll-reveal-scale {
+    opacity: 0;
+    transform: scale(0.95);
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+  }
+
+  .scroll-reveal-scale.visible {
+    opacity: 1;
+    transform: scale(1);
   }
 
   /* 输入框底部高亮线 */
@@ -743,14 +814,6 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   移动端优化
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   移动端优化
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-/* ═══════════════════════════════════════════════════════════════════════════
    Mobile-First 移动端优化
    ═══════════════════════════════════════════════════════════════════════════ */
 
@@ -879,21 +942,6 @@ button[data-compact],
   scrollbar-width: none;
 }
 
-/* 下拉菜单动画 */
-@keyframes dropdown {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-dropdown {
-  animation: dropdown 0.15s ease-out;
-}
 
 /* 移动端安全区域工具类 */
 @layer utilities {

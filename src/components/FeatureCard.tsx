@@ -11,6 +11,7 @@ interface FeatureCardProps {
   color: "amber" | "indigo" | "emerald" | "rose" | "violet";
   delay?: number;
   to?: string;
+  size?: "default" | "large"; // Bento Grid 尺寸
 }
 
 // 新色彩系统 - 工坊风格
@@ -61,9 +62,11 @@ export const FeatureCard = ({
   color,
   delay = 0,
   to,
+  size = "default",
 }: FeatureCardProps) => {
   const navigate = useNavigate();
   const colorStyle = colorVariants[color];
+  const isLarge = size === "large";
 
   const handleClick = () => {
     if (to) {
@@ -76,11 +79,13 @@ export const FeatureCard = ({
       onClick={handleClick}
       className={cn(
         // 基础布局 - Mobile-First 内边距
-        "group relative p-3 md:p-5 rounded-xl md:rounded-2xl cursor-pointer",
+        "group relative cursor-pointer",
+        isLarge ? "p-4 md:p-6 rounded-2xl md:rounded-3xl" : "p-3 md:p-5 rounded-xl md:rounded-2xl",
         // 背景与边框
         "bg-card border border-border",
-        // 阴影系统
-        "shadow-[0_2px_8px_-2px_hsl(30_20%_20%/0.06)]",
+        // 阴影系统 - 增强立体感
+        "shadow-[0_2px_8px_-2px_hsl(30_20%_20%/0.06),inset_0_1px_0_hsl(0_0%_100%/0.6)]",
+        "dark:shadow-[0_2px_8px_-2px_hsl(0_0%_0%/0.3),inset_0_1px_0_hsl(0_0%_100%/0.05)]",
         colorStyle.glowColor,
         // 悬停边框变色
         colorStyle.hoverBorder,
@@ -119,14 +124,17 @@ export const FeatureCard = ({
       {/* 图标容器 - 增加深度感 */}
       <div
         className={cn(
-          "relative w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center mb-3 md:mb-4",
+          "relative flex items-center justify-center",
+          isLarge
+            ? "w-12 h-12 md:w-16 md:h-16 rounded-2xl md:rounded-3xl mb-4 md:mb-5"
+            : "w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl mb-3 md:mb-4",
           "bg-gradient-to-br",
           customIcon ? "bg-transparent" : colorStyle.iconBg,
           // 内阴影增加深度
           !customIcon && "shadow-[inset_0_-2px_4px_hsl(0_0%_0%/0.05),0_2px_4px_hsl(0_0%_0%/0.04)]",
-          // 悬停效果
-          "transition-transform duration-300",
-          "group-hover:scale-105 group-hover:rotate-3"
+          // 悬停效果 - 弹跳旋转
+          "transition-transform duration-300 ease-out",
+          "group-hover:scale-110 group-hover:rotate-6"
         )}
       >
         {customIcon ? (
@@ -157,14 +165,17 @@ export const FeatureCard = ({
 
       {/* 标题 */}
       <h3 className={cn(
-        "font-semibold text-foreground mb-1 md:mb-1.5 text-sm md:text-base",
-        "transition-colors duration-200"
+        "font-semibold text-foreground transition-colors duration-200",
+        isLarge ? "mb-1.5 md:mb-2 text-base md:text-lg" : "mb-1 md:mb-1.5 text-sm md:text-base"
       )}>
         {title}
       </h3>
 
       {/* 描述 */}
-      <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
+      <p className={cn(
+        "text-muted-foreground leading-relaxed",
+        isLarge ? "text-sm md:text-base" : "text-xs md:text-sm"
+      )}>
         {description}
       </p>
 
