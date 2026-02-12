@@ -26,7 +26,6 @@ const FashionOutfit = () => {
       iconSrc="/icons/fashion-outfit-custom.webp"
       basePrompt={FASHION_OUTFIT_FLATLAY_PROMPT}
       styleOptions={outfitStyles}
-      styleSelectorVariant="cards"
       resultAlt="平铺摆拍效果图"
       downloadPrefix="fashion-outfit"
     />

@@ -385,14 +385,14 @@ export const FashionGeneratorPage = ({
                       setShowRatioMenu(false);
                       setShowLineMenu(false);
                     }}
-                    className="flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-full text-[11px] md:text-sm bg-secondary/50 text-muted-foreground hover:bg-secondary transition-all duration-200 border border-transparent touch-target whitespace-nowrap"
+                    className="flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 rounded-full text-[11px] md:text-sm transition-all duration-200 border bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100 touch-target whitespace-nowrap"
                   >
-                    <Palette className="w-3.5 h-3.5" />
+                    <Palette className="w-3.5 h-3.5 text-orange-500" />
                     <span>{styleOptions.find((s) => s.id === selectedStyleId)?.name}</span>
                     <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showStyleMenu && "rotate-180")} />
                   </button>
                   {showStyleMenu && (
-                    <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 w-[120px] max-w-[calc(100vw-2rem)] animate-dropdown max-h-[128px] overflow-y-auto scrollbar-thin dropdown-panel">
+                    <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-2 z-10 w-[220px] max-w-[calc(100vw-2rem)] max-h-[60vh] overflow-y-auto dropdown-panel">
                       {styleOptions.map((style) => (
                         <button
                           key={style.id}
@@ -401,12 +401,17 @@ export const FashionGeneratorPage = ({
                             setShowStyleMenu(false);
                           }}
                           className={cn(
-                            "w-full flex items-center gap-1.5 px-3 py-2.5 text-sm hover:bg-secondary/50 transition-all duration-200 text-left touch-target",
-                            selectedStyleId === style.id && "bg-orange-50 text-orange-700",
+                            "w-full flex items-start gap-2.5 px-3 md:px-4 py-2.5 hover:bg-secondary/50 active:bg-secondary transition-colors text-left touch-target",
+                            selectedStyleId === style.id && "bg-orange-50",
                           )}
                         >
-                          {style.icon && <span>{style.icon}</span>}
-                          <span>{style.name}</span>
+                          {style.icon && <span className="text-base leading-none mt-0.5">{style.icon}</span>}
+                          <div className="min-w-0">
+                            <div className={cn("text-sm font-medium", selectedStyleId === style.id ? "text-orange-700" : "text-foreground")}>
+                              {style.name}
+                            </div>
+                            {style.description && <div className="text-xs text-muted-foreground leading-relaxed">{style.description}</div>}
+                          </div>
                         </button>
                       ))}
                     </div>

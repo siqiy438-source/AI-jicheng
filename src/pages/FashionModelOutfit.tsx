@@ -26,7 +26,6 @@ const FashionModelOutfit = () => {
       iconSrc="/icons/fashion-model-custom.webp"
       basePrompt={FASHION_MODEL_MIRROR_SELFIE_PROMPT}
       styleOptions={modelStyles}
-      styleSelectorVariant="cards"
       resultAlt="模特生成图"
       downloadPrefix="fashion-model-outfit"
     />
