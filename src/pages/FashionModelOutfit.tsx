@@ -26,14 +26,14 @@ const modelStyles: StyleOption[] = [
     name: "氛围半身图",
     prompt: FASHION_MODEL_FACELESS_HALF_PROMPT,
     icon: "✦",
-    description: "不露脸的静奢半身图，聚焦面料质感与叠穿层次",
+    description: "不露脸半身图，展示叠穿层次与整体搭配氛围",
   },
   {
     id: "faceless-full",
     name: "氛围近景图",
     prompt: FASHION_MODEL_FACELESS_FULL_PROMPT,
     icon: "◈",
-    description: "不露脸的近景氛围图，比半身稍宽，露出部分下装，静奢质感",
+    description: "1.5倍焦距特写，怼近拍面料质感和细节，衣服填满画面",
   },
 ];
 

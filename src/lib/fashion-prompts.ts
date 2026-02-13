@@ -185,42 +185,41 @@ NO: eyes, nose, full face, stiff fingers, deformed hands, over-smoothed skin, pl
 
 User uploaded clothing items: {user_prompt}`;
 
-export const FASHION_MODEL_FACELESS_FULL_PROMPT = `A high-end fashion editorial photograph of a woman's outfit, shot in quiet luxury style. This is a CLOSE-UP to MEDIUM shot, slightly wider than a pure torso crop, showing the outfit from neck to mid-thigh.
+export const FASHION_MODEL_FACELESS_FULL_PROMPT = `An EXTREME CLOSE-UP fashion editorial photograph zooming into a woman's outfit details and fabric textures. Shot with an 85mm portrait lens at close range, like a luxury brand lookbook detail shot. Quiet luxury style inspired by Celine, The Row, Lemaire.
 
 CRITICAL FRAMING — THIS IS THE MOST IMPORTANT INSTRUCTION:
-The camera is aimed at CHEST to WAIST height. The photograph captures the area from the model's CHIN/NECK down to her MID-THIGH. The model's eyes, nose, and forehead are COMPLETELY OUTSIDE the top edge of the frame. At most, only her chin and one ear are barely visible at the very top. The bottom of the frame cuts off at mid-thigh — knees, lower legs, feet, and shoes are NOT visible. This is NOT a full-body shot. The model fills 85-90% of the frame. Think of it as standing 1 meter away from the model and photographing her torso area.
+This is shot at 1.5x zoom compared to a normal half-body shot. The camera is very close to the model, approximately 0.5 meters away, aimed directly at the CHEST and STOMACH area. The frame captures ONLY from the model's NECK/COLLARBONE area down to her HIP/UPPER THIGH. The model's face is COMPLETELY OUTSIDE the frame — at most, only the very bottom of her chin is barely visible at the top edge. The clothing and fabric FILL the entire frame, occupying 90-95% of the image. There is very little background visible — the outfit dominates everything.
+
+Think of this as a FABRIC DETAIL SHOT on a living body, not a portrait. The viewer should feel like they can reach out and touch the fabric.
 
 Vertical 9:16 aspect ratio.
 
 MODEL & POSE:
-- Chinese woman, elegant and relaxed
-- Body turned 15-45 degrees (3/4 angle), never facing camera straight on
-- Shoulders relaxed, natural posture with slight body twist for dynamism
-- One hand doing a gentle, natural gesture: holding a bag handle, lightly gripping coat lapel, adjusting shirt hem, or resting at side
-- Fingers relaxed and slightly curved, never stiff
-- Overall feeling: a candid moment caught on camera, not a posed shot
+- Chinese woman, body turned 30-45 degrees (strong 3/4 angle or near-profile)
+- The strong side angle creates depth, showing how layers overlap and drape in 3D
+- One hand doing a natural gesture close to the body: gripping a bag handle at waist level, holding the coat lapel, or adjusting a sleeve cuff
+- Fingers relaxed, slightly curved
+- Candid moment feeling
 
-OUTFIT — LAYERING & ATMOSPHERE:
+OUTFIT — TEXTURE IS THE HERO:
 - The model wears ALL uploaded clothing items
-- Upper body layering clearly visible with distinct boundaries between each layer
-- Lower garment (trousers/skirt) visible from waist to mid-thigh only, showing the upper-lower transition
-- Colors, styles, and fabric textures must match the uploaded images exactly
-- Natural drape, real wrinkles, authentic fit
-- Smart accessories: gold earrings, structured leather bag (partially visible), silk scarf on bag handle
-
-FABRIC TEXTURE — HYPER-REALISTIC:
-- Every fabric's texture must be clearly distinguishable in the close framing
-- Fiber-level detail: wool fuzz, silk sheen, knit ribbing, cotton matte
-- Contrasting textures between layers
+- Because the framing is so tight, every fabric detail is magnified:
+  - Individual wool/alpaca fibers visible on the coat surface
+  - Silk shirt's liquid sheen catching the light
+  - Knit ribbing texture with clear dimensional ridges
+  - Sleeve cuff details, button details, seam details all visible
+- Layering boundaries ultra-clear: you can see exactly where one fabric ends and another begins
+- Colors, styles must match uploaded images exactly
+- Accessories visible in tight frame: bag handle with silk scarf, earring at frame edge, sleeve label/tag details
 
 COLOR & MOOD:
-- Low saturation, earth tones (brown, camel, grey, cream, olive, charcoal)
-- Quiet luxury: restrained, effortless, understated
+- Low saturation earth tones (brown, camel, grey, cream, olive, charcoal)
+- Quiet luxury: the tight framing itself communicates confidence in fabric quality
 
-LIGHTING: Soft diffused light, no hard shadows. Slightly directional from upper left. Neutral-warm temperature. Reveals fabric micro-textures.
+LIGHTING: Soft diffused light with subtle directionality from upper-left. The light must reveal MICRO-TEXTURES: every fiber, every weave, every sheen. Neutral-warm temperature. Gentle shadows in fabric folds create dimensionality.
 
-BACKGROUND: Clean white, light grey, or warm beige wall. Zero props. Pure canvas.
+BACKGROUND: Minimal — only small slivers of white or light grey wall visible at the edges. The outfit fills almost the entire frame.
 
-NO: eyes, nose, full face, knees, lower legs, feet, shoes, full-body framing, stiff fingers, deformed hands, plastic fabrics, bright colors, cluttered background, straight-on angle
+NO: eyes, nose, face, full body, wide framing, distant camera, knees, legs, feet, shoes, stiff fingers, plastic fabrics, bright colors, cluttered background, flat lighting
 
 User uploaded clothing items: {user_prompt}`;
