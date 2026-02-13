@@ -21,6 +21,8 @@ import { Button } from "@/components/ui/button";
 import { generateImage } from "@/lib/ai-image";
 import { compressImage, downloadGeneratedImage } from "@/lib/image-utils";
 import { saveGeneratedImageWork } from "@/lib/repositories/works";
+import { useCreditCheck } from "@/hooks/use-credit-check";
+import { InsufficientBalanceDialog } from "@/components/InsufficientBalanceDialog";
 import { cn } from "@/lib/utils";
 
 export interface StyleOption {
@@ -71,6 +73,7 @@ export const FashionGeneratorPage = ({
   downloadPrefix,
 }: FashionGeneratorPageProps) => {
   const navigate = useNavigate();
+  const { checkCredits, showInsufficientDialog, requiredAmount, featureName, currentBalance, goToRecharge, dismissDialog, refreshBalance } = useCreditCheck();
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [prompt, setPrompt] = useState("");
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -153,11 +156,14 @@ export const FashionGeneratorPage = ({
   const handleGenerate = async () => {
     if (!canGenerate) return;
 
+    const selectedLineOption = lineOptions.find((lineOption) => lineOption.id === selectedLine) || lineOptions[1];
+    const featureCode = selectedLineOption.line === 'premium' ? 'ai_fashion_premium' : 'ai_fashion_standard';
+    if (!checkCredits(featureCode)) return;
+
     setIsGenerating(true);
     setGeneratedImage(null);
 
     try {
-      const selectedLineOption = lineOptions.find((lineOption) => lineOption.id === selectedLine) || lineOptions[1];
       const finalPrompt = buildPrompt();
       const data = await generateImage({
         prompt: finalPrompt,
@@ -166,6 +172,7 @@ export const FashionGeneratorPage = ({
         line: selectedLineOption.line,
         resolution: selectedLineOption.resolution,
         hasFrameworkPrompt: true,
+        featureCode,
       });
 
       if (!data.success) {
@@ -178,6 +185,7 @@ export const FashionGeneratorPage = ({
       }
 
       setGeneratedImage(resultImage);
+      void refreshBalance();
 
       const workTitle = prompt.trim() ? `${title}：${prompt.trim().slice(0, 24)}` : `${title}作品`;
       void saveGeneratedImageWork({
@@ -304,7 +312,44 @@ export const FashionGeneratorPage = ({
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs text-muted-foreground">生成模式</span>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="relative md:hidden">
+                <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent md:hidden" />
+                <div className="flex gap-2 overflow-x-auto pb-1 pr-2 snap-x snap-mandatory scrollbar-hide">
+                  {styleOptions?.map((style) => {
+                    const isActive = selectedStyleId === style.id;
+                    return (
+                      <button
+                        key={style.id}
+                        onClick={() => setSelectedStyleId(style.id)}
+                        className={cn(
+                          "min-w-[180px] max-w-[220px] shrink-0 snap-start text-left rounded-xl border p-2.5 md:p-3 transition-all duration-200 active:scale-[0.99]",
+                          isActive
+                            ? "border-orange-300 bg-orange-50/90 shadow-[0_8px_24px_-12px_rgba(234,88,12,0.45)]"
+                            : "border-border bg-card/40 hover:border-orange-200 hover:bg-card/70",
+                        )}
+                      >
+                        <div className="flex items-center justify-between gap-1.5 md:gap-2 mb-0.5 md:mb-1">
+                          <div className="flex items-center gap-1 min-w-0">
+                            {style.iconSrc ? (
+                              <img src={style.iconSrc} alt={style.name} className="w-4 h-4 rounded object-cover" />
+                            ) : style.icon ? (
+                              <span className="text-xs md:text-sm">{style.icon}</span>
+                            ) : null}
+                            <span className="text-xs md:text-sm font-medium text-foreground truncate">{style.name}</span>
+                          </div>
+                          {style.badge && (
+                            <span className="px-1.5 py-0.5 text-[10px] leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded whitespace-nowrap">
+                              {style.badge}
+                            </span>
+                          )}
+                        </div>
+                        {style.description && <p className="text-xs text-muted-foreground leading-relaxed">{style.description}</p>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-5 gap-2">
                 {styleOptions?.map((style) => {
                   const isActive = selectedStyleId === style.id;
                   return (
@@ -333,11 +378,12 @@ export const FashionGeneratorPage = ({
                           </span>
                         )}
                       </div>
-                      {style.description && <p className="hidden sm:block text-xs text-muted-foreground leading-relaxed">{style.description}</p>}
+                      {style.description && <p className="text-xs text-muted-foreground leading-relaxed">{style.description}</p>}
                     </button>
                   );
                 })}
               </div>
+              <p className="mt-1 text-[11px] text-muted-foreground md:hidden">左右滑动切换生成模式</p>
             </div>
           )}
 
@@ -563,6 +609,14 @@ export const FashionGeneratorPage = ({
           </div>
         )}
       </div>
+      <InsufficientBalanceDialog
+        open={showInsufficientDialog}
+        onOpenChange={dismissDialog}
+        balance={currentBalance}
+        required={requiredAmount}
+        featureName={featureName}
+        onRecharge={goToRecharge}
+      />
     </PageLayout>
   );
 };

@@ -4,6 +4,7 @@ import {
   FASHION_MODEL_STANDARD_PROMPT,
   FASHION_MODEL_FACELESS_HALF_PROMPT,
   FASHION_MODEL_FACELESS_FULL_PROMPT,
+  FASHION_MODEL_INDOOR_PROMPT,
 } from "@/lib/fashion-prompts";
 
 const modelStyles: StyleOption[] = [
@@ -35,16 +36,24 @@ const modelStyles: StyleOption[] = [
     icon: "◈",
     description: "1.5倍焦距特写，怼近拍面料质感和细节，衣服填满画面",
   },
+  {
+    id: "indoor-model",
+    name: "室内模特图",
+    prompt: FASHION_MODEL_INDOOR_PROMPT,
+    icon: "⌂",
+    description: "平整室内背景+自然抓拍动作，强调三件单品完整上身和真实氛围",
+  },
 ];
 
 const FashionModelOutfit = () => {
   return (
     <FashionGeneratorPage
       title="模特生成"
-      subtitle="上传服装图片，支持四种风格：自拍、模特、氛围半身、氛围近景"
+      subtitle="上传服装图片，支持五种风格：自拍、模特、氛围半身、氛围近景、室内模特"
       iconSrc="/icons/fashion-model-custom.webp"
       basePrompt={FASHION_MODEL_MIRROR_SELFIE_PROMPT}
       styleOptions={modelStyles}
+      styleSelectorVariant="cards"
       resultAlt="模特生成图"
       downloadPrefix="fashion-model-outfit"
     />
