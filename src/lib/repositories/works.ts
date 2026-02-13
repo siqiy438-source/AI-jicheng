@@ -44,10 +44,8 @@ const sanitizeFilename = (filename: string) =>
   filename.replace(/[^a-zA-Z0-9._-]/g, '_');
 
 const getCurrentUserId = async () => {
-  if (!supabase.auth || typeof supabase.auth.getUser !== 'function') return null;
-  const { data, error } = await supabase.auth.getUser();
-  if (error) throw error;
-  return data.user?.id ?? null;
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.user?.id ?? null;
 };
 
 /** 获取 Storage 文件的公开 URL（bucket 已设为 public） */
@@ -92,6 +90,14 @@ const resolveImage = async (userId: string, imageInput: string): Promise<{ bucke
   const storagePath = extractPathFromSignedUrl(imageInput);
   if (storagePath) {
     return { bucket: WORKS_BUCKET, path: storagePath };
+  }
+  // 普通 HTTPS URL → 下载后上传到用户目录
+  if (imageInput.startsWith('http')) {
+    const resp = await fetch(imageInput);
+    if (resp.ok) {
+      const blob = await resp.blob();
+      return uploadBlob(userId, blob);
+    }
   }
   return null;
 };
@@ -140,7 +146,10 @@ export const listWorks = async (): Promise<WorkListItem[]> => {
 
 export const saveWork = async (input: SaveWorkInput) => {
   const userId = await getCurrentUserId();
-  if (!userId) return null;
+  if (!userId) {
+    console.warn('[works] saveWork: 用户未登录，跳过保存');
+    return null;
+  }
 
   let storageBucket: string | null = null;
   let storagePath: string | null = null;
@@ -152,9 +161,13 @@ export const saveWork = async (input: SaveWorkInput) => {
       if (result) {
         storageBucket = result.bucket;
         storagePath = result.path;
+      } else {
+        // resolveImage 返回 null，直接把原始 URL 存到 thumbnail_url 兜底
+        thumbnailUrl = input.thumbnailDataUrl;
       }
     } catch (error) {
-      console.warn('resolveImage failed, saving work without thumbnail', error);
+      console.warn('[works] resolveImage failed, saving thumbnail_url as fallback', error);
+      thumbnailUrl = input.thumbnailDataUrl;
     }
   }
 
@@ -173,7 +186,10 @@ export const saveWork = async (input: SaveWorkInput) => {
     .select('id')
     .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error('[works] saveWork insert failed:', error);
+    throw error;
+  }
   return data;
 };
 
