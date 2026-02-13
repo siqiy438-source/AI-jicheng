@@ -21,8 +21,6 @@ import { Button } from "@/components/ui/button";
 import { generateImage } from "@/lib/ai-image";
 import { compressImage, downloadGeneratedImage } from "@/lib/image-utils";
 import { saveGeneratedImageWork } from "@/lib/repositories/works";
-import { useCreditCheck } from "@/hooks/use-credit-check";
-import { InsufficientBalanceDialog } from "@/components/InsufficientBalanceDialog";
 import { cn } from "@/lib/utils";
 
 export interface StyleOption {
@@ -73,7 +71,6 @@ export const FashionGeneratorPage = ({
   downloadPrefix,
 }: FashionGeneratorPageProps) => {
   const navigate = useNavigate();
-  const { checkCredits, showInsufficientDialog, requiredAmount, featureName, currentBalance, goToRecharge, dismissDialog, refreshBalance } = useCreditCheck();
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [prompt, setPrompt] = useState("");
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -157,8 +154,6 @@ export const FashionGeneratorPage = ({
     if (!canGenerate) return;
 
     const selectedLineOption = lineOptions.find((lineOption) => lineOption.id === selectedLine) || lineOptions[1];
-    const featureCode = selectedLineOption.line === 'premium' ? 'ai_fashion_premium' : 'ai_fashion_standard';
-    if (!checkCredits(featureCode)) return;
 
     setIsGenerating(true);
     setGeneratedImage(null);
@@ -172,7 +167,6 @@ export const FashionGeneratorPage = ({
         line: selectedLineOption.line,
         resolution: selectedLineOption.resolution,
         hasFrameworkPrompt: true,
-        featureCode,
       });
 
       if (!data.success) {
@@ -185,7 +179,6 @@ export const FashionGeneratorPage = ({
       }
 
       setGeneratedImage(resultImage);
-      void refreshBalance();
 
       const workTitle = prompt.trim() ? `${title}：${prompt.trim().slice(0, 24)}` : `${title}作品`;
       void saveGeneratedImageWork({
@@ -609,14 +602,6 @@ export const FashionGeneratorPage = ({
           </div>
         )}
       </div>
-      <InsufficientBalanceDialog
-        open={showInsufficientDialog}
-        onOpenChange={dismissDialog}
-        balance={currentBalance}
-        required={requiredAmount}
-        featureName={featureName}
-        onRecharge={goToRecharge}
-      />
     </PageLayout>
   );
 };
