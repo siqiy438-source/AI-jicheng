@@ -144,135 +144,83 @@ User uploaded clothing items: {user_prompt}`;
 // 保持向后兼容
 export const FASHION_MODEL_PROMPT = FASHION_MODEL_STANDARD_PROMPT;
 
-export const FASHION_MODEL_FACELESS_HALF_PROMPT = `生成一张高端时尚品牌风格的无脸半身穿搭照片，呈现"静奢"(quiet luxury)杂志内页质感。
+export const FASHION_MODEL_FACELESS_HALF_PROMPT = `A high-end fashion editorial close-up photograph of a woman's outfit, shot in quiet luxury style like Celine, The Row, or Lemaire lookbook.
 
-【裁切与构图 — 最关键，必须严格遵守】
-- 画面上边界：裁切到下巴/下唇位置，下唇和下巴可见，但鼻子、眼睛绝对不能出现
-- 画面下边界：到腰线或大腿中部位置
-- 耳朵可以露出（用于展示耳饰）
-- 模特填满画面 75-85% 的空间
-- 竖版 9:16 比例
+CRITICAL FRAMING — THIS IS THE MOST IMPORTANT INSTRUCTION:
+The camera is aimed at CHEST HEIGHT. The photograph captures ONLY the area from the model's CHIN down to her WAIST. The model's eyes, nose, and forehead are COMPLETELY OUTSIDE the top edge of the frame. At most, only her chin, lower lip, jawline, and one ear with an earring are barely visible at the very top of the image. This is a TORSO CLOSE-UP, not a portrait.
 
-【模特姿态】
-- 中国女性，身材匀称，气质从容
-- 身体朝向：15°-45° 的 3/4 侧转，绝对不要正面直对镜头
-- 肩膀微微放松前倾，呈现自然松弛的体态，不要挺胸抬头的僵硬站姿
-- 皮肤质感真实自然（手部、颈部、下巴）
+The model fills 80-90% of the frame. Vertical 9:16 aspect ratio.
 
-【手部动作 — 极其重要】
-必须有一只手在做一个自然、轻柔的动作，从以下选择一个最适合当前穿搭的：
-- 轻捏外套或衬衫的领口/翻领（拇指和食指轻轻捏住，其余手指自然弯曲）
-- 手握包袋的提手或肩带
-- 轻拉衣摆或调整腰间的塞法
-- 手指轻触锁骨处的项链
-另一只手自然垂放或轻搭在身侧。
-手指必须放松、微微弯曲，绝不能僵直张开。指甲干净自然。
-整体感觉是"被抓拍到的瞬间"，不是刻意摆拍。
+MODEL & POSE:
+- Chinese woman, elegant and relaxed
+- Body turned 15-45 degrees (3/4 angle), never facing camera straight on
+- Shoulders slightly relaxed and forward, natural posture
+- One hand doing a gentle, natural gesture: lightly holding the coat lapel, gripping a bag handle, or adjusting the shirt hem. Fingers relaxed and slightly curved, never stiff.
+- The other hand resting naturally at her side
 
-【穿搭展示 — 层次是核心】
-- 模特必须完整穿着上传的所有服装单品
-- 必须呈现 3 层以上的叠穿层次，每层之间边界清晰，不能融合成一件
-- 领口形成 V 字形层叠：外层领口 > 中层领口 > 内层领口，逐层内收
-- 如果有衬衫，袖口应从外套袖口中自然露出 1-3cm
-- 衣服的颜色、款式、面料质感必须与上传图片高度一致
-- 衣服穿着自然合身，有真实的褶皱和垂坠感
-- 根据服装风格智能搭配 1-2 件精致配饰：
-  - 金属质感耳饰（金色水滴形、珍珠耳环等）
-  - 结构感皮质手袋（只露出局部，手提或肩背）
-  - 丝巾（系在包带上或搭在肩上）
+OUTFIT — LAYERING IS KEY:
+- The model wears ALL uploaded clothing items
+- Must show 3+ visible layers with clear boundaries between each layer
+- V-shaped neckline cascade: outer layer collar > middle layer collar > inner layer collar
+- Shirt cuffs peeking 1-3cm from coat sleeves
+- Colors, styles, and fabric textures must match the uploaded images exactly
+- Smart accessories: gold drop earrings, structured leather bag (partially visible), silk scarf
 
-【面料质感 — 必须极致真实】
-- 每件衣服的面料质感必须在画面中清晰可辨：
-  - 毛呢/羊驼毛：可见的纤维毛绒感，表面有自然的绒毛纹理
-  - 丝绸/缎面：液态般的光泽和流动感
-  - 针织/罗纹：清晰的编织纹理和凹凸感
-  - 棉质：自然的褶皱和哑光质感
-- 不同层次的面料之间必须有明显的质感对比（粗糙vs光滑、蓬松vs贴身）
+FABRIC TEXTURE — MUST BE HYPER-REALISTIC:
+- Wool/alpaca: visible fiber fuzz and natural nap texture
+- Silk/satin: liquid-like sheen and flow
+- Knit/ribbed: clear weave pattern and dimensional texture
+- Contrasting textures between layers (rough vs smooth, fluffy vs fitted)
 
-【色调与氛围】
-- 整体色调低饱和度，大地色系为主（棕、驼、灰、米白、橄榄绿、炭灰）
-- 黑色用炭灰色替代，白色用奶油色/米色替代
-- 整套穿搭控制在 3-4 个色相以内
-- quiet luxury 氛围：克制、从容、不张扬
+COLOR & MOOD:
+- Low saturation, earth tones only (brown, camel, grey, cream, olive, charcoal)
+- Quiet luxury atmosphere: restrained, effortless, understated
+- Maximum 3-4 color hues per outfit
 
-【光线】
-- 柔和的漫射光，无任何硬阴影
-- 光源从左上方或正前方偏左，在衣服褶皱处形成微妙的明暗过渡
-- 色温中性偏暖
-- 光线要能揭示面料的微观质感
+LIGHTING: Soft diffused light, no hard shadows. Slightly directional from upper left. Neutral-warm color temperature. Light reveals micro-textures of fabrics.
 
-【背景】
-- 纯净的白色或浅灰色墙面，无任何道具和装饰
-- 零环境信息，背景是纯粹的"画布"
-- 无文字、无水印、无任何 UI 元素
+BACKGROUND: Clean white or light grey wall. Zero props, zero decoration. Pure canvas.
 
-【禁止出现】
-眼睛、鼻子、完整面部、僵硬的手指、变形的手部、过度磨皮、不自然的肤色、AI 感的塑料质感面料、过于鲜艳的颜色、杂乱的背景、正面直对镜头的站姿
+NO: eyes, nose, full face, stiff fingers, deformed hands, over-smoothed skin, plastic-looking fabrics, bright saturated colors, cluttered background, straight-on camera angle, full body shot
 
-风格参考：Celine/The Row/Lemaire 品牌 lookbook、小红书高端穿搭博主无脸半身图、时尚杂志 editorial crop
+User uploaded clothing items: {user_prompt}`;
 
-用户上传的服装单品：{user_prompt}`;
+export const FASHION_MODEL_FACELESS_FULL_PROMPT = `A high-end fashion editorial photograph of a woman's outfit, shot in quiet luxury style. This is a CLOSE-UP to MEDIUM shot, slightly wider than a pure torso crop, showing the outfit from neck to mid-thigh.
 
-export const FASHION_MODEL_FACELESS_FULL_PROMPT = `生成一张高端时尚品牌风格的无脸氛围穿搭照片，景别比纯半身稍宽，展示上半身完整层次的同时露出部分下装，营造从容的"静奢"氛围感。
+CRITICAL FRAMING — THIS IS THE MOST IMPORTANT INSTRUCTION:
+The camera is aimed at CHEST to WAIST height. The photograph captures the area from the model's CHIN/NECK down to her MID-THIGH. The model's eyes, nose, and forehead are COMPLETELY OUTSIDE the top edge of the frame. At most, only her chin and one ear are barely visible at the very top. The bottom of the frame cuts off at mid-thigh — knees, lower legs, feet, and shoes are NOT visible. This is NOT a full-body shot. The model fills 85-90% of the frame. Think of it as standing 1 meter away from the model and photographing her torso area.
 
-【裁切与构图 — 最关键，必须严格遵守】
-- 画面上边界：裁切到下巴或颈部位置，下巴可见，但眼睛和鼻子绝对不能出现
-- 画面下边界：到大腿中部位置，只露出下装（裤子/裙子）的上半部分即可，绝对不要拍到膝盖以下，不需要露出鞋子和脚
-- 这是一个"近景偏中景"的构图，不是全身照，模特身体填满画面 80-90% 的空间
-- 竖版 9:16 比例
-- 关键：景别要近，要有"贴近感"，像是站在模特面前 1 米的距离拍摄
+Vertical 9:16 aspect ratio.
 
-【模特姿态】
-- 中国女性，身材匀称，气质从容
-- 身体朝向：15°-45° 的 3/4 侧转，绝对不要正面直对镜头
-- 肩膀放松，整体呈现自然松弛的体态
-- 可以有轻微的身体扭转，增加动态感
-- 皮肤质感真实自然
+MODEL & POSE:
+- Chinese woman, elegant and relaxed
+- Body turned 15-45 degrees (3/4 angle), never facing camera straight on
+- Shoulders relaxed, natural posture with slight body twist for dynamism
+- One hand doing a gentle, natural gesture: holding a bag handle, lightly gripping coat lapel, adjusting shirt hem, or resting at side
+- Fingers relaxed and slightly curved, never stiff
+- Overall feeling: a candid moment caught on camera, not a posed shot
 
-【手部动作 — 极其重要】
-必须有一只手在做一个自然、轻柔的动作：
-- 手握包袋的提手或肩带（包在身侧或身前，只露出局部）
-- 轻捏外套或衬衫的领口/翻领
-- 轻拉衣摆或调整腰间的塞法
-- 一只手自然垂放在身侧
-手指必须放松、微微弯曲，绝不能僵直张开。
-整体感觉是"被抓拍到的瞬间"，不是刻意摆拍。
+OUTFIT — LAYERING & ATMOSPHERE:
+- The model wears ALL uploaded clothing items
+- Upper body layering clearly visible with distinct boundaries between each layer
+- Lower garment (trousers/skirt) visible from waist to mid-thigh only, showing the upper-lower transition
+- Colors, styles, and fabric textures must match the uploaded images exactly
+- Natural drape, real wrinkles, authentic fit
+- Smart accessories: gold earrings, structured leather bag (partially visible), silk scarf on bag handle
 
-【穿搭展示 — 层次与氛围并重】
-- 模特必须完整穿着上传的所有服装单品
-- 上半身叠穿层次清晰，每层之间边界分明
-- 下装（裤子/裙子）只需露出腰部到大腿的部分，展示上下衔接关系即可
-- 衣服的颜色、款式、面料质感必须与上传图片高度一致
-- 衣服穿着自然合身，有真实的褶皱和垂坠感
-- 根据服装风格智能搭配 1-2 件精致配饰：
-  - 金属质感耳饰（金色水滴形、珍珠耳环等）
-  - 结构感皮质手袋（只露出局部）
-  - 丝巾（系在包带上或搭在肩上）
+FABRIC TEXTURE — HYPER-REALISTIC:
+- Every fabric's texture must be clearly distinguishable in the close framing
+- Fiber-level detail: wool fuzz, silk sheen, knit ribbing, cotton matte
+- Contrasting textures between layers
 
-【面料质感 — 必须极致真实】
-- 每件衣服的面料质感必须在画面中清晰可辨
-- 因为景别近，面料的微观纹理要更加突出：纤维感、编织纹理、光泽变化
-- 不同层次的面料之间必须有明显的质感对比
+COLOR & MOOD:
+- Low saturation, earth tones (brown, camel, grey, cream, olive, charcoal)
+- Quiet luxury: restrained, effortless, understated
 
-【色调与氛围】
-- 整体色调低饱和度，大地色系为主（棕、驼、灰、米白、橄榄绿、炭灰）
-- quiet luxury 氛围：克制、从容、不张扬
-- 整套穿搭控制在 3-4 个色相以内
+LIGHTING: Soft diffused light, no hard shadows. Slightly directional from upper left. Neutral-warm temperature. Reveals fabric micro-textures.
 
-【光线】
-- 柔和的漫射光，无任何硬阴影
-- 光源从左上方或正前方偏左，在衣服褶皱处形成微妙的明暗过渡
-- 色温中性偏暖
-- 光线要能揭示面料的微观质感
+BACKGROUND: Clean white, light grey, or warm beige wall. Zero props. Pure canvas.
 
-【背景】
-- 纯净的白色或浅灰色或暖米色墙面，无任何道具和装饰
-- 零环境信息，背景是纯粹的"画布"
-- 无文字、无水印、无任何 UI 元素
+NO: eyes, nose, full face, knees, lower legs, feet, shoes, full-body framing, stiff fingers, deformed hands, plastic fabrics, bright colors, cluttered background, straight-on angle
 
-【禁止出现】
-眼睛、鼻子、完整面部、膝盖以下的腿部、鞋子、脚、全身远景构图、僵硬的手指、变形的手部、过度磨皮、AI 塑料感面料、鲜艳颜色、杂乱背景、正面直对镜头的站姿
-
-风格参考：Celine/The Row/Lemaire 品牌 lookbook、小红书高端穿搭博主无脸氛围图、时尚杂志 editorial crop
-
-用户上传的服装单品：{user_prompt}`;
+User uploaded clothing items: {user_prompt}`;
