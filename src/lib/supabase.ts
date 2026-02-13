@@ -13,9 +13,16 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
  */
 export async function getAccessToken(): Promise<string | null> {
   const { data: { session } } = await supabase.auth.getSession()
-  if (session?.access_token) return session.access_token
 
-  // session 为空或过期，尝试刷新
+  if (session?.access_token && session.expires_at) {
+    // 提前 60 秒刷新，避免发出去的 token 刚好过期
+    const now = Math.floor(Date.now() / 1000)
+    if (session.expires_at > now + 60) {
+      return session.access_token
+    }
+  }
+
+  // session 为空或即将过期，强制刷新
   const { data: { session: refreshed } } = await supabase.auth.refreshSession()
   return refreshed?.access_token || null
 }
