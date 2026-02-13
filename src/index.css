@@ -371,10 +371,10 @@
   .ambient-orb {
     position: absolute;
     border-radius: 50%;
-    filter: blur(60px);
+    filter: blur(40px);
     pointer-events: none;
     z-index: 0;
-    opacity: 0.25;
+    opacity: 0.15;
   }
 
   /* 桌面端增强光斑效果 */
@@ -400,19 +400,30 @@
   /* 玻璃效果 */
   .glass {
     background: hsl(var(--glass-bg));
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
     border: 1px solid hsl(var(--glass-border));
+  }
+
+  @media (min-width: 768px) {
+    .glass {
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
   }
 
   /* 卡片样式 - L2 内容卡片 */
   .glass-card {
     background: hsl(var(--card));
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
     border: 1px solid hsl(var(--border));
     box-shadow: var(--shadow-md);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: box-shadow 0.2s ease;
+  }
+
+  /* 桌面端才启用 backdrop-filter，手机端太吃 GPU */
+  @media (min-width: 768px) {
+    .glass-card {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
   }
 
   .glass-card:hover {
