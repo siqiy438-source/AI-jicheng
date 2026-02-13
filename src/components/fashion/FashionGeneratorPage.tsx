@@ -342,39 +342,59 @@ export const FashionGeneratorPage = ({
                   })}
                 </div>
               </div>
-              <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-5 gap-2">
-                {styleOptions?.map((style) => {
-                  const isActive = selectedStyleId === style.id;
-                  return (
-                    <button
-                      key={style.id}
-                      onClick={() => setSelectedStyleId(style.id)}
-                      className={cn(
-                        "text-left rounded-xl border p-2.5 md:p-3 transition-all duration-200 active:scale-[0.99]",
-                        isActive
-                          ? "border-orange-300 bg-orange-50/90 shadow-[0_8px_24px_-12px_rgba(234,88,12,0.45)]"
-                          : "border-border bg-card/40 hover:border-orange-200 hover:bg-card/70",
+              <div className="hidden md:block relative" onClick={(event) => event.stopPropagation()}>
+                <button
+                  onClick={() => {
+                    setShowStyleMenu(!showStyleMenu);
+                    setShowRatioMenu(false);
+                    setShowLineMenu(false);
+                  }}
+                  className="w-full max-w-[340px] flex items-center justify-between gap-2 rounded-xl border border-orange-200 bg-orange-50/80 px-3 py-2.5 text-left hover:bg-orange-100 transition-colors"
+                >
+                  <div className="min-w-0 flex items-center gap-2">
+                    {selectedStyleOption?.iconSrc ? (
+                      <img src={selectedStyleOption.iconSrc} alt={selectedStyleOption.name} className="w-4 h-4 rounded object-cover" />
+                    ) : selectedStyleOption?.icon ? (
+                      <span className="text-sm">{selectedStyleOption.icon}</span>
+                    ) : (
+                      <Palette className="w-4 h-4 text-orange-500" />
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-orange-700 truncate">{selectedStyleOption?.name ?? "选择模式"}</p>
+                      {selectedStyleOption?.description && (
+                        <p className="text-xs text-muted-foreground truncate">{selectedStyleOption.description}</p>
                       )}
-                    >
-                      <div className="flex items-center justify-between gap-1.5 md:gap-2 mb-0.5 md:mb-1">
-                        <div className="flex items-center gap-1 min-w-0">
-                          {style.iconSrc ? (
-                            <img src={style.iconSrc} alt={style.name} className="w-4 h-4 rounded object-cover" />
-                          ) : style.icon ? (
-                            <span className="text-xs md:text-sm">{style.icon}</span>
-                          ) : null}
-                          <span className="text-xs md:text-sm font-medium text-foreground truncate">{style.name}</span>
-                        </div>
-                        {style.badge && (
-                          <span className="px-1.5 py-0.5 text-[10px] leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded whitespace-nowrap">
-                            {style.badge}
-                          </span>
+                    </div>
+                  </div>
+                  <ChevronDown className={cn("w-4 h-4 text-orange-600 transition-transform duration-200", showStyleMenu && "rotate-180")} />
+                </button>
+                {showStyleMenu && (
+                  <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-2 z-10 w-[340px] max-h-[60vh] overflow-y-auto dropdown-panel">
+                    {styleOptions?.map((style) => (
+                      <button
+                        key={style.id}
+                        onClick={() => {
+                          setSelectedStyleId(style.id);
+                          setShowStyleMenu(false);
+                        }}
+                        className={cn(
+                          "w-full flex items-start gap-2.5 px-3 py-2.5 hover:bg-secondary/50 active:bg-secondary transition-colors text-left",
+                          selectedStyleId === style.id && "bg-orange-50",
                         )}
-                      </div>
-                      {style.description && <p className="text-xs text-muted-foreground leading-relaxed">{style.description}</p>}
-                    </button>
-                  );
-                })}
+                      >
+                        {style.iconSrc ? (
+                          <img src={style.iconSrc} alt={style.name} className="w-5 h-5 rounded object-cover mt-0.5" />
+                        ) : style.icon ? (
+                          <span className="text-sm mt-0.5">{style.icon}</span>
+                        ) : null}
+                        <div className="min-w-0">
+                          <p className={cn("text-sm font-medium", selectedStyleId === style.id ? "text-orange-700" : "text-foreground")}>{style.name}</p>
+                          {style.description && <p className="text-xs text-muted-foreground leading-relaxed">{style.description}</p>}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               <p className="mt-1 text-[11px] text-muted-foreground md:hidden">左右滑动切换生成模式</p>
             </div>
