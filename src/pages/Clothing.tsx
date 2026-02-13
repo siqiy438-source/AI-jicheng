@@ -15,31 +15,31 @@ interface ToolItem {
 const tools: ToolItem[] = [
   {
     title: "AI 一键挂搭图",
-    description: "上传内搭、上衣、裤子，自动补全包包与配饰",
+    description: "上传内搭与单品，自动补全完整挂搭效果图。",
     iconSrc: "/icons/ai-one-click-outfit-custom.webp",
     to: "/ai-hangoutfit",
   },
   {
     title: "AI 陈列",
-    description: "智能搭配，一键生成专业店铺陈列方案",
+    description: "根据商品风格，一键生成店铺陈列与搭配方案。",
     iconSrc: "/icons/ai-display-custom.webp",
     to: "/ai-display",
   },
   {
     title: "平铺/摆拍生成",
-    description: "上传单品图，生成平铺或人形摆拍效果",
+    description: "上传服饰单品，快速生成平铺或摆拍展示图。",
     iconSrc: "/icons/fashion-outfit-custom.webp",
     to: "/fashion-outfit",
   },
   {
     title: "模特生成",
-    description: "支持对镜自拍和标准模特上身图",
+    description: "支持自拍照或标准模特图，智能生成上身效果。",
     iconSrc: "/icons/fashion-model-custom.webp",
     to: "/fashion-model-outfit",
   },
   {
     title: "AI 细节特写",
-    description: "先出高级主图，再逐张生成领口/纽扣/工艺细节图",
+    description: "先生成主图，再自动输出领口、纽扣等细节特写。",
     iconSrc: "/icons/fashion-outfit-custom.webp",
     to: "/fashion-detail-focus",
   },
@@ -76,7 +76,8 @@ const Clothing = () => {
                 <img src={tool.iconSrc} alt={tool.title} loading="lazy" decoding="async" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
               </div>
               <h3 className="font-semibold text-foreground mb-1 md:mb-2 text-sm md:text-base leading-tight">{tool.title}</h3>
-              <p className="hidden sm:block text-xs md:text-sm text-muted-foreground leading-relaxed line-clamp-2">{tool.description}</p>
+              <p className="text-[11px] md:text-xs font-medium text-primary/85 mb-1">功能介绍</p>
+              <p className="text-xs md:text-sm text-muted-foreground leading-relaxed line-clamp-2">{tool.description}</p>
             </button>
           ))}
         </div>

@@ -20,11 +20,11 @@ export const Header = () => {
 
   return (
     <header className={cn(
-      "h-14 md:h-16 flex items-center justify-between",
-      "px-4 md:px-6",
+      "min-h-14 md:min-h-16 flex items-center justify-between",
+      "px-safe",
       "glass border-b border-border",
       // 安全区域适配（顶部刘海）
-      "pt-safe"
+      "pt-safe md:pt-0"
     )}>
       {/* 左侧：Logo（移动端显示）或导航 */}
       <div className="flex items-center gap-4 md:gap-6">

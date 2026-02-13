@@ -125,9 +125,9 @@ const Lingxi = () => {
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-gradient-main">
+    <div className="flex app-shell bg-gradient-main">
       <Sidebar />
-      <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col app-shell overflow-hidden">
         <Header />
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-6xl mx-auto px-6 py-8">

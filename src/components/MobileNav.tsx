@@ -21,8 +21,9 @@ const MobileNavItem = ({ icon, label, to, active }: NavItemProps) => {
   return (
     <button
       onClick={() => navigate(to)}
+      aria-label={label}
       className={cn(
-        "flex flex-col items-center justify-center gap-1 flex-1 py-2 min-h-[56px]",
+        "flex flex-col items-center justify-center gap-0.5 flex-1 py-1.5 min-h-[52px]",
         "transition-all duration-200 ease-out",
         "active:scale-95",
         active
@@ -32,7 +33,7 @@ const MobileNavItem = ({ icon, label, to, active }: NavItemProps) => {
     >
       <span
         className={cn(
-          "relative flex items-center justify-center w-10 h-7 rounded-xl transition-all duration-200",
+          "relative flex items-center justify-center w-9 h-7 rounded-xl transition-all duration-200",
           active && "bg-primary/10"
         )}
       >
@@ -44,7 +45,7 @@ const MobileNavItem = ({ icon, label, to, active }: NavItemProps) => {
       </span>
       <span
         className={cn(
-          "text-[11px] font-medium transition-colors duration-200 whitespace-nowrap",
+          "text-xs font-medium transition-colors duration-200 whitespace-nowrap",
           active ? "text-primary" : "text-muted-foreground"
         )}
       >
@@ -109,17 +110,15 @@ export const MobileNav = () => {
   return (
     <nav
       className={cn(
-        "fixed bottom-0 left-0 right-0 z-50",
+        "fixed bottom-0 left-0 right-0 z-50 h-[calc(var(--mobile-nav-height)+env(safe-area-inset-bottom))]",
         "md:hidden", // 仅移动端显示
         "bg-background/95 backdrop-blur-lg",
         "border-t border-border",
         "shadow-[0_-4px_20px_rgba(0,0,0,0.08)]",
-        // 安全区域适配（iPhone 底部横条）
-        "pb-[env(safe-area-inset-bottom)]",
         "pl-safe pr-safe"
       )}
     >
-      <div className="flex items-center justify-around px-1">
+      <div className="flex h-full items-start justify-around px-1 pt-1 pb-safe">
         {navItems.map((item) => (
           <MobileNavItem
             key={item.to}

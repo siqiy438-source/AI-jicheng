@@ -30,7 +30,7 @@ export const PageLayout = ({
   maxWidth = "4xl",
 }: PageLayoutProps) => {
   return (
-    <div className="flex min-h-screen bg-gradient-main relative overflow-hidden">
+    <div className="flex app-shell bg-gradient-main relative overflow-hidden">
       {/* 背景氛围光斑 - 移动端缩小 */}
       <div className="ambient-orb ambient-orb-primary w-[280px] h-[280px] md:w-[500px] md:h-[500px] -top-24 -right-24 md:-top-40 md:-right-40" />
       <div className="ambient-orb ambient-orb-accent w-[220px] h-[220px] md:w-[400px] md:h-[400px] bottom-10 -left-20 md:bottom-20 md:-left-32" />
@@ -38,11 +38,11 @@ export const PageLayout = ({
       <div className="fixed inset-0 texture-paper pointer-events-none z-0" />
 
       <Sidebar />
-      <div className="flex-1 flex flex-col min-h-screen overflow-hidden relative z-10">
+      <div className="flex-1 flex flex-col app-shell overflow-hidden relative z-10">
         {showHeader && <Header />}
         <main
           className={cn(
-            "flex-1 overflow-y-auto scrollbar-thin",
+            "flex-1 overflow-y-auto overscroll-y-contain scrollbar-thin",
             // 移动端底部留出导航栏空间
             "pb-mobile-nav"
           )}
@@ -52,9 +52,9 @@ export const PageLayout = ({
               maxWidthClasses[maxWidth],
               "mx-auto",
               // 响应式内边距：移动端更紧凑
-              "px-4 md:px-6",
+              "px-safe",
               // 响应式上下间距
-              "py-6 md:py-16",
+              "py-4 md:py-10",
               className
             )}
           >
@@ -62,13 +62,13 @@ export const PageLayout = ({
           </div>
           
           {/* 备案号 Footer */}
-          <footer className="py-1.5 md:py-6 md:border-t md:border-border/30">
+          <footer className="py-2 md:py-6 md:border-t md:border-border/30 px-safe">
             <div className="text-center">
               <a
                 href="https://beian.miit.gov.cn/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[10px] md:text-sm text-muted-foreground/40 hover:text-muted-foreground transition-colors inline-block"
+                className="text-[11px] md:text-sm text-muted-foreground/50 hover:text-muted-foreground transition-colors inline-block"
               >
                 黔ICP备2026001006号
               </a>
