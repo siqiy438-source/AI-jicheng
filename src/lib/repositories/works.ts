@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabase, getAccessToken } from '@/lib/supabase';
 
 export interface WorkListItem {
   id: string;
@@ -44,6 +44,8 @@ const sanitizeFilename = (filename: string) =>
   filename.replace(/[^a-zA-Z0-9._-]/g, '_');
 
 const getCurrentUserId = async () => {
+  // 先确保 session 是最新的（处理 token 过期刷新）
+  await getAccessToken();
   const { data: { session } } = await supabase.auth.getSession();
   return session?.user?.id ?? null;
 };
@@ -147,7 +149,7 @@ export const listWorks = async (): Promise<WorkListItem[]> => {
 export const saveWork = async (input: SaveWorkInput) => {
   const userId = await getCurrentUserId();
   if (!userId) {
-    console.warn('[works] saveWork: 用户未登录，跳过保存');
+    console.error('[works] saveWork 失败: 用户未登录 (userId=null)');
     return null;
   }
 
@@ -171,6 +173,8 @@ export const saveWork = async (input: SaveWorkInput) => {
     }
   }
 
+  console.log('[works] saveWork inserting:', { userId, title: input.title, storageBucket, storagePath, hasThumbnailUrl: !!thumbnailUrl });
+
   const { data, error } = await supabase
     .from('works')
     .insert({
@@ -187,9 +191,10 @@ export const saveWork = async (input: SaveWorkInput) => {
     .single();
 
   if (error) {
-    console.error('[works] saveWork insert failed:', error);
+    console.error('[works] saveWork insert 失败:', error);
     throw error;
   }
+  console.log('[works] saveWork 成功:', data.id);
   return data;
 };
 
