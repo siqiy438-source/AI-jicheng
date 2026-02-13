@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { CreditsProvider } from "@/contexts/CreditsContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 const Index = lazy(() => import("./pages/Index"));
@@ -26,6 +27,8 @@ const FashionModelOutfit = lazy(() => import("./pages/FashionModelOutfit"));
 const FashionDetailFocus = lazy(() => import("./pages/FashionDetailFocus"));
 const CreativeTools = lazy(() => import("./pages/CreativeTools"));
 const GenerativeReport = lazy(() => import("./pages/GenerativeReport"));
+const Recharge = lazy(() => import("./pages/Recharge"));
+const PaymentResult = lazy(() => import("./pages/PaymentResult"));
 
 const queryClient = new QueryClient();
 
@@ -36,6 +39,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <CreditsProvider>
           <Suspense
             fallback={
               <div className="app-shell flex flex-col items-center justify-center gap-4 bg-gradient-main">
@@ -63,9 +67,12 @@ const App = () => (
               <Route path="/my-materials" element={<ProtectedRoute><MyMaterials /></ProtectedRoute>} />
               <Route path="/more-features" element={<ProtectedRoute><MoreFeatures /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+              <Route path="/recharge" element={<ProtectedRoute><Recharge /></ProtectedRoute>} />
+              <Route path="/payment-result" element={<ProtectedRoute><PaymentResult /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
+          </CreditsProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

@@ -4,7 +4,7 @@
  * 图片生成复用现有 ai-image 服务
  */
 
-import { supabaseAnonKey } from './supabase';
+import { supabase, supabaseAnonKey } from './supabase';
 
 // ============ 类型定义 ============
 
@@ -64,11 +64,14 @@ const getEdgeFunctionUrl = () => {
   return `${supabaseUrl}/functions/v1/ai-ppt`;
 };
 
-const getHeaders = () => ({
-  'Content-Type': 'application/json',
-  apikey: supabaseAnonKey,
-  'Authorization': `Bearer ${supabaseAnonKey}`,
-});
+const getHeaders = async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  return {
+    'Content-Type': 'application/json',
+    apikey: supabaseAnonKey,
+    'Authorization': `Bearer ${session?.access_token || supabaseAnonKey}`,
+  };
+};
 
 /**
  * 生成 PPT 大纲
@@ -80,9 +83,10 @@ export async function generateOutline(params: GenerateOutlineParams): Promise<Ge
 
     const response = await fetch(getEdgeFunctionUrl(), {
       method: 'POST',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify({
         action: 'generate_outline',
+        feature_code: 'ai_ppt_outline',
         ...params,
       }),
       signal: controller.signal,
@@ -117,9 +121,10 @@ export async function generateSlideDescription(params: GenerateDescriptionParams
 
     const response = await fetch(getEdgeFunctionUrl(), {
       method: 'POST',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify({
         action: 'generate_description',
+        feature_code: 'ai_ppt_slide',
         ...params,
       }),
       signal: controller.signal,
@@ -151,9 +156,10 @@ export async function batchGenerateDescriptions(params: BatchGenerateDescription
 
     const response = await fetch(getEdgeFunctionUrl(), {
       method: 'POST',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify({
         action: 'batch_generate_descriptions',
+        feature_code: 'ai_ppt_slide',
         ...params,
       }),
       signal: controller.signal,
@@ -236,7 +242,7 @@ Requirements:
 
     const response = await fetch(imageUrl, {
       method: 'POST',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify({
         prompt: fullPrompt,
         aspectRatio: params.aspectRatio,

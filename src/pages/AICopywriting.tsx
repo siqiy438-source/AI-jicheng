@@ -23,6 +23,8 @@ import { cn } from "@/lib/utils";
 import { generateCopywriting, continueConversation, isZenmuxConfigured, type ChatMessage } from "@/lib/zenmux";
 import ReactMarkdown from "react-markdown";
 import { saveTextWork } from "@/lib/repositories/works";
+import { useCreditCheck } from "@/hooks/use-credit-check";
+import { InsufficientBalanceDialog } from "@/components/InsufficientBalanceDialog";
 
 // 智能体选项
 const agentOptions = [
@@ -53,6 +55,7 @@ const getFileIcon = (type: string) => {
 
 const AICopywriting = () => {
   const navigate = useNavigate();
+  const { checkCredits, showInsufficientDialog, requiredAmount, featureName, currentBalance, goToRecharge, dismissDialog, refreshBalance } = useCreditCheck();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -112,6 +115,7 @@ const AICopywriting = () => {
   // 发送消息
   const handleSend = useCallback(async () => {
     if (!prompt.trim() && uploadedFiles.length === 0) return;
+    if (!checkCredits('ai_copywriting')) return;
 
     setError(null);
 
@@ -230,7 +234,7 @@ const AICopywriting = () => {
 
           setIsGenerating(false);
           setStreamingContent("");
-          // 滚动到底部
+          void refreshBalance();
           setTimeout(() => {
             messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
           }, 100);
@@ -258,7 +262,7 @@ const AICopywriting = () => {
       setError(err instanceof Error ? err.message : "发生未知错误");
       setIsGenerating(false);
     }
-  }, [prompt, uploadedFiles, messages, selectedAgent.id]);
+  }, [prompt, uploadedFiles, messages, selectedAgent.id, checkCredits, refreshBalance]);
 
   // 处理键盘事件
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -557,6 +561,14 @@ const AICopywriting = () => {
           <p className="text-sm text-muted-foreground">支持上传文档、图片作为参考素材</p>
         </div>
       )}
+      <InsufficientBalanceDialog
+        open={showInsufficientDialog}
+        onOpenChange={dismissDialog}
+        balance={currentBalance}
+        required={requiredAmount}
+        featureName={featureName}
+        onRecharge={goToRecharge}
+      />
     </PageLayout>
   );
 };

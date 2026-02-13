@@ -1,6 +1,7 @@
-import { Bell, HelpCircle, User, LogOut, Sparkles } from "lucide-react";
+import { Bell, HelpCircle, User, LogOut, Sparkles, Coins } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCredits } from "@/contexts/CreditsContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   DropdownMenu,
@@ -13,6 +14,7 @@ import { cn } from "@/lib/utils";
 
 export const Header = () => {
   const { user, loading, signOut } = useAuth();
+  const { balance, loading: creditsLoading } = useCredits();
   const isMobile = useIsMobile();
   
   // 通知状态（未来从后端获取）
@@ -56,6 +58,20 @@ export const Header = () => {
         <button className="hidden md:flex p-2.5 rounded-xl hover:bg-accent transition-colors touch-target">
           <HelpCircle className="w-5 h-5 text-muted-foreground" />
         </button>
+
+        {/* 积分余额 */}
+        {user && !creditsLoading && (
+          <Link
+            to="/recharge"
+            className={cn(
+              "flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl",
+              "hover:bg-accent transition-colors text-sm font-medium touch-target"
+            )}
+          >
+            <Coins className="w-4 h-4 text-amber-500 flex-shrink-0" />
+            <span className="text-foreground">{balance ?? 0}</span>
+          </Link>
+        )}
 
         {/* 通知按钮 */}
         <DropdownMenu>

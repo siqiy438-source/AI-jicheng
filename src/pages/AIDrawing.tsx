@@ -25,6 +25,8 @@ import { generateImage } from "@/lib/ai-image";
 import type { ConversationMessage } from "@/lib/ai-image";
 import { compressImage, downloadGeneratedImage } from "@/lib/image-utils";
 import { saveGeneratedImageWork } from "@/lib/repositories/works";
+import { useCreditCheck } from "@/hooks/use-credit-check";
+import { InsufficientBalanceDialog } from "@/components/InsufficientBalanceDialog";
 
 // 提示词类型
 interface PromptPreset {
@@ -164,6 +166,7 @@ const languageOptions = [
 
 const AIDrawing = () => {
   const navigate = useNavigate();
+  const { checkCredits, showInsufficientDialog, requiredAmount, featureName, currentBalance, goToRecharge, dismissDialog, refreshBalance } = useCreditCheck();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const materialInputRef = useRef<HTMLInputElement>(null);
@@ -298,6 +301,9 @@ const AIDrawing = () => {
   // 调用 AI 生成
   const handleGenerate = async () => {
     if (!prompt.trim() && imagePreviews.length === 0) return;
+    const selectedLineOption = lineOptions.find(l => l.id === selectedLine) || lineOptions[1];
+    const featureCode = selectedLineOption.line === 'premium' ? 'ai_image_premium' : 'ai_image_standard';
+    if (!checkCredits(featureCode)) return;
     setIsGenerating(true);
 
     // 多轮续写时不清除上一张图片，让用户能对比
@@ -355,8 +361,6 @@ const AIDrawing = () => {
       console.log('线路:', selectedLine);
       console.log('图片数量:', imagePreviews.length);
 
-      const selectedLineOption = lineOptions.find(l => l.id === selectedLine) || lineOptions[1];
-
       // 续写轮次：将上一轮生成的图片作为参考图传入（所有线路统一处理）
       let requestImages = imagePreviews.length > 0 ? [...imagePreviews] : undefined;
       if (!isFirstRound && generatedImage) {
@@ -372,6 +376,7 @@ const AIDrawing = () => {
         line: selectedLineOption.line,
         resolution: selectedLineOption.resolution,
         hasFrameworkPrompt: isFirstRound ? !!(contentFrameworks.find(f => f.id === selectedFramework)?.prompt) : true,
+        featureCode,
       });
 
       console.log('API 返回结果:', data);
@@ -393,6 +398,7 @@ const AIDrawing = () => {
 
         setGeneratedImage(resultImage);
         setPrompt(""); // 清空输入框，准备接收下一轮指令
+        void refreshBalance();
 
         const title = prompt.trim() ? `绘图：${prompt.trim().slice(0, 24)}` : "AI 绘图作品";
         void saveGeneratedImageWork({
@@ -909,6 +915,14 @@ const AIDrawing = () => {
           </div>
         )}
       </div>
+      <InsufficientBalanceDialog
+        open={showInsufficientDialog}
+        onOpenChange={dismissDialog}
+        balance={currentBalance}
+        required={requiredAmount}
+        featureName={featureName}
+        onRecharge={goToRecharge}
+      />
     </PageLayout>
   );
 };

@@ -31,6 +31,8 @@ import {
 } from "@/lib/generative-report";
 import { useToast } from "@/hooks/use-toast";
 import { saveWork, updateWork } from "@/lib/repositories/works";
+import { useCreditCheck } from "@/hooks/use-credit-check";
+import { InsufficientBalanceDialog } from "@/components/InsufficientBalanceDialog";
 
 type ReportPhase = "config" | "ready" | "analyzing" | "review" | "exporting";
 
@@ -190,6 +192,7 @@ function getPrimaryAssetForSlide(
 const GenerativeReport = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { checkCredits, showInsufficientDialog, requiredAmount, featureName, currentBalance, goToRecharge, dismissDialog, refreshBalance } = useCreditCheck();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [phase, setPhase] = useState<ReportPhase>("config");
@@ -430,6 +433,7 @@ const GenerativeReport = () => {
 
   const handleGenerateSinglePage = async (slideId: string) => {
     if (!report) return;
+    if (!checkCredits('ai_report_page')) return;
 
     const slide = report.slides.find((item) => item.slide_id === slideId);
     if (!slide) return;
@@ -466,6 +470,7 @@ const GenerativeReport = () => {
         aspectRatio: "4:3",
         line: "standard",
         resolution: "2k",
+        featureCode: 'ai_report_page',
       });
 
       if (!result.success) {
@@ -500,8 +505,9 @@ const GenerativeReport = () => {
 
       toast({
         title: `第 ${slide.page_number} 页已生成`,
-        description: "你可以先点“查看页面”，满意后再导出。",
+        description: '你可以先点"查看页面"，满意后再导出。',
       });
+      void refreshBalance();
     } catch (error) {
       toast({
         title: "页面生成失败",
@@ -1062,6 +1068,14 @@ const GenerativeReport = () => {
           </div>
         </div>
       )}
+      <InsufficientBalanceDialog
+        open={showInsufficientDialog}
+        onOpenChange={dismissDialog}
+        balance={currentBalance}
+        required={requiredAmount}
+        featureName={featureName}
+        onRecharge={goToRecharge}
+      />
     </PageLayout>
   );
 };

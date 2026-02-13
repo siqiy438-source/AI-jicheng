@@ -4,6 +4,7 @@
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -222,6 +223,10 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  let supabaseAdmin: ReturnType<typeof createClient> | null = null
+  let userId: string | null = null
+  let creditCost = 0
+
   try {
     // 获取环境变量中的 API Key
     const ZENMUX_API_KEY = Deno.env.get('ZENMUX_API_KEY')
@@ -241,10 +246,50 @@ serve(async (req) => {
     const REPORT_API_MODEL = Deno.env.get('REPORT_API_MODEL') || 'gemini-3-flash-preview'
 
     // 解析请求
-    const { prompt, agentId, history, stream = true, mode, images } = await req.json()
+    const { prompt, agentId, history, stream = true, mode, images, feature_code } = await req.json()
 
     if (!prompt) {
       throw new Error('prompt is required')
+    }
+
+    // ========== 积分扣减 ==========
+    const CREDIT_COSTS: Record<string, number> = {
+      ai_copywriting: 20,
+      ai_display_standard: 50,
+      ai_report_page: 40,
+    }
+
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
+    const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    const authHeader = req.headers.get('Authorization')
+    const token = authHeader?.replace('Bearer ', '')
+
+    if (SUPABASE_URL && SUPABASE_SERVICE_KEY && token) {
+      supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+      const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
+      if (authError || !user) {
+        return new Response(JSON.stringify({ error: '用户认证失败，请重新登录' }), {
+          status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+      userId = user.id
+      creditCost = CREDIT_COSTS[feature_code] || 0
+
+      if (creditCost > 0) {
+        const { data: deductResult, error: deductError } = await supabaseAdmin.rpc('deduct_credits', {
+          p_user_id: userId,
+          p_amount: creditCost,
+        })
+        if (deductError || !deductResult?.success) {
+          const errMsg = deductResult?.error === 'INSUFFICIENT_BALANCE'
+            ? `积分不足，需要 ${creditCost} 积分，当前余额 ${deductResult?.balance || 0}`
+            : '积分扣减失败'
+          return new Response(JSON.stringify({ error: errMsg }), {
+            status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
+        console.log(`[ai-chat] Deducted ${creditCost} credits from user ${userId}`)
+      }
     }
 
     // ========== VM 单件衣服识别模式 ==========
@@ -524,6 +569,15 @@ serve(async (req) => {
     })
 
   } catch (error) {
+    // 生成失败时退还积分
+    if (supabaseAdmin && userId && creditCost > 0) {
+      try {
+        await supabaseAdmin.rpc('add_credits', { p_user_id: userId, p_amount: creditCost })
+        console.log(`[ai-chat] Refunded ${creditCost} credits to user ${userId}`)
+      } catch (refundErr) {
+        console.error(`[ai-chat] Refund failed:`, refundErr)
+      }
+    }
     return new Response(
       JSON.stringify({ error: error.message }),
       {

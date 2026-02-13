@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 import { compressImage, mergeImagesToGrid, downloadGeneratedImage } from "@/lib/image-utils";
 import { generateImage } from "@/lib/ai-image";
 import { saveGeneratedImageWork } from "@/lib/repositories/works";
+import { useCreditCheck } from "@/hooks/use-credit-check";
+import { InsufficientBalanceDialog } from "@/components/InsufficientBalanceDialog";
 import {
   ArrowLeft,
   Download,
@@ -43,6 +45,7 @@ const uploadSlots: { key: OutfitSlot; title: string; desc: string }[] = [
 
 const AIOneClickOutfit = () => {
   const navigate = useNavigate();
+  const { checkCredits, showInsufficientDialog, requiredAmount, featureName, currentBalance, goToRecharge, dismissDialog, refreshBalance } = useCreditCheck();
   const innerInputRef = useRef<HTMLInputElement>(null);
   const topInputRef = useRef<HTMLInputElement>(null);
   const pantsInputRef = useRef<HTMLInputElement>(null);
@@ -97,12 +100,13 @@ const AIOneClickOutfit = () => {
 
   const handleGenerate = async () => {
     if (!images.inner || !images.top || !images.pants) return;
+    const selectedLineOption = lineOptions.find((option) => option.id === selectedLine) || lineOptions[0];
+    const featureCode = selectedLineOption.line === 'premium' ? 'ai_outfit_premium' : 'ai_outfit_standard';
+    if (!checkCredits(featureCode)) return;
     setIsGenerating(true);
     setGeneratedImage(null);
 
     try {
-      const selectedLineOption = lineOptions.find((option) => option.id === selectedLine) || lineOptions[0];
-
       setGenerationStep("正在整理服装信息...");
       const outfitReference = await mergeImagesToGrid([images.inner, images.top, images.pants], 380, 1);
       const referenceImages = [outfitReference];
@@ -148,6 +152,7 @@ cropped garments, partial view, flat lay, frontal view, low quality, blurry, dis
         line: selectedLineOption.line,
         resolution: selectedLineOption.resolution,
         hasFrameworkPrompt: true,
+        featureCode,
       });
 
       if (!response.success) {
@@ -160,6 +165,7 @@ cropped garments, partial view, flat lay, frontal view, low quality, blurry, dis
       }
 
       setGeneratedImage(result);
+      void refreshBalance();
 
       const title = additionalNotes.trim()
         ? `一键挂搭：${additionalNotes.trim().slice(0, 24)}`
@@ -358,6 +364,14 @@ cropped garments, partial view, flat lay, frontal view, low quality, blurry, dis
           )}
         </div>
       )}
+      <InsufficientBalanceDialog
+        open={showInsufficientDialog}
+        onOpenChange={dismissDialog}
+        balance={currentBalance}
+        required={requiredAmount}
+        featureName={featureName}
+        onRecharge={goToRecharge}
+      />
     </PageLayout>
   );
 };

@@ -73,11 +73,58 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  let supabaseAdmin: ReturnType<typeof createClient> | null = null
+  let userId: string | null = null
+  let creditCost = 0
+
   try {
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
     const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
-    const { prompt, style, aspectRatio, negativePrompt, styleId, images, line, resolution, hasFrameworkPrompt, conversationHistory } = await req.json()
+    const { prompt, style, aspectRatio, negativePrompt, styleId, images, line, resolution, hasFrameworkPrompt, conversationHistory, feature_code } = await req.json()
+
+    // ========== 积分扣减 ==========
+    const CREDIT_COSTS: Record<string, number> = {
+      ai_image_standard: 50, ai_image_premium: 100,
+      ai_poster_standard: 50, ai_poster_premium: 100,
+      ai_display_standard: 50, ai_display_premium: 100,
+      ai_outfit_standard: 50, ai_outfit_premium: 100,
+      ai_fashion_standard: 50, ai_fashion_premium: 100,
+      ai_detail_standard: 50, ai_detail_premium: 100,
+      ai_flatlay_standard: 50, ai_flatlay_premium: 100,
+    }
+
+    const authHeader = req.headers.get('Authorization')
+    const token = authHeader?.replace('Bearer ', '')
+
+    if (SUPABASE_URL && SUPABASE_SERVICE_KEY && token) {
+      supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+      const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
+      if (authError || !user) {
+        return new Response(JSON.stringify({ success: false, error: '用户认证失败，请重新登录' }), {
+          status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+      userId = user.id
+      creditCost = CREDIT_COSTS[feature_code] || 0
+
+      if (creditCost > 0) {
+        const { data: deductResult, error: deductError } = await supabaseAdmin.rpc('deduct_credits', {
+          p_user_id: userId,
+          p_amount: creditCost,
+        })
+        if (deductError || !deductResult?.success) {
+          const errMsg = deductResult?.error === 'INSUFFICIENT_BALANCE'
+            ? `积分不足，需要 ${creditCost} 积分，当前余额 ${deductResult?.balance || 0}`
+            : '积分扣减失败'
+          return new Response(JSON.stringify({ success: false, error: errMsg }), {
+            status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
+        console.log(`[ai-image] Deducted ${creditCost} credits from user ${userId}`)
+      }
+    }
+
     const resolvedLine = getImageProvider(line)
     // 优质线路固定走 2K HD
     const resolvedResolution = resolvedLine === "premium" ? "2k" : (resolution || "default")
@@ -421,6 +468,16 @@ Flat-lay product showcase requirements:
     })
 
   } catch (error) {
+    // 生成失败时退还积分
+    if (supabaseAdmin && userId && creditCost > 0) {
+      try {
+        await supabaseAdmin.rpc('add_credits', { p_user_id: userId, p_amount: creditCost })
+        console.log(`[ai-image] Refunded ${creditCost} credits to user ${userId}`)
+      } catch (refundErr) {
+        console.error(`[ai-image] Refund failed:`, refundErr)
+      }
+    }
+
     return new Response(
       JSON.stringify({
         success: false,

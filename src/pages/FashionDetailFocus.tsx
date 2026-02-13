@@ -16,6 +16,8 @@ import { useToast } from "@/hooks/use-toast";
 import { generateImage } from "@/lib/ai-image";
 import { compressImage, downloadGeneratedImage } from "@/lib/image-utils";
 import { saveGeneratedImageWork } from "@/lib/repositories/works";
+import { useCreditCheck } from "@/hooks/use-credit-check";
+import { InsufficientBalanceDialog } from "@/components/InsufficientBalanceDialog";
 import { cn } from "@/lib/utils";
 
 interface DetailSlot {
@@ -91,6 +93,7 @@ const fileToDataUrl = (file: File) =>
 const FashionDetailFocus = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { checkCredits, showInsufficientDialog, requiredAmount, featureName, currentBalance, goToRecharge, dismissDialog, refreshBalance } = useCreditCheck();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [sourceImage, setSourceImage] = useState<string | null>(null);
@@ -134,6 +137,7 @@ const FashionDetailFocus = () => {
 
   const handleGenerateMain = async () => {
     if (!sourceImage || !canGenerateMain) return;
+    if (!checkCredits('ai_detail_standard')) return;
 
     setIsGenerating(true);
     setGeneratingText("正在生成高级主图...");
@@ -147,6 +151,7 @@ const FashionDetailFocus = () => {
         line: DEFAULT_LINE,
         resolution: DEFAULT_RESOLUTION,
         hasFrameworkPrompt: true,
+        featureCode: 'ai_detail_standard',
       });
 
       if (!data.success) throw new Error(data.error || "主图生成失败");
@@ -161,6 +166,7 @@ const FashionDetailFocus = () => {
       };
       setMainFrame(frame);
       setActiveIndex(0);
+      void refreshBalance();
 
       void saveGeneratedImageWork({
         title: "细节特写：高级主图",
@@ -189,6 +195,7 @@ const FashionDetailFocus = () => {
 
   const handleGenerateNext = async () => {
     if (!sourceImage || !mainFrame || !nextSlot || !canGenerateNext) return;
+    if (!checkCredits('ai_detail_standard')) return;
 
     setIsGenerating(true);
     setGeneratingText(`正在生成${nextSlot.title}...`);
@@ -203,6 +210,7 @@ const FashionDetailFocus = () => {
         line: DEFAULT_LINE,
         resolution: DEFAULT_RESOLUTION,
         hasFrameworkPrompt: true,
+        featureCode: 'ai_detail_standard',
       });
 
       if (!data.success) throw new Error(data.error || "细节图生成失败");
@@ -217,6 +225,7 @@ const FashionDetailFocus = () => {
       };
       setDetailFrames((prev) => [...prev, frame]);
       setActiveIndex(index);
+      void refreshBalance();
 
       void saveGeneratedImageWork({
         title: `细节特写：${nextSlot.title}`,
@@ -392,6 +401,14 @@ const FashionDetailFocus = () => {
           ) : null}
         </section>
       ) : null}
+      <InsufficientBalanceDialog
+        open={showInsufficientDialog}
+        onOpenChange={dismissDialog}
+        balance={currentBalance}
+        required={requiredAmount}
+        featureName={featureName}
+        onRecharge={goToRecharge}
+      />
     </PageLayout>
   );
 };

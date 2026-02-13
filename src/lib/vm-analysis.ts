@@ -3,7 +3,7 @@
  * Agent Team 模式：4 位 AI 专家协同分析服装陈列方案
  */
 
-import { supabaseAnonKey } from './supabase';
+import { supabase, supabaseAnonKey } from './supabase';
 
 // ---- 景别类型 ----
 export type SceneType = 'wide' | 'medium' | 'closeup';
@@ -203,12 +203,13 @@ export async function identifySingleGarment(image: string): Promise<string> {
   const timeoutId = setTimeout(() => controller.abort(), 30000);
 
   try {
+    const { data: { session } } = await supabase.auth.getSession();
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         apikey: supabaseAnonKey,
-        'Authorization': `Bearer ${supabaseAnonKey}`,
+        'Authorization': `Bearer ${session?.access_token || supabaseAnonKey}`,
       },
       body: JSON.stringify({
         mode: 'vm-identify',
@@ -284,17 +285,19 @@ ${additionalNotes ? `\n店主补充说明：${additionalNotes}` : ''}`;
   const timeoutId = setTimeout(() => controller.abort(), 120000);
 
   try {
+    const { data: { session } } = await supabase.auth.getSession();
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         apikey: supabaseAnonKey,
-        'Authorization': `Bearer ${supabaseAnonKey}`,
+        'Authorization': `Bearer ${session?.access_token || supabaseAnonKey}`,
       },
       body: JSON.stringify({
         mode: 'vm-analysis',
         prompt,
         stream: false,
+        feature_code: 'ai_display_standard',
       }),
       signal: controller.signal,
     });

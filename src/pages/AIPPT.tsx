@@ -34,6 +34,8 @@ import {
 } from "@/lib/ai-ppt";
 import { useToast } from "@/hooks/use-toast";
 import { saveWork, updateWork } from "@/lib/repositories/works";
+import { useCreditCheck } from "@/hooks/use-credit-check";
+import { InsufficientBalanceDialog } from "@/components/InsufficientBalanceDialog";
 
 // ==================== Types ====================
 interface SlideData {
@@ -94,6 +96,7 @@ const PLACEHOLDERS: Record<string, string> = {
 // ==================== Component ====================
 const AIPPT = () => {
   const navigate = useNavigate();
+  const { checkCredits, showInsufficientDialog, requiredAmount, featureName, currentBalance, goToRecharge, dismissDialog, refreshBalance } = useCreditCheck();
 
   // Step control
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
@@ -174,6 +177,7 @@ const AIPPT = () => {
 
   const handleStartGenerate = async () => {
     if (!inputContent.trim()) return;
+    if (!checkCredits('ai_ppt_outline')) return;
     setIsGeneratingOutline(true);
 
     const result = await generateOutline({
@@ -191,6 +195,7 @@ const AIPPT = () => {
       setProjectTitle(nextTitle);
       setSelectedSlideIndex(0);
       setCurrentStep(2);
+      void refreshBalance();
       void persistPptWork({
         nextSlides: result.slides,
         nextProjectTitle: nextTitle,
@@ -278,6 +283,7 @@ const AIPPT = () => {
       toast({ title: "请先生成描述", description: "需要先为该页生成内容描述", variant: "destructive" });
       return;
     }
+    if (!checkCredits('ai_ppt_slide')) return;
     setIsGeneratingImage(true);
 
     const selectedLineOption = PPT_LINE_OPTIONS.find(l => l.id === selectedLine) || PPT_LINE_OPTIONS[0];
@@ -296,6 +302,7 @@ const AIPPT = () => {
       const newSlides = [...slides];
       newSlides[slideIndex] = { ...newSlides[slideIndex], generatedImage: result.imageUrl || result.imageBase64 };
       setSlides(newSlides);
+      void refreshBalance();
       void persistPptWork({ nextSlides: newSlides });
     } else {
       toast({ title: "图片生成失败", description: result.error || "请稍后重试", variant: "destructive" });
@@ -308,6 +315,7 @@ const AIPPT = () => {
       toast({ title: "无需生成", description: "所有有描述的页面已生成图片" });
       return;
     }
+    if (!checkCredits('ai_ppt_slide')) return;
     setIsGeneratingImage(true);
 
     const selectedLineOption2 = PPT_LINE_OPTIONS.find(l => l.id === selectedLine) || PPT_LINE_OPTIONS[0];
@@ -329,6 +337,7 @@ const AIPPT = () => {
     }
 
     setIsGeneratingImage(false);
+    void refreshBalance();
     toast({ title: "批量出图完成" });
     void persistPptWork({ nextSlides: newSlides });
   };
@@ -1150,9 +1159,20 @@ const AIPPT = () => {
   );
 
   // ==================== Main Render ====================
-  if (currentStep === 2) return renderStep2();
-  if (currentStep === 3) return renderStep3();
-  return renderStep1();
+  const stepContent = currentStep === 2 ? renderStep2() : currentStep === 3 ? renderStep3() : renderStep1();
+  return (
+    <>
+      {stepContent}
+      <InsufficientBalanceDialog
+        open={showInsufficientDialog}
+        onOpenChange={dismissDialog}
+        balance={currentBalance}
+        required={requiredAmount}
+        featureName={featureName}
+        onRecharge={goToRecharge}
+      />
+    </>
+  );
 };
 
 export default AIPPT;

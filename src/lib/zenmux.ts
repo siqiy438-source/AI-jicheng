@@ -32,7 +32,8 @@ export async function chatStream(
   prompt: string,
   agentId: string,
   callbacks: StreamCallbacks,
-  history: ChatMessage[] = []
+  history: ChatMessage[] = [],
+  featureCode?: string,
 ): Promise<void> {
   callbacks.onStart?.();
 
@@ -57,6 +58,7 @@ export async function chatStream(
         agentId,
         history,
         stream: true,
+        feature_code: featureCode,
       }),
     });
 
@@ -111,9 +113,10 @@ export async function chatStream(
 export async function generateCopywriting(
   userPrompt: string,
   agentId: string,
-  callbacks: StreamCallbacks
+  callbacks: StreamCallbacks,
+  featureCode?: string,
 ): Promise<void> {
-  return chatStream(userPrompt, agentId, callbacks, []);
+  return chatStream(userPrompt, agentId, callbacks, [], featureCode);
 }
 
 /**

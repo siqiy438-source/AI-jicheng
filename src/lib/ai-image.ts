@@ -3,7 +3,7 @@
  * 使用 Gemini 2.5 Flash Image (Nano Banana) 模型
  */
 
-import { supabaseAnonKey } from './supabase';
+import { supabase, supabaseAnonKey } from './supabase';
 
 // 对话消息类型（用于多轮对话）
 export interface ConversationMessage {
@@ -23,6 +23,7 @@ export interface ImageGenerationParams {
   resolution?: "default" | "2k" | "4k";
   hasFrameworkPrompt?: boolean;
   conversationHistory?: ConversationMessage[];
+  featureCode?: string;
 }
 
 // 图像生成结果
@@ -45,13 +46,12 @@ const getEdgeFunctionUrl = () => {
  */
 export async function generateImage(params: ImageGenerationParams): Promise<ImageGenerationResult> {
   try {
-    // 获取当前用户的 session（用于认证）
-    // 注意：如果 session token 过期，Supabase 会返回 401
-    // 所以我们总是使用 anon key，这样更稳定
+    // 获取当前用户的 session（用于认证和积分扣减）
+    const { data: { session } } = await supabase.auth.getSession();
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       apikey: supabaseAnonKey,
-      'Authorization': `Bearer ${supabaseAnonKey}`,
+      'Authorization': `Bearer ${session?.access_token || supabaseAnonKey}`,
     };
 
     // 设置 180 秒超时（AI 图像生成 + Storage 上传可能需要较长时间）
@@ -61,7 +61,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Imag
     const response = await fetch(getEdgeFunctionUrl(), {
       method: 'POST',
       headers,
-      body: JSON.stringify(params),
+      body: JSON.stringify({ ...params, feature_code: params.featureCode }),
       signal: controller.signal,
     });
 

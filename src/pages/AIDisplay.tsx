@@ -29,6 +29,8 @@ import { compressImage, mergeImagesToGrid, downloadGeneratedImage } from "@/lib/
 import { analyzeClothingForDisplay, identifyAllGarments, type VMAnalysisResult, type SceneType } from "@/lib/vm-analysis";
 import { buildVMGenerationPrompt } from "@/lib/vm-prompt-builder";
 import { saveGeneratedImageWork } from "@/lib/repositories/works";
+import { useCreditCheck } from "@/hooks/use-credit-check";
+import { InsufficientBalanceDialog } from "@/components/InsufficientBalanceDialog";
 import AnalyzingAnimation from "@/components/display/AnalyzingAnimation";
 import AnalysisReview from "@/components/display/AnalysisReview";
 
@@ -52,6 +54,7 @@ const sceneOptions: { id: SceneType; name: string; desc: string; icon: typeof Mo
 
 const AIDisplay = () => {
   const navigate = useNavigate();
+  const { checkCredits, showInsufficientDialog, requiredAmount, featureName, currentBalance, goToRecharge, dismissDialog, refreshBalance } = useCreditCheck();
   const clothingInputRef = useRef<HTMLInputElement>(null);
 
   // 阶段状态
@@ -154,6 +157,9 @@ const AIDisplay = () => {
   // Phase 2: 确认方案 → 生成参考图
   const handleGenerate = async () => {
     if (!analysis || clothingImages.length === 0) return;
+    const selectedLineOption = lineOptions.find(l => l.id === selectedLine) || lineOptions[1];
+    const featureCode = selectedLineOption.line === 'premium' ? 'ai_display_premium' : 'ai_display_standard';
+    if (!checkCredits(featureCode)) return;
     setPhase("generating");
     setGeneratedImage(null);
 
@@ -170,7 +176,6 @@ const AIDisplay = () => {
       );
 
       setGenerationStep("AI 正在生成参考效果图...");
-      const selectedLineOption = lineOptions.find(l => l.id === selectedLine) || lineOptions[1];
       const allImages = [gridImage, ...clothingImages];
 
       const data = await generateImage({
@@ -180,6 +185,7 @@ const AIDisplay = () => {
         line: selectedLineOption.line,
         resolution: selectedLineOption.resolution,
         hasFrameworkPrompt: true,
+        featureCode,
       });
 
       if (!data.success) {
@@ -190,6 +196,7 @@ const AIDisplay = () => {
       if (resultImage) {
         setGeneratedImage(resultImage);
         setPhase("result");
+        void refreshBalance();
 
         const title = additionalNotes.trim()
           ? `AI 陈列：${additionalNotes.trim().slice(0, 24)}`
@@ -715,6 +722,14 @@ const AIDisplay = () => {
           </div>
         )}
       </div>
+      <InsufficientBalanceDialog
+        open={showInsufficientDialog}
+        onOpenChange={dismissDialog}
+        balance={currentBalance}
+        required={requiredAmount}
+        featureName={featureName}
+        onRecharge={goToRecharge}
+      />
     </PageLayout>
   );
 };

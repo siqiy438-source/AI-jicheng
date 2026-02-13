@@ -30,7 +30,7 @@ export const PageLayout = ({
   maxWidth = "4xl",
 }: PageLayoutProps) => {
   return (
-    <div className="flex app-shell bg-gradient-main relative overflow-hidden">
+    <div className="flex h-[100dvh] bg-gradient-main relative overflow-hidden">
       {/* 背景氛围光斑 - 移动端缩小 */}
       <div className="ambient-orb ambient-orb-primary w-[280px] h-[280px] md:w-[500px] md:h-[500px] -top-24 -right-24 md:-top-40 md:-right-40" />
       <div className="ambient-orb ambient-orb-accent w-[220px] h-[220px] md:w-[400px] md:h-[400px] bottom-10 -left-20 md:bottom-20 md:-left-32" />
@@ -38,7 +38,7 @@ export const PageLayout = ({
       <div className="fixed inset-0 texture-paper pointer-events-none z-0" />
 
       <Sidebar />
-      <div className="flex-1 flex flex-col app-shell overflow-hidden relative z-10">
+      <div className="flex-1 flex flex-col overflow-hidden relative z-10">
         {showHeader && <Header />}
         <main
           className={cn(

@@ -23,6 +23,8 @@ import { cn } from "@/lib/utils";
 import { generateImage } from "@/lib/ai-image";
 import { compressImage, downloadGeneratedImage } from "@/lib/image-utils";
 import { saveGeneratedImageWork } from "@/lib/repositories/works";
+import { useCreditCheck } from "@/hooks/use-credit-check";
+import { InsufficientBalanceDialog } from "@/components/InsufficientBalanceDialog";
 
 // 海报类别选项
 const posterCategories = [
@@ -129,6 +131,7 @@ const lineOptions = [
 
 const AIPoster = () => {
   const navigate = useNavigate();
+  const { checkCredits, showInsufficientDialog, requiredAmount, featureName, currentBalance, goToRecharge, dismissDialog, refreshBalance } = useCreditCheck();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const materialInputRef = useRef<HTMLInputElement>(null);
@@ -227,6 +230,9 @@ const AIPoster = () => {
   // 调用 AI 生成
   const handleGenerate = async () => {
     if (!prompt.trim() && imagePreviews.length === 0) return;
+    const selectedLineOption = lineOptions.find(l => l.id === selectedLine) || lineOptions[1];
+    const featureCode = selectedLineOption.line === 'premium' ? 'ai_poster_premium' : 'ai_poster_standard';
+    if (!checkCredits(featureCode)) return;
     setIsGenerating(true);
     setGeneratedImage(null);
 
@@ -264,7 +270,6 @@ const AIPoster = () => {
       console.log('线路:', selectedLine);
       console.log('参考图数量:', imagePreviews.length);
 
-      const selectedLineOption = lineOptions.find(l => l.id === selectedLine) || lineOptions[1];
       const data = await generateImage({
         prompt: finalPrompt,
         styleId: undefined,
@@ -272,6 +277,7 @@ const AIPoster = () => {
         images: imagePreviews.length > 0 ? imagePreviews : undefined,
         line: selectedLineOption.line,
         resolution: selectedLineOption.resolution,
+        featureCode,
       });
 
       console.log('API 返回结果:', data);
@@ -284,6 +290,7 @@ const AIPoster = () => {
       const resultImage = data.imageUrl || data.imageBase64;
       if (resultImage) {
         setGeneratedImage(resultImage);
+        void refreshBalance();
         const title = prompt.trim() ? `海报：${prompt.trim().slice(0, 24)}` : "AI 海报作品";
         void saveGeneratedImageWork({
           title,
@@ -733,6 +740,14 @@ const AIPoster = () => {
           </div>
         )}
       </div>
+      <InsufficientBalanceDialog
+        open={showInsufficientDialog}
+        onOpenChange={dismissDialog}
+        balance={currentBalance}
+        required={requiredAmount}
+        featureName={featureName}
+        onRecharge={goToRecharge}
+      />
     </PageLayout>
   );
 };
