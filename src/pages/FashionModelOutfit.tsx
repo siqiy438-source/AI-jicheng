@@ -1,5 +1,10 @@
 import { FashionGeneratorPage, StyleOption } from "@/components/fashion/FashionGeneratorPage";
-import { FASHION_MODEL_MIRROR_SELFIE_PROMPT, FASHION_MODEL_STANDARD_PROMPT } from "@/lib/fashion-prompts";
+import {
+  FASHION_MODEL_MIRROR_SELFIE_PROMPT,
+  FASHION_MODEL_STANDARD_PROMPT,
+  FASHION_MODEL_FACELESS_HALF_PROMPT,
+  FASHION_MODEL_FACELESS_FULL_PROMPT,
+} from "@/lib/fashion-prompts";
 
 const modelStyles: StyleOption[] = [
   {
@@ -16,13 +21,27 @@ const modelStyles: StyleOption[] = [
     iconSrc: "/icons/model-standard-vintage.png",
     description: "常规时尚模特上身图，适合通用服装展示",
   },
+  {
+    id: "faceless-half",
+    name: "氛围半身图",
+    prompt: FASHION_MODEL_FACELESS_HALF_PROMPT,
+    icon: "✦",
+    description: "不露脸的静奢半身图，聚焦面料质感与叠穿层次",
+  },
+  {
+    id: "faceless-full",
+    name: "无脸全身图",
+    prompt: FASHION_MODEL_FACELESS_FULL_PROMPT,
+    icon: "◈",
+    description: "不露脸的全身穿搭图，展示完整比例与搭配",
+  },
 ];
 
 const FashionModelOutfit = () => {
   return (
     <FashionGeneratorPage
       title="模特生成"
-      subtitle="上传服装图片，支持对镜自拍与标准模特图两种风格"
+      subtitle="上传服装图片，支持四种风格：自拍、模特、氛围半身、无脸全身"
       iconSrc="/icons/fashion-model-custom.webp"
       basePrompt={FASHION_MODEL_MIRROR_SELFIE_PROMPT}
       styleOptions={modelStyles}
