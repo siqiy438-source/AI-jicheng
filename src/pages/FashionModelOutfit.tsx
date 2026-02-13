@@ -30,10 +30,10 @@ const modelStyles: StyleOption[] = [
   },
   {
     id: "faceless-full",
-    name: "无脸全身图",
+    name: "氛围近景图",
     prompt: FASHION_MODEL_FACELESS_FULL_PROMPT,
     icon: "◈",
-    description: "不露脸的全身穿搭图，展示完整比例与搭配",
+    description: "不露脸的近景氛围图，比半身稍宽，露出部分下装，静奢质感",
   },
 ];
 
@@ -41,7 +41,7 @@ const FashionModelOutfit = () => {
   return (
     <FashionGeneratorPage
       title="模特生成"
-      subtitle="上传服装图片，支持四种风格：自拍、模特、氛围半身、无脸全身"
+      subtitle="上传服装图片，支持四种风格：自拍、模特、氛围半身、氛围近景"
       iconSrc="/icons/fashion-model-custom.webp"
       basePrompt={FASHION_MODEL_MIRROR_SELFIE_PROMPT}
       styleOptions={modelStyles}
