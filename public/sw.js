@@ -1,5 +1,5 @@
 // Service Worker for PWA
-const CACHE_NAME = 'ai-creation-v3';
+const CACHE_NAME = 'ai-creation-v4';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
