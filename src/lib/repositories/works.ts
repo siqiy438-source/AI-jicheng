@@ -30,6 +30,14 @@ const WORKS_BUCKET = 'works-assets';
 
 const isDataUrl = (value: string) => value.startsWith('data:');
 
+/** 从 Supabase Storage 签名 URL 中提取 bucket 和 path */
+const parseSignedUrl = (url: string): { bucket: string; path: string } | null => {
+  try {
+    const m = new URL(url).pathname.match(/^\/storage\/v1\/object\/sign\/([^/]+)\/(.+)$/);
+    return m ? { bucket: m[1], path: m[2] } : null;
+  } catch { return null; }
+};
+
 const formatCreatedAt = (iso: string) => {
   const date = new Date(iso);
   return date.toLocaleString('zh-CN', {
@@ -138,8 +146,18 @@ export const listWorks = async (): Promise<WorkListItem[]> => {
   }
 
   const rows = data ?? [];
-  const getSignedUrlFromMap = await getSignedPreviewUrlMap(rows);
-  const mapped = rows.map((row) => ({
+  // 对 thumbnail_url 是签名 URL 但缺少 storage_bucket/path 的旧记录，补全 bucket/path
+  const fixedRows = rows.map((row) => {
+    if (!row.storage_bucket && row.thumbnail_url) {
+      const parsed = parseSignedUrl(row.thumbnail_url);
+      if (parsed) {
+        return { ...row, storage_bucket: parsed.bucket, storage_path: parsed.path };
+      }
+    }
+    return row;
+  });
+  const getSignedUrlFromMap = await getSignedPreviewUrlMap(fixedRows);
+  const mapped = fixedRows.map((row) => ({
     id: row.id,
     title: row.title,
     type: row.type,
@@ -171,7 +189,14 @@ export const saveWork = async (input: SaveWorkInput) => {
         console.warn('uploadWorkPreview failed, saving work without uploaded thumbnail', error);
       }
     } else {
-      thumbnailUrl = input.thumbnailDataUrl;
+      // 签名 URL → 提取 bucket/path，避免过期后图片丢失
+      const parsed = parseSignedUrl(input.thumbnailDataUrl);
+      if (parsed) {
+        storageBucket = parsed.bucket;
+        storagePath = parsed.path;
+      } else {
+        thumbnailUrl = input.thumbnailDataUrl;
+      }
     }
   }
 
@@ -216,10 +241,19 @@ export const updateWork = async (workId: string, input: UpdateWorkInput) => {
         console.warn('uploadWorkPreview failed while updating work thumbnail', error);
       }
     } else {
-      thumbnailUrl = input.thumbnailDataUrl;
       if (input.thumbnailDataUrl === null) {
+        thumbnailUrl = null;
         storageBucket = null;
         storagePath = null;
+      } else {
+        const parsed = parseSignedUrl(input.thumbnailDataUrl);
+        if (parsed) {
+          storageBucket = parsed.bucket;
+          storagePath = parsed.path;
+          thumbnailUrl = null;
+        } else {
+          thumbnailUrl = input.thumbnailDataUrl;
+        }
       }
     }
   }
