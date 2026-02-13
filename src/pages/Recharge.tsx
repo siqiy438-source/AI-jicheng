@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { useCredits } from "@/contexts/CreditsContext";
 import { RECHARGE_TIERS, getPaymentOrders } from "@/lib/credits";
-import { supabase, supabaseAnonKey } from "@/lib/supabase";
+import { supabase, supabaseAnonKey, supabaseUrl } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Coins, History, Check, Gift, Loader2, Zap, ImageIcon, FileText, Presentation, Info } from "lucide-react";
@@ -55,7 +55,6 @@ const Recharge = () => {
         toast({ title: "请先登录", description: "您需要登录后才能充值" });
         return;
       }
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const response = await fetch(`${supabaseUrl}/functions/v1/payment-create`, {
         method: "POST",
         headers: {
