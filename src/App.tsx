@@ -23,6 +23,7 @@ const Auth = lazy(() => import("./pages/Auth"));
 const Clothing = lazy(() => import("./pages/Clothing"));
 const FashionOutfit = lazy(() => import("./pages/FashionOutfit"));
 const FashionModelOutfit = lazy(() => import("./pages/FashionModelOutfit"));
+const FashionDetailFocus = lazy(() => import("./pages/FashionDetailFocus"));
 const CreativeTools = lazy(() => import("./pages/CreativeTools"));
 const GenerativeReport = lazy(() => import("./pages/GenerativeReport"));
 
@@ -55,6 +56,7 @@ const App = () => (
               <Route path="/clothing" element={<ProtectedRoute><Clothing /></ProtectedRoute>} />
               <Route path="/fashion-outfit" element={<ProtectedRoute><FashionOutfit /></ProtectedRoute>} />
               <Route path="/fashion-model-outfit" element={<ProtectedRoute><FashionModelOutfit /></ProtectedRoute>} />
+              <Route path="/fashion-detail-focus" element={<ProtectedRoute><FashionDetailFocus /></ProtectedRoute>} />
               <Route path="/creative-tools" element={<ProtectedRoute><CreativeTools /></ProtectedRoute>} />
               <Route path="/generative-report" element={<ProtectedRoute><GenerativeReport /></ProtectedRoute>} />
               <Route path="/my-works" element={<ProtectedRoute><MyWorks /></ProtectedRoute>} />

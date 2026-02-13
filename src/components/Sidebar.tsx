@@ -116,6 +116,7 @@ export const Sidebar = () => {
     "/ai-display",
     "/fashion-outfit",
     "/fashion-model-outfit",
+    "/fashion-detail-focus",
   ].includes(location.pathname);
   const isCreativeToolsActive = [
     "/creative-tools",

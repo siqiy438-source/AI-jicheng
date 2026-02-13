@@ -37,6 +37,12 @@ const tools: ToolItem[] = [
     iconSrc: "/icons/fashion-model-custom.webp",
     to: "/fashion-model-outfit",
   },
+  {
+    title: "AI 细节特写",
+    description: "先出高级主图，再逐张生成领口/纽扣/工艺细节图",
+    iconSrc: "/icons/fashion-outfit-custom.webp",
+    to: "/fashion-detail-focus",
+  },
 ];
 
 const Clothing = () => {

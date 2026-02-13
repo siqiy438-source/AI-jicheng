@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   ChevronDown,
   Download,
-  FolderUp,
   Image,
   Loader2,
   Palette,
@@ -73,10 +72,8 @@ export const FashionGeneratorPage = ({
 }: FashionGeneratorPageProps) => {
   const navigate = useNavigate();
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [prompt, setPrompt] = useState("");
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [selectedRatio, setSelectedRatio] = useState("9:16");
   const [selectedLine, setSelectedLine] = useState("standard");
   const [selectedStyleId, setSelectedStyleId] = useState(styleOptions?.[0]?.id ?? "");
@@ -89,7 +86,7 @@ export const FashionGeneratorPage = ({
   const shouldShowStyleDropdown = Boolean(styleOptions && styleOptions.length > 1 && styleSelectorVariant !== "cards");
   const selectedStyleOption = styleOptions?.find((style) => style.id === selectedStyleId);
 
-  const canGenerate = (prompt.trim() || imagePreviews.length > 0 || uploadedFiles.length > 0) && !isGenerating;
+  const canGenerate = imagePreviews.length > 0 && !isGenerating;
 
   const closeAllMenus = () => {
     setShowRatioMenu(false);
@@ -132,47 +129,6 @@ export const FashionGeneratorPage = ({
     }
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
-
-    const allFiles = Array.from(files);
-    const imageFiles = allFiles.filter((file) => file.type.startsWith("image/"));
-    const otherFiles = allFiles.filter((file) => !file.type.startsWith("image/"));
-
-    if (imageFiles.length > 0) {
-      const remainingSlots = MAX_IMAGES - imagePreviews.length;
-      const filesToProcess = imageFiles.slice(0, remainingSlots);
-
-      for (const file of filesToProcess) {
-        try {
-          const compressed = await compressImage(file, {
-            maxWidth: 1024,
-            maxHeight: 1024,
-            quality: 0.8,
-          });
-          setImagePreviews((prev) => [...prev, compressed]);
-          setGeneratedImage(null);
-        } catch {
-          const reader = new FileReader();
-          reader.onload = (readerEvent) => {
-            setImagePreviews((prev) => [...prev, readerEvent.target?.result as string]);
-            setGeneratedImage(null);
-          };
-          reader.readAsDataURL(file);
-        }
-      }
-    }
-
-    if (otherFiles.length > 0) {
-      setUploadedFiles((prev) => [...prev, ...otherFiles]);
-    }
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
   const clearImage = (index: number) => {
     setImagePreviews((prev) => prev.filter((_, imageIndex) => imageIndex !== index));
     setGeneratedImage(null);
@@ -186,23 +142,12 @@ export const FashionGeneratorPage = ({
     }
   };
 
-  const removeUploadedFile = (index: number) => {
-    setUploadedFiles((prev) => prev.filter((_, fileIndex) => fileIndex !== index));
-  };
-
   const buildPrompt = () => {
     const userPrompt = prompt.trim();
     const activePrompt = styleOptions?.find((s) => s.id === selectedStyleId)?.prompt ?? basePrompt;
-    const replacedPrompt = activePrompt.includes("{user_prompt}")
-      ? activePrompt.replace("{user_prompt}", userPrompt || "参考上传服装图片")
-      : `${activePrompt}${userPrompt ? `\n\n用户补充需求：${userPrompt}` : ""}`;
-
-    if (uploadedFiles.length === 0) {
-      return replacedPrompt;
-    }
-
-    const fileSummary = uploadedFiles.map((file) => file.name).join("、");
-    return `${replacedPrompt}\n\n参考文件：${fileSummary}`;
+    return activePrompt.includes("{user_prompt}")
+      ? activePrompt.replace("{user_prompt}", userPrompt || "请基于上传服装图片生成")
+      : `${activePrompt}${userPrompt ? `\n\n用户补充说明（可选）：${userPrompt}` : ""}`;
   };
 
   const handleGenerate = async () => {
@@ -246,7 +191,6 @@ export const FashionGeneratorPage = ({
           selectedRatio,
           selectedLine,
           referenceImageCount: imagePreviews.length,
-          fileCount: uploadedFiles.length,
         },
       }).catch((error) => {
         console.error("自动保存服装作品失败", error);
@@ -289,59 +233,71 @@ export const FashionGeneratorPage = ({
         </div>
 
         <div className="glass-card rounded-xl md:rounded-2xl p-3 md:p-5 mb-4 md:mb-6 shadow-lg">
-          {imagePreviews.length > 0 && (
-            <div className="mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-muted-foreground">已上传 {imagePreviews.length}/{MAX_IMAGES} 张图片</span>
-                {imagePreviews.length > 1 && (
-                  <button onClick={clearAllImages} className="text-xs text-muted-foreground hover:text-foreground">
-                    清除全部
-                  </button>
-                )}
-              </div>
-              <div className="flex items-start gap-2 flex-wrap">
-                {imagePreviews.map((preview, index) => (
-                  <div key={index} className="relative group">
-                    <img
-                      src={preview}
-                      alt={`参考图 ${index + 1}`}
-                      className="h-16 w-16 md:h-20 md:w-20 object-cover rounded-lg md:rounded-xl border border-border"
-                    />
-                    <button
-                      onClick={() => clearImage(index)}
-                      className="absolute -top-2 -right-2 w-5 h-5 bg-black/70 text-white rounded-full flex items-center justify-center touch-target"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
-                {imagePreviews.length < MAX_IMAGES && (
-                  <button
-                    onClick={() => imageInputRef.current?.click()}
-                    className="h-16 w-16 md:h-20 md:w-20 rounded-lg md:rounded-xl border-2 border-dashed border-border hover:border-muted-foreground flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <span className="text-2xl">+</span>
-                  </button>
-                )}
-              </div>
+          <div className="mb-4">
+            <div className="flex items-center gap-2 mb-2.5">
+              <Image className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-foreground">上传服装照片</span>
+              <span className="text-xs text-muted-foreground ml-auto">{imagePreviews.length}/{MAX_IMAGES}</span>
             </div>
-          )}
 
-          {uploadedFiles.length > 0 && (
-            <div className="mb-4">
-              <span className="text-xs text-muted-foreground">已上传文件 {uploadedFiles.length} 个</span>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {uploadedFiles.map((file, index) => (
-                  <div key={`${file.name}-${index}`} className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-secondary/60 text-xs text-foreground">
-                    <span className="max-w-[180px] truncate">{file.name}</span>
-                    <button onClick={() => removeUploadedFile(index)} className="text-muted-foreground hover:text-foreground">
-                      <X className="w-3 h-3" />
+            {imagePreviews.length > 0 && (
+              <div className="mb-2.5">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-muted-foreground">已上传 {imagePreviews.length} 张参考图</span>
+                  {imagePreviews.length > 1 && (
+                    <button onClick={clearAllImages} className="text-xs text-muted-foreground hover:text-foreground">
+                      清除全部
                     </button>
-                  </div>
-                ))}
+                  )}
+                </div>
+                <div className="flex items-start gap-2 flex-wrap">
+                  {imagePreviews.map((preview, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={preview}
+                        alt={`参考图 ${index + 1}`}
+                        className="h-16 w-16 md:h-20 md:w-20 object-cover rounded-lg md:rounded-xl border border-border"
+                      />
+                      <button
+                        onClick={() => clearImage(index)}
+                        className="absolute -top-2 -right-2 w-5 h-5 bg-black/70 text-white rounded-full flex items-center justify-center touch-target"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                  {imagePreviews.length < MAX_IMAGES && (
+                    <button
+                      onClick={() => imageInputRef.current?.click()}
+                      className="h-16 w-16 md:h-20 md:w-20 rounded-lg md:rounded-xl border-2 border-dashed border-border hover:border-primary/40 flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      <span className="text-2xl">+</span>
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+
+            {imagePreviews.length === 0 && (
+              <button
+                onClick={() => imageInputRef.current?.click()}
+                className="w-full py-6 md:py-8 rounded-xl border-2 border-dashed border-border hover:border-primary/40 flex flex-col items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+              >
+                <Image className="w-8 h-8" />
+                <span className="text-sm">点击上传服装照片</span>
+                <span className="text-xs text-muted-foreground">支持最多 {MAX_IMAGES} 张图片</span>
+              </button>
+            )}
+          </div>
+
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleImageInputChange}
+            className="hidden"
+          />
 
           {shouldShowStyleCards && (
             <div className="mb-4">
@@ -394,7 +350,7 @@ export const FashionGeneratorPage = ({
                 handleGenerate();
               }
             }}
-            placeholder="输入你想要的服装效果..."
+            placeholder="补充说明（可选），例如：更高级感、偏暖调、街拍氛围"
             rows={2}
             enterKeyHint="send"
             className="w-full bg-transparent text-foreground placeholder:text-muted-foreground resize-none focus:outline-none text-base leading-relaxed"
@@ -534,39 +490,6 @@ export const FashionGeneratorPage = ({
                 )}
               </div>
 
-              <div className="w-px h-4 bg-border mx-0.5" />
-
-              <input
-                ref={imageInputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleImageInputChange}
-                className="hidden"
-              />
-              <button
-                onClick={() => imageInputRef.current?.click()}
-                className="p-2 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground transition-all duration-200 touch-target flex-shrink-0"
-                title="上传参考图"
-              >
-                <Image className="w-3.5 h-3.5" />
-              </button>
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".txt,.doc,.docx,.pdf,.png,.jpg,.jpeg,.csv,.xlsx"
-                multiple
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="p-2 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground transition-all duration-200 touch-target flex-shrink-0"
-                title="上传文件"
-              >
-                <FolderUp className="w-3.5 h-3.5" />
-              </button>
             </div>
 
             <div className="flex items-center gap-1.5 w-full md:w-auto">
@@ -636,7 +559,7 @@ export const FashionGeneratorPage = ({
             <div className="w-14 h-14 md:w-20 md:h-20 rounded-full bg-secondary/50 flex items-center justify-center mx-auto mb-3 md:mb-4">
               <Sparkles className="w-7 h-7 md:w-10 md:h-10 text-muted-foreground/50" />
             </div>
-            <p className="text-muted-foreground text-xs md:text-base">上传服装图片或文件，输入需求开始创作</p>
+            <p className="text-muted-foreground text-xs md:text-base">先上传服装照片，再添加补充说明（可选）开始创作</p>
           </div>
         )}
       </div>
