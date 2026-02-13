@@ -3,7 +3,7 @@
  * API Key 安全存储在 Supabase Secrets 中
  */
 
-import { supabase } from './supabase';
+import { getAccessToken } from './supabase';
 
 // 消息类型
 export interface ChatMessage {
@@ -38,16 +38,16 @@ export async function chatStream(
   callbacks.onStart?.();
 
   try {
-    // 获取当前用户的 session（用于认证）
-    const { data: { session } } = await supabase.auth.getSession();
+    // 获取当前用户的 access_token（用于认证）
+    const token = await getAccessToken();
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
 
     // 如果用户已登录，添加认证头
-    if (session?.access_token) {
-      headers['Authorization'] = `Bearer ${session.access_token}`;
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
     }
 
     const response = await fetch(getEdgeFunctionUrl(), {

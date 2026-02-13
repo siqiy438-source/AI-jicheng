@@ -4,7 +4,7 @@
  * 图片生成复用现有 ai-image 服务
  */
 
-import { supabase, supabaseAnonKey } from './supabase';
+import { supabaseAnonKey, getAccessToken } from './supabase';
 
 // ============ 类型定义 ============
 
@@ -65,11 +65,11 @@ const getEdgeFunctionUrl = () => {
 };
 
 const getHeaders = async () => {
-  const { data: { session } } = await supabase.auth.getSession();
+  const token = await getAccessToken();
   return {
     'Content-Type': 'application/json',
     apikey: supabaseAnonKey,
-    'Authorization': `Bearer ${session?.access_token || supabaseAnonKey}`,
+    'Authorization': `Bearer ${token || supabaseAnonKey}`,
   };
 };
 

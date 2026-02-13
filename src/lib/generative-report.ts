@@ -1,4 +1,4 @@
-import { supabase, supabaseAnonKey } from "./supabase";
+import { supabaseAnonKey, getAccessToken } from "./supabase";
 
 export type ReportDomain = "dental" | "veterinary" | "k12_education" | "gym" | "general";
 export type ReportAnalysisLevel = 4 | 6 | 8;
@@ -874,14 +874,14 @@ async function requestSingleImageReport(
   params: AnalyzeGenerativeReportParams,
 ): Promise<GenerativeReportDocument> {
   const prompt = buildPrompt(params);
-  const { data: { session } } = await supabase.auth.getSession();
+  const token = await getAccessToken();
   const response = await withTimeout(
     fetch(CHAT_FUNCTION_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         apikey: supabaseAnonKey,
-        Authorization: `Bearer ${session?.access_token || supabaseAnonKey}`,
+        Authorization: `Bearer ${token || supabaseAnonKey}`,
       },
       body: JSON.stringify({
         mode: "generative-report",

@@ -3,7 +3,7 @@
  * 使用 Gemini 2.5 Flash Image (Nano Banana) 模型
  */
 
-import { supabase, supabaseAnonKey } from './supabase';
+import { supabaseAnonKey, getAccessToken } from './supabase';
 
 // 对话消息类型（用于多轮对话）
 export interface ConversationMessage {
@@ -46,12 +46,12 @@ const getEdgeFunctionUrl = () => {
  */
 export async function generateImage(params: ImageGenerationParams): Promise<ImageGenerationResult> {
   try {
-    // 获取当前用户的 session（用于认证和积分扣减）
-    const { data: { session } } = await supabase.auth.getSession();
+    // 获取当前用户的 access_token（用于认证和积分扣减）
+    const token = await getAccessToken();
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       apikey: supabaseAnonKey,
-      'Authorization': `Bearer ${session?.access_token || supabaseAnonKey}`,
+      'Authorization': `Bearer ${token || supabaseAnonKey}`,
     };
 
     // 设置 180 秒超时（AI 图像生成 + Storage 上传可能需要较长时间）

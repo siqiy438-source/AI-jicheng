@@ -6,3 +6,16 @@ export const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbG
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey)
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+/**
+ * 获取有效的用户 access_token，自动处理过期刷新
+ * 如果用户未登录则返回 null
+ */
+export async function getAccessToken(): Promise<string | null> {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (session?.access_token) return session.access_token
+
+  // session 为空或过期，尝试刷新
+  const { data: { session: refreshed } } = await supabase.auth.refreshSession()
+  return refreshed?.access_token || null
+}
