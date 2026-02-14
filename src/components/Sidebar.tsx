@@ -197,10 +197,10 @@ export const Sidebar = () => {
 
       {/* 导航区域 */}
       <nav className="flex-1 overflow-y-auto p-3 scrollbar-thin">
-        <NavSection title="工作台" collapsed={collapsed}>
+        <NavSection title="首页" collapsed={collapsed}>
           <NavItem
             icon={<LayoutDashboard className="w-[18px] h-[18px]" />}
-            label="工作台"
+            label="首页"
             active={isActive("/")}
             collapsed={collapsed}
             to="/"
