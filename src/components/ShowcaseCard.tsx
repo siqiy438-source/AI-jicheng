@@ -31,11 +31,9 @@ const BeforeAfter = ({ item }: { item: ShowcaseItem }) => (
   <div className="flex flex-col gap-3">
     <div>
       <div className="text-[10px] text-muted-foreground mb-1.5">上传</div>
-      <div className="flex gap-1.5">
+      <div className="grid grid-cols-2 gap-1.5" style={item.beforeImages.length === 3 ? { gridTemplateColumns: "repeat(3, 1fr)" } : undefined}>
         {item.beforeImages.map((img, i) => (
-          <div key={i} className="aspect-[3/4] rounded-xl bg-secondary/30 overflow-hidden flex-1">
-            <Thumb src={img} alt="上传图" />
-          </div>
+          <Thumb key={i} src={img} alt="上传图" fill={false} />
         ))}
       </div>
     </div>
@@ -44,11 +42,9 @@ const BeforeAfter = ({ item }: { item: ShowcaseItem }) => (
     </div>
     <div>
       <div className="text-[10px] text-primary font-medium mb-1.5">效果</div>
-      <div className="flex gap-1.5">
+      <div className="grid grid-cols-2 gap-1.5" style={item.afterImages.length === 1 ? { gridTemplateColumns: "1fr" } : undefined}>
         {item.afterImages.map((img, i) => (
-          <div key={i} className="aspect-[3/4] rounded-xl bg-secondary/30 overflow-hidden flex-1">
-            <Thumb src={img} alt="效果图" />
-          </div>
+          <Thumb key={i} src={img} alt="效果图" fill={false} />
         ))}
       </div>
     </div>
