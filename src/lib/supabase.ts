@@ -26,3 +26,11 @@ export async function getAccessToken(): Promise<string | null> {
   const { data: { session: refreshed } } = await supabase.auth.refreshSession()
   return refreshed?.access_token || null
 }
+
+/**
+ * 强制刷新 token（用于 401 重试场景）
+ */
+export async function forceRefreshToken(): Promise<string | null> {
+  const { data: { session } } = await supabase.auth.refreshSession()
+  return session?.access_token || null
+}

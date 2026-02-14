@@ -3,7 +3,7 @@
  * Agent Team 模式：4 位 AI 专家协同分析服装陈列方案
  */
 
-import { supabaseAnonKey, getAccessToken } from './supabase';
+import { supabaseAnonKey, getAccessToken, forceRefreshToken } from './supabase';
 
 // ---- 景别类型 ----
 export type SceneType = 'wide' | 'medium' | 'closeup';
@@ -199,11 +199,9 @@ export async function identifySingleGarment(image: string): Promise<string> {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://kzdjqqinkonqlclbwleh.supabase.co';
   const url = `${supabaseUrl}/functions/v1/ai-chat`;
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-  try {
-    const token = await getAccessToken();
+  const doFetch = async (token: string | null) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       apikey: supabaseAnonKey,
@@ -222,8 +220,19 @@ export async function identifySingleGarment(image: string): Promise<string> {
       }),
       signal: controller.signal,
     });
-
     clearTimeout(timeoutId);
+    return response;
+  };
+
+  try {
+    let token = await getAccessToken();
+    let response = await doFetch(token);
+
+    // 401 时强制刷新 token 重试一次
+    if (response.status === 401) {
+      token = await forceRefreshToken();
+      response = await doFetch(token);
+    }
 
     if (!response.ok) {
       throw new Error(`识别失败: ${response.status}`);
@@ -284,14 +293,9 @@ ${garmentListText}
 - totalPieces = ${clothingCount}
 ${additionalNotes ? `\n店主补充说明：${additionalNotes}` : ''}`;
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 120000);
-
-  try {
-    const token = await getAccessToken();
-    if (!token) {
-      throw new Error('请先登录后再使用陈列分析功能');
-    }
+  const doFetch = async (token: string) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 120000);
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -307,8 +311,25 @@ ${additionalNotes ? `\n店主补充说明：${additionalNotes}` : ''}`;
       }),
       signal: controller.signal,
     });
-
     clearTimeout(timeoutId);
+    return response;
+  };
+
+  try {
+    let token = await getAccessToken();
+    if (!token) {
+      throw new Error('请先登录后再使用陈列分析功能');
+    }
+    let response = await doFetch(token);
+
+    // 401 时强制刷新 token 重试一次
+    if (response.status === 401) {
+      const newToken = await forceRefreshToken();
+      if (!newToken) {
+        throw new Error('登录已过期，请重新登录');
+      }
+      response = await doFetch(newToken);
+    }
 
     if (!response.ok) {
       throw new Error(`分析请求失败: ${response.status}`);

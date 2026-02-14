@@ -4,7 +4,7 @@
  * 图片生成复用现有 ai-image 服务
  */
 
-import { supabaseAnonKey, getAccessToken } from './supabase';
+import { supabaseAnonKey, getAccessToken, forceRefreshToken } from './supabase';
 
 // ============ 类型定义 ============
 
@@ -64,8 +64,8 @@ const getEdgeFunctionUrl = () => {
   return `${supabaseUrl}/functions/v1/ai-ppt`;
 };
 
-const getHeaders = async () => {
-  const token = await getAccessToken();
+const getHeaders = async (tokenOverride?: string) => {
+  const token = tokenOverride || await getAccessToken();
   if (!token) {
     throw new Error('请先登录后再使用 PPT 功能');
   }
@@ -76,6 +76,18 @@ const getHeaders = async () => {
   };
 };
 
+/** 401 时强制刷新 token 重试 */
+async function fetchWithRetry(url: string, init: RequestInit): Promise<Response> {
+  const response = await fetch(url, init);
+  if (response.status === 401) {
+    const newToken = await forceRefreshToken();
+    if (!newToken) throw new Error('登录已过期，请重新登录');
+    const retryHeaders = { ...init.headers, 'Authorization': `Bearer ${newToken}` } as Record<string, string>;
+    return fetch(url, { ...init, headers: retryHeaders });
+  }
+  return response;
+}
+
 /**
  * 生成 PPT 大纲
  */
@@ -84,7 +96,7 @@ export async function generateOutline(params: GenerateOutlineParams): Promise<Ge
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 180000);
 
-    const response = await fetch(getEdgeFunctionUrl(), {
+    const response = await fetchWithRetry(getEdgeFunctionUrl(), {
       method: 'POST',
       headers: await getHeaders(),
       body: JSON.stringify({
@@ -122,7 +134,7 @@ export async function generateSlideDescription(params: GenerateDescriptionParams
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 180000);
 
-    const response = await fetch(getEdgeFunctionUrl(), {
+    const response = await fetchWithRetry(getEdgeFunctionUrl(), {
       method: 'POST',
       headers: await getHeaders(),
       body: JSON.stringify({
@@ -157,7 +169,7 @@ export async function batchGenerateDescriptions(params: BatchGenerateDescription
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 300000); // 5分钟超时
 
-    const response = await fetch(getEdgeFunctionUrl(), {
+    const response = await fetchWithRetry(getEdgeFunctionUrl(), {
       method: 'POST',
       headers: await getHeaders(),
       body: JSON.stringify({

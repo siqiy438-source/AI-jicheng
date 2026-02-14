@@ -3,7 +3,7 @@
  * API Key 安全存储在 Supabase Secrets 中
  */
 
-import { getAccessToken } from './supabase';
+import { getAccessToken, forceRefreshToken } from './supabase';
 
 // 消息类型
 export interface ChatMessage {
@@ -63,6 +63,51 @@ export async function chatStream(
     });
 
     if (!response.ok) {
+      // 401 时强制刷新 token 重试一次
+      if (response.status === 401 && token) {
+        const newToken = await forceRefreshToken();
+        if (newToken) {
+          headers['Authorization'] = `Bearer ${newToken}`;
+          const retryResponse = await fetch(getEdgeFunctionUrl(), {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+              prompt,
+              agentId,
+              history,
+              stream: true,
+              feature_code: featureCode,
+            }),
+          });
+          if (retryResponse.ok) {
+            const retryReader = retryResponse.body?.getReader();
+            if (!retryReader) throw new Error('无法读取响应流');
+            // 继续处理重试的流式响应
+            const retryDecoder = new TextDecoder();
+            let retryBuffer = '';
+            while (true) {
+              const { done, value } = await retryReader.read();
+              if (done) break;
+              retryBuffer += retryDecoder.decode(value, { stream: true });
+              const lines = retryBuffer.split('\n');
+              retryBuffer = lines.pop() || '';
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  const data = line.slice(6).trim();
+                  if (data === '[DONE]') { callbacks.onComplete?.(); return; }
+                  try {
+                    const parsed = JSON.parse(data);
+                    const content = parsed.choices?.[0]?.delta?.content;
+                    if (content) callbacks.onToken?.(content);
+                  } catch { /* skip */ }
+                }
+              }
+            }
+            callbacks.onComplete?.();
+            return;
+          }
+        }
+      }
       const errorData = await response.json().catch(() => ({ error: response.statusText }));
       throw new Error(errorData.error || `请求失败: ${response.status}`);
     }

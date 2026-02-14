@@ -1,4 +1,4 @@
-import { supabaseAnonKey, getAccessToken } from "./supabase";
+import { supabaseAnonKey, getAccessToken, forceRefreshToken } from "./supabase";
 
 export type ReportDomain = "dental" | "veterinary" | "k12_education" | "gym" | "general";
 export type ReportAnalysisLevel = 4 | 6 | 8;
@@ -874,28 +874,39 @@ async function requestSingleImageReport(
   params: AnalyzeGenerativeReportParams,
 ): Promise<GenerativeReportDocument> {
   const prompt = buildPrompt(params);
-  const token = await getAccessToken();
+  let token = await getAccessToken();
   if (!token) {
     throw new Error('请先登录后再使用报告生成功能');
   }
-  const response = await withTimeout(
-    fetch(CHAT_FUNCTION_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: supabaseAnonKey,
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        mode: "generative-report",
-        prompt,
-        images: params.images,
-        stream: false,
-        feature_code: 'ai_report_page',
+
+  const makeRequest = (t: string) =>
+    withTimeout(
+      fetch(CHAT_FUNCTION_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: supabaseAnonKey,
+          Authorization: `Bearer ${t}`,
+        },
+        body: JSON.stringify({
+          mode: "generative-report",
+          prompt,
+          images: params.images,
+          stream: false,
+          feature_code: 'ai_report_page',
+        }),
       }),
-    }),
-    80000,
-  );
+      80000,
+    );
+
+  let response = await makeRequest(token);
+
+  // 401 时强制刷新 token 重试一次
+  if (response.status === 401) {
+    const newToken = await forceRefreshToken();
+    if (!newToken) throw new Error('登录已过期，请重新登录');
+    response = await makeRequest(newToken);
+  }
 
   if (!response.ok) {
     throw new Error(`分析请求失败: ${response.status}`);

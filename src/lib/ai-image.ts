@@ -3,7 +3,7 @@
  * 使用 Gemini 2.5 Flash Image (Nano Banana) 模型
  */
 
-import { supabaseAnonKey, getAccessToken } from './supabase';
+import { supabaseAnonKey, getAccessToken, forceRefreshToken } from './supabase';
 
 // 对话消息类型（用于多轮对话）
 export interface ConversationMessage {
@@ -67,6 +67,29 @@ export async function generateImage(params: ImageGenerationParams): Promise<Imag
       body: JSON.stringify({ ...params, feature_code: params.featureCode }),
       signal: controller.signal,
     });
+
+    // 401 时强制刷新 token 重试一次
+    if (response.status === 401) {
+      const newToken = await forceRefreshToken();
+      if (!newToken) {
+        return { success: false, error: '登录已过期，请重新登录' };
+      }
+      headers['Authorization'] = `Bearer ${newToken}`;
+      const retryController = new AbortController();
+      const retryTimeoutId = setTimeout(() => retryController.abort(), 180000);
+      const retryResponse = await fetch(getEdgeFunctionUrl(), {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ ...params, feature_code: params.featureCode }),
+        signal: retryController.signal,
+      });
+      clearTimeout(retryTimeoutId);
+      if (!retryResponse.ok) {
+        const errorData = await retryResponse.json().catch(() => ({ error: retryResponse.statusText }));
+        throw new Error(errorData.error || `请求失败: ${retryResponse.status}`);
+      }
+      return await retryResponse.json();
+    }
 
     clearTimeout(timeoutId);
 
