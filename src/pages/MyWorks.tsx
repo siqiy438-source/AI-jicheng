@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import {
   ArrowLeft,
@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { deleteWork, listWorks, type WorkListItem } from "@/lib/repositories/works";
 import { downloadGeneratedImage } from "@/lib/image-utils";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,6 +58,7 @@ const getTypeColor = (category: WorkCategory) => {
 
 const MyWorks = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<WorkCategory | null>(null);
@@ -65,22 +67,51 @@ const MyWorks = () => {
   const [loading, setLoading] = useState(true);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
-  const refreshWorks = async () => {
+  const refreshWorks = useCallback(async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const data = await listWorks();
       setWorks(data);
     } catch (error) {
       console.error("加载作品失败", error);
-      toast.error("加载作品失败");
+      if (!silent) toast.error("加载作品失败");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    refreshWorks();
-  }, []);
+    if (!user?.id) {
+      setWorks([]);
+      setLoading(false);
+      return;
+    }
+    void refreshWorks();
+  }, [user?.id, refreshWorks]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const handleFocus = () => {
+      void refreshWorks(true);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        void refreshWorks(true);
+      }
+    };
+
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("pageshow", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("pageshow", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [user?.id, refreshWorks]);
 
   const confirmDeleteWork = async () => {
     if (!deleteConfirmId) return;

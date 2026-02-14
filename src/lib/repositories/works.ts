@@ -107,9 +107,13 @@ const resolveImage = async (userId: string, imageInput: string): Promise<{ bucke
 // ==================== 列表 ====================
 
 export const listWorks = async (): Promise<WorkListItem[]> => {
+  const userId = await getCurrentUserId();
+  if (!userId) return [];
+
   const { data, error } = await supabase
     .from('works')
     .select('id, title, type, tool, content_json, thumbnail_url, created_at, storage_bucket, storage_path')
+    .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(30);
 
@@ -134,7 +138,7 @@ export const listWorks = async (): Promise<WorkListItem[]> => {
 
     return {
       id: row.id,
-      title: row.title,
+      title: row.title || '未命名作品',
       type: row.type,
       tool: row.tool || 'AI 创作',
       content: typeof row.content_json?.text === 'string' ? row.content_json.text : undefined,
