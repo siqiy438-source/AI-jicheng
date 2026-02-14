@@ -1,8 +1,9 @@
-import { Bell, HelpCircle, User, LogOut, Sparkles, Coins } from "lucide-react";
+import { Bell, HelpCircle, User, LogOut, Sparkles, Coins, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCredits } from "@/contexts/CreditsContext";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAdmin } from "@/hooks/use-admin";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +17,7 @@ export const Header = () => {
   const { user, loading, signOut } = useAuth();
   const { balance, loading: creditsLoading } = useCredits();
   const isMobile = useIsMobile();
+  const { isAdmin } = useAdmin();
   
   // 通知状态（未来从后端获取）
   const hasUnreadNotifications = false; // 当前无未读通知
@@ -152,6 +154,14 @@ export const Header = () => {
                 {user.email}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
+              {isAdmin && (
+                <DropdownMenuItem asChild>
+                  <Link to="/admin" className="cursor-pointer">
+                    <Shield className="w-4 h-4 mr-2" />
+                    管理后台
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem asChild>
                 <Link to="/settings" className="cursor-pointer">
                   设置

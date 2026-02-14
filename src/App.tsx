@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CreditsProvider } from "@/contexts/CreditsContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AdminRoute } from "@/components/AdminRoute";
 
 const Index = lazy(() => import("./pages/Index"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -29,6 +30,7 @@ const CreativeTools = lazy(() => import("./pages/CreativeTools"));
 const GenerativeReport = lazy(() => import("./pages/GenerativeReport"));
 const Recharge = lazy(() => import("./pages/Recharge"));
 const PaymentResult = lazy(() => import("./pages/PaymentResult"));
+const Admin = lazy(() => import("./pages/Admin"));
 
 const queryClient = new QueryClient();
 
@@ -69,6 +71,7 @@ const App = () => (
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="/recharge" element={<ProtectedRoute><Recharge /></ProtectedRoute>} />
               <Route path="/payment-result" element={<ProtectedRoute><PaymentResult /></ProtectedRoute>} />
+              <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
