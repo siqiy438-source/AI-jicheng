@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { useCredits } from "@/contexts/CreditsContext";
 import { RECHARGE_TIERS, getPaymentOrders } from "@/lib/credits";
-import { supabase, supabaseAnonKey, supabaseUrl } from "@/lib/supabase";
+import { getAccessToken, supabaseAnonKey, supabaseUrl } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Coins, History, Check, Gift, Loader2, Zap, ImageIcon, FileText, Presentation, Info } from "lucide-react";
@@ -50,8 +50,8 @@ const Recharge = () => {
   const handleRecharge = async () => {
     setLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      const token = await getAccessToken();
+      if (!token) {
         toast({ title: "请先登录", description: "您需要登录后才能充值" });
         return;
       }
@@ -60,12 +60,19 @@ const Recharge = () => {
         headers: {
           "Content-Type": "application/json",
           apikey: supabaseAnonKey,
-          Authorization: `Bearer ${session.access_token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ tier_id: selectedTier, payment_method: "alipay" }),
       });
+      if (!response.ok) {
+        const text = await response.text();
+        let msg = "请稍后重试";
+        try { msg = JSON.parse(text).error || msg; } catch {}
+        toast({ title: "创建订单失败", description: msg });
+        return;
+      }
       const result = await response.json();
-      if (result.success) {
+      if (result.success && result.payment_url) {
         window.location.href = result.payment_url;
       } else {
         toast({ title: "创建订单失败", description: result.error || "请稍后重试" });
