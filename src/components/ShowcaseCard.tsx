@@ -17,34 +17,36 @@ const ImagePreview = ({ src, onClose }: { src: string; onClose: () => void }) =>
   </div>
 );
 
-const Thumb = ({ src, alt }: { src: string; alt: string }) => {
+const Thumb = ({ src, alt, fill = true }: { src: string; alt: string; fill?: boolean }) => {
   const [preview, setPreview] = useState<string | null>(null);
   return (
     <>
-      <img src={src} alt={alt} loading="lazy" decoding="async" className="w-full h-full object-cover cursor-pointer" onClick={() => setPreview(src)} />
+      <img src={src} alt={alt} loading="lazy" decoding="async" className={fill ? "w-full h-full object-cover cursor-pointer" : "w-full h-auto rounded-xl cursor-pointer"} onClick={() => setPreview(src)} />
       {preview && <ImagePreview src={preview} onClose={() => setPreview(null)} />}
     </>
   );
 };
 
 const BeforeAfter = ({ item }: { item: ShowcaseItem }) => (
-  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-    <div className="w-full sm:flex-1 sm:min-w-0">
-      <div className="text-[10px] text-muted-foreground mb-1">上传</div>
+  <div className="flex flex-col gap-3">
+    <div>
+      <div className="text-[10px] text-muted-foreground mb-1.5">上传</div>
       <div className="flex gap-1.5">
         {item.beforeImages.map((img, i) => (
-          <div key={i} className="aspect-square rounded-xl bg-secondary/30 overflow-hidden flex-1">
+          <div key={i} className="aspect-[3/4] rounded-xl bg-secondary/30 overflow-hidden flex-1">
             <Thumb src={img} alt="上传图" />
           </div>
         ))}
       </div>
     </div>
-    <ArrowRight className="w-4 h-4 text-muted-foreground/50 flex-shrink-0 self-center rotate-90 sm:rotate-0 sm:mt-3" />
-    <div className="w-full sm:flex-1 sm:min-w-0">
-      <div className="text-[10px] text-primary font-medium mb-1">效果</div>
+    <div className="flex justify-center">
+      <ArrowRight className="w-4 h-4 text-muted-foreground/50 rotate-90" />
+    </div>
+    <div>
+      <div className="text-[10px] text-primary font-medium mb-1.5">效果</div>
       <div className="flex gap-1.5">
         {item.afterImages.map((img, i) => (
-          <div key={i} className="aspect-square rounded-xl bg-secondary/30 overflow-hidden flex-1">
+          <div key={i} className="aspect-[3/4] rounded-xl bg-secondary/30 overflow-hidden flex-1">
             <Thumb src={img} alt="效果图" />
           </div>
         ))}
@@ -54,11 +56,9 @@ const BeforeAfter = ({ item }: { item: ShowcaseItem }) => (
 );
 
 const AfterOnly = ({ item }: { item: ShowcaseItem }) => (
-  <div className="flex gap-1.5">
+  <div className="space-y-1.5">
     {item.afterImages.map((img, i) => (
-      <div key={i} className="aspect-[4/3] rounded-xl bg-secondary/30 overflow-hidden flex-1">
-        <Thumb src={img} alt={item.title} />
-      </div>
+      <Thumb key={i} src={img} alt={item.title} fill={false} />
     ))}
   </div>
 );
