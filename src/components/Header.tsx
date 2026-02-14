@@ -67,7 +67,7 @@ export const Header = () => {
             to="/recharge"
             className={cn(
               "flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl",
-              "hover:bg-accent transition-colors text-sm font-medium touch-target"
+              "active:bg-secondary/50 transition-colors text-sm font-medium touch-target"
             )}
           >
             <Coins className="w-4 h-4 text-amber-500 flex-shrink-0" />
@@ -78,7 +78,7 @@ export const Header = () => {
         {/* 通知按钮 */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="p-2.5 rounded-xl hover:bg-accent transition-colors relative touch-target">
+            <button className="p-2.5 rounded-xl active:bg-secondary/50 transition-colors relative touch-target">
               <Bell className="w-5 h-5 text-muted-foreground" />
               {/* 只在有未读通知时显示红点 */}
               {hasUnreadNotifications && (
@@ -137,7 +137,7 @@ export const Header = () => {
               <button className={cn(
                 "ml-1 md:ml-2 flex items-center gap-2",
                 "px-2 md:px-3 py-1.5 md:py-2",
-                "rounded-xl hover:bg-accent active:bg-accent",
+                "rounded-xl active:bg-secondary/50",
                 "text-sm font-medium transition-colors",
                 "touch-target"
               )}>
