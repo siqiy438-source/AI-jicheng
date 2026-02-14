@@ -46,10 +46,31 @@
     <meta name="twitter:site" content="@Lovable" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
 
-    <!-- Google Fonts: 特色字体对 -->
+    <!-- 资源预连接 -->
+    <link rel="dns-prefetch" href="https://kzdjqqinkonqlclbwleh.supabase.co" />
+    <link rel="preconnect" href="https://kzdjqqinkonqlclbwleh.supabase.co" crossorigin />
+
+    <!-- Google Fonts: 非阻塞加载 + 精简字重 -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600&family=Noto+Sans+SC:wght@400;500;700&family=DM+Serif+Display&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600&family=Noto+Sans+SC:wght@400;500;700&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+    </noscript>
+
+    <!-- 内联关键 CSS：首次绘制不依赖外部 CSS -->
+    <style>
+      body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Noto Sans SC',sans-serif;background:#FDFBF8;-webkit-font-smoothing:antialiased}
+      #root{min-height:100vh;min-height:100dvh}
+      .app-shell{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center}
+      @keyframes spinner{to{transform:rotate(360deg)}}
+      .animate-spin-slow{animation:spinner 1.2s linear infinite}
+    </style>
   </head>
 
   <body>

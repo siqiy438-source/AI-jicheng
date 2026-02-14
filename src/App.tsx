@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { CreditsProvider } from "@/contexts/CreditsContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminRoute } from "@/components/AdminRoute";
+import { AppShellSkeleton } from "@/components/AppShellSkeleton";
 
 const Index = lazy(() => import("./pages/Index"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -42,14 +43,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <CreditsProvider>
-          <Suspense
-            fallback={
-              <div className="app-shell flex flex-col items-center justify-center gap-4 bg-gradient-main">
-                <div className="w-10 h-10 rounded-full border-2 border-primary/30 border-t-primary animate-spin-slow" />
-                <span className="text-sm text-muted-foreground">加载中...</span>
-              </div>
-            }
-          >
+          <Suspense fallback={<AppShellSkeleton />}>
             <Routes>
               <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               <Route path="/auth" element={<Auth />} />

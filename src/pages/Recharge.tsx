@@ -120,16 +120,16 @@ const Recharge = () => {
                 key={tier.id}
                 onClick={() => setSelectedTier(tier.id)}
                 className={cn(
-                  "relative group rounded-2xl p-4 md:p-5 text-left transition-all duration-200",
+                  "relative group rounded-2xl p-4 md:p-5 text-left transition-all duration-200 overflow-hidden",
                   "border-2",
                   isSelected
-                    ? "border-primary bg-primary/5 shadow-lg shadow-primary/10 scale-[1.02]"
+                    ? "border-primary bg-gradient-to-br from-primary/5 via-transparent to-amber-500/5 shadow-lg shadow-primary/10 scale-[1.02]"
                     : "border-border/60 bg-card hover:border-primary/40 hover:shadow-md"
                 )}
               >
                 {tier.badge && (
                   <span className={cn(
-                    "absolute -top-2.5 right-3 text-[10px] font-semibold px-2 py-0.5 rounded-full",
+                    "absolute top-2 left-2 text-[10px] font-semibold px-2 py-0.5 rounded-full",
                     tier.badge === "最划算"
                       ? "bg-gradient-to-r from-primary to-amber-500 text-white"
                       : "bg-primary/10 text-primary"
@@ -139,12 +139,12 @@ const Recharge = () => {
                 )}
 
                 {isSelected && (
-                  <div className="absolute top-2.5 left-2.5 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                  <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
                     <Check className="w-3 h-3 text-primary-foreground" strokeWidth={3} />
                   </div>
                 )}
 
-                <div className="text-xl md:text-2xl font-extrabold text-foreground mb-1">
+                <div className={cn("text-xl md:text-2xl font-extrabold text-foreground mb-1", tier.badge && "mt-5")}>
                   {tier.label}
                 </div>
                 <div className="text-base md:text-lg font-bold text-primary">

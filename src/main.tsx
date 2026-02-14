@@ -5,22 +5,18 @@ import "./index.css";
 createRoot(document.getElementById("root")!).render(<App />);
 
 // ==================== PWA Service Worker 注册 ====================
-// 仅在生产环境且浏览器支持时注册 Service Worker
+// 延迟注册，避免抢占首屏渲染的主线程资源
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  window.addEventListener('load', () => {
+  const registerSW = () => {
     navigator.serviceWorker
       .register('/sw.js')
       .then((registration) => {
-        console.log('✅ PWA Service Worker 注册成功:', registration.scope);
-        
-        // 检查更新
+        console.log('SW registered:', registration.scope);
         registration.addEventListener('updatefound', () => {
           const newWorker = registration.installing;
           if (newWorker) {
             newWorker.addEventListener('statechange', () => {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // 新版本可用，提示用户刷新
-                console.log('🔄 检测到新版本，准备更新...');
                 if (confirm('发现新版本，是否立即更新？')) {
                   window.location.reload();
                 }
@@ -29,8 +25,12 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
           }
         });
       })
-      .catch((error) => {
-        console.error('❌ PWA Service Worker 注册失败:', error);
-      });
-  });
+      .catch((error) => console.error('SW registration failed:', error));
+  };
+
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(registerSW);
+  } else {
+    setTimeout(registerSW, 3000);
+  }
 }

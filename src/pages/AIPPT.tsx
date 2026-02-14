@@ -955,7 +955,7 @@ const AIPPT = () => {
               >
                 <div className="aspect-video bg-white flex items-center justify-center relative">
                   {slide.generatedImage ? (
-                    <img src={slide.generatedImage} alt={slide.title} className="w-full h-full object-cover" />
+                    <img src={slide.generatedImage} alt={slide.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                   ) : (
                     <div className="flex flex-col items-center gap-1 text-muted-foreground/40">
                       <Presentation className="w-6 h-6" />
@@ -982,7 +982,7 @@ const AIPPT = () => {
               <div className="mb-6 rounded-xl overflow-hidden bg-secondary/20 border border-border/50 relative group">
                 {currentSlide.generatedImage ? (
                   <>
-                    <img src={currentSlide.generatedImage} alt={currentSlide.title} className="w-full" />
+                    <img src={currentSlide.generatedImage} alt={currentSlide.title} loading="lazy" decoding="async" className="w-full" />
                     {/* 桌面端 hover 覆盖层 */}
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all hidden md:flex items-center justify-center">
                       <Button

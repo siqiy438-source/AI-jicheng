@@ -379,19 +379,19 @@
     opacity: 0.06;
   }
 
-  /* 背景渐变光斑 - 营造氛围感 */
+  /* 背景渐变光斑 - 仅桌面端显示，手机端禁用以节省 GPU */
   .ambient-orb {
     position: absolute;
     border-radius: 50%;
-    filter: blur(40px);
     pointer-events: none;
     z-index: 0;
-    opacity: 0.15;
+    display: none;
   }
 
   /* 桌面端增强光斑效果 */
   @media (min-width: 768px) {
     .ambient-orb {
+      display: block;
       filter: blur(80px);
       opacity: 0.35;
     }
@@ -492,18 +492,22 @@
   /* 动画工具类 */
   .animate-fade-in {
     animation: fade-in 0.5s ease-out forwards;
+    will-change: opacity;
   }
 
   .animate-fade-in-up {
     animation: fade-in-up 0.6s ease-out forwards;
+    will-change: transform, opacity;
   }
 
   .animate-slide-in-left {
     animation: slide-in-left 0.4s ease-out forwards;
+    will-change: transform, opacity;
   }
 
   .animate-scale-in {
     animation: scale-in 0.3s ease-out forwards;
+    will-change: transform, opacity;
   }
 
   .animate-float {

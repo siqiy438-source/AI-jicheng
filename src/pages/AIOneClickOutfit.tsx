@@ -245,7 +245,7 @@ cropped garments, partial view, flat lay, frontal view, low quality, blurry, dis
 
                 {image ? (
                   <div className="relative group">
-                    <img src={image} alt={slot.title} className="w-full h-44 object-cover rounded-lg border border-border" />
+                    <img src={image} alt={slot.title} loading="lazy" decoding="async" className="w-full h-44 object-cover rounded-lg border border-border" />
                     <button
                       onClick={() => clearImage(slot.key)}
                       className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity"

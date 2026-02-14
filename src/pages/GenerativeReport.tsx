@@ -815,7 +815,7 @@ const GenerativeReport = () => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {images.map((image) => (
                   <div key={image.image_id} className="rounded-xl overflow-hidden border border-border bg-background">
-                    <img src={image.url} alt={image.label} className="w-full h-24 object-cover" />
+                    <img src={image.url} alt={image.label} loading="lazy" decoding="async" className="w-full h-24 object-cover" />
                     <div className="px-2 py-1.5 text-[11px] text-muted-foreground">{image.label}</div>
                   </div>
                 ))}
@@ -1033,7 +1033,7 @@ const GenerativeReport = () => {
                           key={`${slide.slide_id}-${ref.image_id}`}
                           className="inline-flex items-center gap-2 bg-secondary/60 rounded-lg px-2 py-1.5"
                         >
-                          <img src={asset.url} alt={asset.label || ref.image_id} className="w-8 h-8 rounded object-cover" />
+                          <img src={asset.url} alt={asset.label || ref.image_id} loading="lazy" decoding="async" className="w-8 h-8 rounded object-cover" />
                           <span className="text-xs text-muted-foreground">{asset.label || ref.image_id}</span>
                         </div>
                       );
@@ -1041,7 +1041,7 @@ const GenerativeReport = () => {
 
                     {slide.explanation_image_url && (
                       <div className="inline-flex items-center gap-2 bg-primary/10 rounded-lg px-2 py-1.5">
-                        <img src={slide.explanation_image_url} alt="图解页" className="w-8 h-8 rounded object-cover" />
+                        <img src={slide.explanation_image_url} alt="图解页" loading="lazy" decoding="async" className="w-8 h-8 rounded object-cover" />
                         <span className="text-xs text-primary">已生成图解页</span>
                       </div>
                     )}
@@ -1063,7 +1063,7 @@ const GenerativeReport = () => {
               </Button>
             </div>
             <div className="p-4 overflow-auto max-h-[calc(90vh-60px)]">
-              <img src={previewImage.url} alt={previewImage.title} className="w-full h-auto rounded-xl border border-border" />
+              <img src={previewImage.url} alt={previewImage.title} loading="lazy" decoding="async" className="w-full h-auto rounded-xl border border-border" />
             </div>
           </div>
         </div>

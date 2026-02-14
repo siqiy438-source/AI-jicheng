@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { AppShellSkeleton } from '@/components/AppShellSkeleton';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -11,11 +12,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const location = useLocation();
 
   if (loading) {
-    return (
-      <div className="app-shell flex items-center justify-center text-muted-foreground">
-        正在加载...
-      </div>
-    );
+    return <AppShellSkeleton />;
   }
 
   if (!user) {
