@@ -93,6 +93,12 @@ const contentFrameworks = [
     icon: "🖥️",
     prompt: "professional one-page PPT slide design: 1) 16:9 presentation layout, 2) clear title area with subtitle, 3) 3-5 structured content blocks with concise bullet points, 4) strong visual hierarchy with balanced whitespace, 5) presentation-ready infographic style with icons, 6) clear business storytelling flow from overview to key takeaways."
   },
+  {
+    id: "poster-design",
+    name: "海报设计",
+    icon: "🪧",
+    prompt: "creative poster design: 1) prominent headline text displaying \"{user_prompt}\", 2) a complementary AI-generated illustration or visual scene that enhances the theme and mood, 3) professional poster composition with clear visual hierarchy and balanced layout, 4) cohesive color palette tying text and imagery together, 5) modern aesthetic suitable for social media sharing or printing, 6) harmonious blend of typography and artwork creating an impactful poster."
+  },
 ];
 
 // 视觉风格选项（第二栏）- 定义视觉呈现风格
