@@ -11,8 +11,6 @@ export const RECHARGE_TIERS = [
 export const FEATURE_PRICES: Record<string, { name: string; cost: number }> = {
   ai_image_standard: { name: '标准绘图', cost: 50 },
   ai_image_premium: { name: 'Pro绘图', cost: 100 },
-  ai_poster_standard: { name: '海报(标准)', cost: 50 },
-  ai_poster_premium: { name: '海报(Pro)', cost: 100 },
   ai_display_standard: { name: '陈列图(标准)', cost: 50 },
   ai_display_premium: { name: '陈列图(Pro)', cost: 100 },
   ai_outfit_standard: { name: '挂搭图(标准)', cost: 50 },

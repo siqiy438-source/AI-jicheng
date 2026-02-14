@@ -35,7 +35,6 @@ interface CreditTransaction {
 /* feature_code → 中文名映射 */
 const FEATURE_LABELS: Record<string, string> = {
   ai_image_standard: "标准绘图", ai_image_premium: "Pro绘图",
-  ai_poster_standard: "海报(标准)", ai_poster_premium: "海报(Pro)",
   ai_display_standard: "陈列图(标准)", ai_display_premium: "陈列图(Pro)",
   ai_outfit_standard: "挂搭图(标准)", ai_outfit_premium: "挂搭图(Pro)",
   ai_fashion_standard: "模特图(标准)", ai_fashion_premium: "模特图(Pro)",
@@ -361,7 +360,7 @@ const Recharge = () => {
             <div className="flex items-center gap-1.5 mb-2">
               <ImageIcon className="w-3.5 h-3.5 text-primary" />
               <span className="text-xs font-semibold text-foreground">图片生成</span>
-              <span className="text-[10px] text-muted-foreground">（绘图 / 海报 / 陈列 / 挂搭 / 模特 / 细节特写 / 平铺摆拍）</span>
+              <span className="text-[10px] text-muted-foreground">（绘图 / 陈列 / 挂搭 / 模特 / 细节特写 / 平铺摆拍）</span>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-secondary/40">

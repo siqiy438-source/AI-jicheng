@@ -1,5 +1,4 @@
 import {
-  Palette,
   ImageIcon,
   FileText,
   BarChart3,
@@ -54,16 +53,6 @@ export interface Tip {
 
 // 快捷工具配置（只保留已实现的功能）
 export const QUICK_TOOLS: QuickTool[] = [
-  {
-    id: "poster",
-    name: "AI 海报",
-    description: "一键生成营销海报",
-    icon: Palette,
-    color: "from-blue-500 to-blue-600",
-    bgColor: "bg-blue-50",
-    textColor: "text-blue-600",
-    path: "/ai-poster",
-  },
   {
     id: "drawing",
     name: "AI 绘图",

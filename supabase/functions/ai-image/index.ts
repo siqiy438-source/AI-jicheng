@@ -86,7 +86,6 @@ serve(async (req) => {
     // ========== 积分扣减 ==========
     const CREDIT_COSTS: Record<string, number> = {
       ai_image_standard: 50, ai_image_premium: 100,
-      ai_poster_standard: 50, ai_poster_premium: 100,
       ai_display_standard: 50, ai_display_premium: 100,
       ai_outfit_standard: 50, ai_outfit_premium: 100,
       ai_fashion_standard: 50, ai_fashion_premium: 100,

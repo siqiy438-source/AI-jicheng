@@ -14,12 +14,6 @@ interface ToolItem {
 
 const tools: ToolItem[] = [
   {
-    title: "AI 海报",
-    description: "输入主题与场景，一键生成专业营销海报。",
-    iconSrc: "/icons/ai-poster-custom.webp",
-    to: "/ai-poster",
-  },
-  {
     title: "AI 绘图",
     description: "一句话描述创意，快速生成高质量图片。",
     iconSrc: "/icons/ai-drawing-custom.webp",
@@ -49,7 +43,7 @@ const CreativeTools = () => {
           <Palette className="w-5 h-5 md:w-6 md:h-6 text-primary" />
           创意工具
         </h1>
-        <p className="text-sm md:text-base text-muted-foreground">海报、绘图、PPT 等通用创意生成工具</p>
+        <p className="text-sm md:text-base text-muted-foreground">绘图、PPT 等通用创意生成工具</p>
       </div>
 
       <div className="mb-8 md:mb-10 opacity-0 animate-fade-in" style={{ animationDelay: "100ms" }}>

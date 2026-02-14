@@ -121,7 +121,6 @@ export const Sidebar = () => {
   const isCreativeToolsActive = [
     "/creative-tools",
     "/more-features",
-    "/ai-poster",
     "/ai-drawing",
     "/ai-ppt",
     "/generative-report",

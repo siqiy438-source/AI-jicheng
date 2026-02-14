@@ -12,7 +12,6 @@ import { AppShellSkeleton } from "@/components/AppShellSkeleton";
 
 const Index = lazy(() => import("./pages/Index"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const AIPoster = lazy(() => import("./pages/AIPoster"));
 const AIDrawing = lazy(() => import("./pages/AIDrawing"));
 const AIPPT = lazy(() => import("./pages/AIPPT"));
 const AICopywriting = lazy(() => import("./pages/AICopywriting"));
@@ -47,7 +46,6 @@ const App = () => (
             <Routes>
               <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/ai-poster" element={<ProtectedRoute><AIPoster /></ProtectedRoute>} />
               <Route path="/ai-drawing" element={<ProtectedRoute><AIDrawing /></ProtectedRoute>} />
               <Route path="/ai-display" element={<ProtectedRoute><AIDisplay /></ProtectedRoute>} />
               <Route path="/ai-hangoutfit" element={<ProtectedRoute><AIOneClickOutfit /></ProtectedRoute>} />

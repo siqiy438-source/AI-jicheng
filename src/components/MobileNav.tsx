@@ -78,7 +78,6 @@ export const MobileNav = () => {
       to: "/creative-tools",
       matchPaths: [
         "/creative-tools",
-        "/ai-poster",
         "/ai-drawing",
         "/ai-ppt",
         "/generative-report",
