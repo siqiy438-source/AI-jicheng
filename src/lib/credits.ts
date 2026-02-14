@@ -51,6 +51,17 @@ export async function getPaymentOrders(page = 1, pageSize = 20) {
   return { data, error, count }
 }
 
+export async function getCreditTransactions(page = 1, pageSize = 20) {
+  const from = (page - 1) * pageSize
+  const to = from + pageSize - 1
+  const { data, error, count } = await supabase
+    .from('credit_transactions')
+    .select('*', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(from, to)
+  return { data, error, count }
+}
+
 export function getFeatureCost(featureCode: string): number {
   return FEATURE_PRICES[featureCode]?.cost ?? 0
 }

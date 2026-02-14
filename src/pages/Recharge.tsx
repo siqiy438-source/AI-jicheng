@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { useCredits } from "@/contexts/CreditsContext";
-import { RECHARGE_TIERS, getPaymentOrders } from "@/lib/credits";
+import { RECHARGE_TIERS, getPaymentOrders, getCreditTransactions } from "@/lib/credits";
 import { getAccessToken, supabaseAnonKey, supabaseUrl } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import {
   Coins, History, Check, Gift, Loader2, Zap, ImageIcon, FileText,
-  Info, ChevronDown, Flame, Crown, Diamond,
+  Info, ChevronDown, Flame, Crown, Diamond, ArrowDownCircle, ArrowUpCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,28 @@ interface PaymentOrder {
   status: string;
   created_at: string;
 }
+
+interface CreditTransaction {
+  id: string;
+  type: string;
+  amount: number;
+  balance_after: number;
+  description: string | null;
+  created_at: string;
+}
+
+/* feature_code → 中文名映射 */
+const FEATURE_LABELS: Record<string, string> = {
+  ai_image_standard: "标准绘图", ai_image_premium: "Pro绘图",
+  ai_poster_standard: "海报(标准)", ai_poster_premium: "海报(Pro)",
+  ai_display_standard: "陈列图(标准)", ai_display_premium: "陈列图(Pro)",
+  ai_outfit_standard: "挂搭图(标准)", ai_outfit_premium: "挂搭图(Pro)",
+  ai_fashion_standard: "模特图(标准)", ai_fashion_premium: "模特图(Pro)",
+  ai_detail_standard: "细节特写(标准)", ai_detail_premium: "细节特写(Pro)",
+  ai_flatlay_standard: "平铺摆拍(标准)", ai_flatlay_premium: "平铺摆拍(Pro)",
+  ai_copywriting: "AI文案", ai_ppt_outline: "PPT大纲",
+  ai_ppt_slide: "PPT单页", ai_report_page: "报告生成",
+};
 
 const statusMap: Record<string, { label: string; color: string }> = {
   pending: { label: "处理中", color: "bg-amber-500/10 text-amber-600 border-amber-200" },
@@ -52,6 +74,9 @@ const Recharge = () => {
   const [loading, setLoading] = useState(false);
   const [orders, setOrders] = useState<PaymentOrder[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
+  const [transactions, setTransactions] = useState<CreditTransaction[]>([]);
+  const [txLoading, setTxLoading] = useState(true);
+  const [historyTab, setHistoryTab] = useState<"recharge" | "consume">("recharge");
 
   const selectedTierData = RECHARGE_TIERS.find((t) => t.id === selectedTier);
 
@@ -62,9 +87,17 @@ const Recharge = () => {
     setOrdersLoading(false);
   }, []);
 
+  const fetchTransactions = useCallback(async () => {
+    setTxLoading(true);
+    const { data } = await getCreditTransactions(1, 30);
+    setTransactions((data as CreditTransaction[]) || []);
+    setTxLoading(false);
+  }, []);
+
   useEffect(() => {
     fetchOrders();
-  }, [fetchOrders]);
+    fetchTransactions();
+  }, [fetchOrders, fetchTransactions]);
 
   const handleRecharge = async (tierId?: TierId) => {
     const targetTier = tierId || selectedTier;
@@ -298,49 +331,123 @@ const Recharge = () => {
         </div>
       </details>
 
-      {/* Orders History */}
+      {/* History Tabs */}
       <div
         className="glass-card rounded-2xl overflow-hidden mb-6 opacity-0 animate-fade-in"
         style={{ animationDelay: "750ms" }}
       >
-        <div className="px-4 py-3 md:px-5 md:py-4 border-b border-border/60 flex items-center gap-2">
-          <History className="w-4 h-4 text-muted-foreground" />
-          <h2 className="font-semibold text-foreground text-sm">充值记录</h2>
+        {/* Tab Header */}
+        <div className="flex border-b border-border/60">
+          <button
+            onClick={() => setHistoryTab("recharge")}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-1.5 px-4 py-3 text-sm font-semibold transition-colors",
+              historyTab === "recharge"
+                ? "text-primary border-b-2 border-primary"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <ArrowDownCircle className="w-3.5 h-3.5" />
+            充值记录
+          </button>
+          <button
+            onClick={() => setHistoryTab("consume")}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-1.5 px-4 py-3 text-sm font-semibold transition-colors",
+              historyTab === "consume"
+                ? "text-primary border-b-2 border-primary"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <ArrowUpCircle className="w-3.5 h-3.5" />
+            消费记录
+          </button>
         </div>
 
-        {ordersLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-          </div>
-        ) : orders.length === 0 ? (
-          <div className="text-center py-12 text-sm text-muted-foreground">暂无充值记录</div>
-        ) : (
-          <div className="divide-y divide-border/50">
-            {orders.map((order) => {
-              const st = statusMap[order.status] || statusMap.pending;
-              return (
-                <div key={order.id} className="flex items-center justify-between px-4 py-3 md:px-5 md:py-4 gap-3">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-foreground">积分充值</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {new Date(order.created_at).toLocaleString("zh-CN")}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    <div className="text-right">
-                      <p className="text-sm font-bold text-foreground">
-                        ¥{Number(order.amount).toFixed(2)}
-                      </p>
-                      <p className="text-xs text-primary font-medium">{order.credits_total} 积分</p>
+        {/* Recharge Tab */}
+        {historyTab === "recharge" && (
+          <>
+            {ordersLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+              </div>
+            ) : orders.length === 0 ? (
+              <div className="text-center py-12 text-sm text-muted-foreground">暂无充值记录</div>
+            ) : (
+              <div className="divide-y divide-border/50">
+                {orders.map((order) => {
+                  const st = statusMap[order.status] || statusMap.pending;
+                  return (
+                    <div key={order.id} className="flex items-center justify-between px-4 py-3 md:px-5 md:py-4 gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground">积分充值</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {new Date(order.created_at).toLocaleString("zh-CN")}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3 flex-shrink-0">
+                        <div className="text-right">
+                          <p className="text-sm font-bold text-foreground">
+                            ¥{Number(order.amount).toFixed(2)}
+                          </p>
+                          <p className="text-xs text-primary font-medium">{order.credits_total} 积分</p>
+                        </div>
+                        <Badge variant="outline" className={cn("text-[10px] font-medium", st.color)}>
+                          {st.label}
+                        </Badge>
+                      </div>
                     </div>
-                    <Badge variant="outline" className={cn("text-[10px] font-medium", st.color)}>
-                      {st.label}
-                    </Badge>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Consume Tab */}
+        {historyTab === "consume" && (
+          <>
+            {txLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+              </div>
+            ) : transactions.length === 0 ? (
+              <div className="text-center py-12 text-sm text-muted-foreground">暂无消费记录</div>
+            ) : (
+              <div className="divide-y divide-border/50">
+                {transactions.map((tx) => {
+                  const isDeduct = tx.type === "deduct";
+                  const label = tx.description ? (FEATURE_LABELS[tx.description] || tx.description) : (isDeduct ? "积分消费" : "积分变动");
+                  return (
+                    <div key={tx.id} className="flex items-center justify-between px-4 py-3 md:px-5 md:py-4 gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground">{label}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {new Date(tx.created_at).toLocaleString("zh-CN")}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3 flex-shrink-0">
+                        <div className="text-right">
+                          <p className={cn("text-sm font-bold", isDeduct ? "text-red-500" : "text-emerald-600")}>
+                            {isDeduct ? "-" : "+"}{tx.amount}
+                          </p>
+                          <p className="text-xs text-muted-foreground">余额 {tx.balance_after}</p>
+                        </div>
+                        <Badge variant="outline" className={cn(
+                          "text-[10px] font-medium",
+                          isDeduct
+                            ? "bg-red-500/10 text-red-500 border-red-200"
+                            : "bg-emerald-500/10 text-emerald-600 border-emerald-200"
+                        )}>
+                          {isDeduct ? "消费" : tx.type === "refund" ? "退款" : tx.type === "purchase" ? "充值" : "增加"}
+                        </Badge>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
       </div>
     </PageLayout>

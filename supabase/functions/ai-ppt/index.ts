@@ -505,6 +505,7 @@ serve(async (req) => {
         const { data: deductResult, error: deductError } = await supabaseAdmin.rpc('deduct_credits', {
           p_user_id: userId,
           p_amount: creditCost,
+          p_description: feature_code || 'ai_ppt',
         })
         if (deductError || !deductResult?.success) {
           const errMsg = deductResult?.error === 'INSUFFICIENT_BALANCE'
@@ -547,7 +548,7 @@ serve(async (req) => {
     // 生成失败时退还积分
     if (supabaseAdmin && userId && creditCost > 0) {
       try {
-        await supabaseAdmin.rpc('add_credits', { p_user_id: userId, p_amount: creditCost })
+        await supabaseAdmin.rpc('add_credits', { p_user_id: userId, p_amount: creditCost, p_description: '退款-' + (feature_code || 'ai_ppt') })
         console.log(`[ai-ppt] Refunded ${creditCost} credits to user ${userId}`)
       } catch (refundErr) {
         console.error(`[ai-ppt] Refund failed:`, refundErr)

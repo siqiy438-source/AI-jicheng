@@ -93,6 +93,7 @@ serve(async (req) => {
     const { error: rpcError } = await supabaseAdmin.rpc('add_credits', {
       p_user_id: order.user_id,
       p_amount: order.credits_total,
+      p_description: `充值 ¥${order.amount}`,
     })
 
     if (rpcError) {
