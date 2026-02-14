@@ -247,6 +247,8 @@ serve(async (req) => {
 
     // 解析请求
     const { prompt, agentId, history, stream = true, mode, images, feature_code } = await req.json()
+    // 保存 feature_code 到外层作用域，供 catch 块退款使用
+    let savedFeatureCode = feature_code
 
     if (!prompt) {
       throw new Error('prompt is required')
@@ -344,6 +346,12 @@ serve(async (req) => {
 
     // ========== VM 陈列分析模式 ==========
     if (mode === 'vm-analysis') {
+      // vm-analysis 需要扣积分，必须认证
+      if (!userId) {
+        return new Response(JSON.stringify({ error: '请先登录后再使用陈列分析功能' }), {
+          status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
       // 构建多模态消息（OpenAI vision 格式）
       const userContent: Array<{type: string; text?: string; image_url?: {url: string}}> = []
 
@@ -398,6 +406,12 @@ serve(async (req) => {
 
     // ========== 生成式报告模式 ==========
     if (mode === 'generative-report') {
+      // 生成式报告需要扣积分，必须认证
+      if (!userId) {
+        return new Response(JSON.stringify({ error: '请先登录后再使用报告生成功能' }), {
+          status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
       if (!REPORT_API_KEY) {
         throw new Error('REPORT_API_KEY not configured for generative-report mode')
       }
@@ -573,7 +587,7 @@ serve(async (req) => {
     // 生成失败时退还积分
     if (supabaseAdmin && userId && creditCost > 0) {
       try {
-        await supabaseAdmin.rpc('add_credits', { p_user_id: userId, p_amount: creditCost, p_description: '退款-' + (feature_code || 'ai_chat') })
+        await supabaseAdmin.rpc('add_credits', { p_user_id: userId, p_amount: creditCost, p_description: '退款-' + (savedFeatureCode || 'ai_chat') })
         console.log(`[ai-chat] Refunded ${creditCost} credits to user ${userId}`)
       } catch (refundErr) {
         console.error(`[ai-chat] Refund failed:`, refundErr)

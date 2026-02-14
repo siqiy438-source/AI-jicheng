@@ -195,23 +195,20 @@ const DEFAULT_ANALYSIS: VMAnalysisResult = {
 
 // ---- 单件衣服识别 ----
 
-export async function identifySingleGarment(image: string): Promise<string> {
+export async function identifySingleGarment(image: string, sharedToken?: string): Promise<string> {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://kzdjqqinkonqlclbwleh.supabase.co';
   const url = `${supabaseUrl}/functions/v1/ai-chat`;
 
-  const doFetch = async (token: string | null) => {
+  const doFetch = async (token: string) => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000);
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      apikey: supabaseAnonKey,
-    };
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
     const response = await fetch(url, {
       method: 'POST',
-      headers,
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: supabaseAnonKey,
+        'Authorization': `Bearer ${token}`,
+      },
       body: JSON.stringify({
         mode: 'vm-identify',
         prompt: '请描述这件衣服：颜色+款式+关键特征',
@@ -225,13 +222,17 @@ export async function identifySingleGarment(image: string): Promise<string> {
   };
 
   try {
-    let token = await getAccessToken();
+    let token = sharedToken || await getAccessToken();
+    if (!token) {
+      throw new Error('请先登录');
+    }
     let response = await doFetch(token);
 
     // 401 时强制刷新 token 重试一次
     if (response.status === 401) {
-      token = await forceRefreshToken();
-      response = await doFetch(token);
+      const newToken = await forceRefreshToken();
+      if (!newToken) throw new Error('登录已过期');
+      response = await doFetch(newToken);
     }
 
     if (!response.ok) {
@@ -250,6 +251,8 @@ export async function identifyAllGarments(
   images: string[],
   onProgress?: (index: number, total: number, desc: string) => void
 ): Promise<string[]> {
+  // 批量识别前获取一次 token，避免并发刷新冲突
+  const token = await getAccessToken();
   const results: string[] = [];
 
   // 每次并发 3 个，避免 API 限流
@@ -258,7 +261,7 @@ export async function identifyAllGarments(
     const batch = images.slice(i, i + batchSize);
     const batchResults = await Promise.all(
       batch.map(async (img, j) => {
-        const desc = await identifySingleGarment(img);
+        const desc = await identifySingleGarment(img, token || undefined);
         onProgress?.(i + j + 1, images.length, desc);
         return desc;
       })
