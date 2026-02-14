@@ -60,11 +60,11 @@ const TIER_META: Record<string, {
   iconColor: string;
   ctaVariant: "outline" | "default" | "craft";
 }> = {
-  "tier_1":    { name: "尝鲜版", icon: Zap,     cardBg: "bg-gradient-to-b from-amber-50/80 to-orange-50/40",   iconBg: "bg-amber-100",                                          iconColor: "text-amber-500",  ctaVariant: "outline" },
-  "tier_9.9":  { name: "轻享版", icon: Coins,   cardBg: "bg-gradient-to-b from-amber-50 to-orange-50/60",      iconBg: "bg-amber-200/70",                                       iconColor: "text-amber-600",  ctaVariant: "outline" },
-  "tier_19.9": { name: "畅创版", icon: Flame,   cardBg: "bg-gradient-to-b from-amber-50 to-orange-100/70",     iconBg: "bg-gradient-to-br from-amber-400 to-orange-500",        iconColor: "text-white",      ctaVariant: "default" },
-  "tier_39.9": { name: "专业版", icon: Crown,   cardBg: "bg-gradient-to-b from-orange-50 to-amber-100/60",     iconBg: "bg-gradient-to-br from-primary to-amber-500",           iconColor: "text-white",      ctaVariant: "default" },
-  "tier_79.9": { name: "旗舰版", icon: Diamond, cardBg: "bg-gradient-to-b from-amber-100/80 to-orange-100/60", iconBg: "bg-gradient-to-br from-primary via-amber-500 to-yellow-500", iconColor: "text-white", ctaVariant: "craft" },
+  "tier_1":    { name: "尝鲜版", icon: Zap,     cardBg: "bg-white",                                                    iconBg: "bg-stone-100",                                                  iconColor: "text-stone-400",  ctaVariant: "outline" },
+  "tier_9.9":  { name: "轻享版", icon: Coins,   cardBg: "bg-gradient-to-b from-orange-50/60 to-amber-50/30",            iconBg: "bg-amber-100",                                                  iconColor: "text-amber-500",  ctaVariant: "outline" },
+  "tier_19.9": { name: "畅创版", icon: Flame,   cardBg: "bg-gradient-to-b from-amber-50 to-orange-100/80",              iconBg: "bg-gradient-to-br from-amber-400 to-orange-500",                iconColor: "text-white",      ctaVariant: "default" },
+  "tier_39.9": { name: "专业版", icon: Crown,   cardBg: "bg-gradient-to-b from-orange-100/70 to-amber-200/50",          iconBg: "bg-gradient-to-br from-orange-500 to-amber-600",                iconColor: "text-white",      ctaVariant: "default" },
+  "tier_79.9": { name: "旗舰版", icon: Diamond, cardBg: "bg-gradient-to-b from-amber-200/60 to-yellow-100/50",          iconBg: "bg-gradient-to-br from-amber-500 via-yellow-500 to-amber-400",  iconColor: "text-white",      ctaVariant: "craft" },
 };
 
 const Recharge = () => {
@@ -222,8 +222,8 @@ const Recharge = () => {
 
                 {/* Price */}
                 <div className="flex items-baseline justify-center gap-0.5 mb-1">
-                  <span className="text-xs text-foreground/50">¥</span>
-                  <span className="text-3xl font-extrabold text-foreground tracking-tight">{tier.amount}</span>
+                  <span className="text-sm font-bold text-foreground/60">¥</span>
+                  <span className="text-4xl font-black text-foreground tracking-tight">{tier.amount}</span>
                 </div>
 
                 {/* Points */}
@@ -241,7 +241,7 @@ const Recharge = () => {
                 <div className="w-full h-px bg-border/50 my-3" />
 
                 {/* Feature checklist */}
-                <div className="w-full space-y-2">
+                <div className="inline-flex flex-col space-y-2">
                   {usages.map((u) => (
                     <div key={u.label} className="flex items-center gap-2">
                       <Check className="w-3.5 h-3.5 text-primary flex-shrink-0" />
