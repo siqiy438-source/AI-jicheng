@@ -77,6 +77,7 @@ const Recharge = () => {
   const [transactions, setTransactions] = useState<CreditTransaction[]>([]);
   const [txLoading, setTxLoading] = useState(true);
   const [historyTab, setHistoryTab] = useState<"recharge" | "consume">("recharge");
+  const [payMethod, setPayMethod] = useState<"alipay" | "wxpay">("alipay");
 
   const selectedTierData = RECHARGE_TIERS.find((t) => t.id === selectedTier);
 
@@ -115,7 +116,7 @@ const Recharge = () => {
           apikey: supabaseAnonKey,
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ tier_id: targetTier, payment_method: "alipay" }),
+        body: JSON.stringify({ tier_id: targetTier, payment_method: payMethod }),
       });
       if (!response.ok) {
         const text = await response.text();
@@ -262,15 +263,60 @@ const Recharge = () => {
         className="glass-card rounded-2xl p-4 md:p-6 mb-6 opacity-0 animate-fade-in"
         style={{ animationDelay: "450ms" }}
       >
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#1677FF] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+        {/* Payment Method Selector */}
+        <div className="flex gap-3 mb-4">
+          <button
+            onClick={() => setPayMethod("alipay")}
+            className={cn(
+              "flex-1 flex items-center gap-2.5 px-4 py-3 rounded-xl border-2 transition-all",
+              payMethod === "alipay"
+                ? "border-[#1677FF] bg-[#1677FF]/5 shadow-sm"
+                : "border-border/60 hover:border-[#1677FF]/40"
+            )}
+          >
+            <div className="w-8 h-8 rounded-lg bg-[#1677FF] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
               支
             </div>
-            <div>
-              <p className="text-sm font-medium text-foreground">支付宝支付</p>
-              <p className="text-xs text-muted-foreground">安全快捷</p>
+            <div className="text-left">
+              <p className={cn("text-sm font-medium", payMethod === "alipay" ? "text-[#1677FF]" : "text-foreground")}>支付宝</p>
+              <p className="text-[10px] text-muted-foreground">Alipay</p>
             </div>
+            {payMethod === "alipay" && (
+              <div className="ml-auto w-5 h-5 rounded-full bg-[#1677FF] flex items-center justify-center">
+                <Check className="w-3 h-3 text-white" strokeWidth={3} />
+              </div>
+            )}
+          </button>
+          <button
+            onClick={() => setPayMethod("wxpay")}
+            className={cn(
+              "flex-1 flex items-center gap-2.5 px-4 py-3 rounded-xl border-2 transition-all",
+              payMethod === "wxpay"
+                ? "border-[#07C160] bg-[#07C160]/5 shadow-sm"
+                : "border-border/60 hover:border-[#07C160]/40"
+            )}
+          >
+            <div className="w-8 h-8 rounded-lg bg-[#07C160] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+              微
+            </div>
+            <div className="text-left">
+              <p className={cn("text-sm font-medium", payMethod === "wxpay" ? "text-[#07C160]" : "text-foreground")}>微信支付</p>
+              <p className="text-[10px] text-muted-foreground">WeChat Pay</p>
+            </div>
+            {payMethod === "wxpay" && (
+              <div className="ml-auto w-5 h-5 rounded-full bg-[#07C160] flex items-center justify-center">
+                <Check className="w-3 h-3 text-white" strokeWidth={3} />
+              </div>
+            )}
+          </button>
+        </div>
+
+        {/* Amount Summary */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">
+              {payMethod === "alipay" ? "支付宝" : "微信"}安全支付
+            </span>
           </div>
           {selectedTierData && (
             <div className="text-right">
@@ -282,7 +328,10 @@ const Recharge = () => {
           )}
         </div>
         <Button
-          className="w-full h-12 text-base font-semibold rounded-xl"
+          className={cn(
+            "w-full h-12 text-base font-semibold rounded-xl",
+            payMethod === "wxpay" && "bg-[#07C160] hover:bg-[#06AD56]"
+          )}
           disabled={loading}
           onClick={() => handleRecharge()}
         >
