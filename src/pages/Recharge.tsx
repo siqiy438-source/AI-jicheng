@@ -170,13 +170,19 @@ const Recharge = () => {
             const meta = TIER_META[tier.id];
             const TierIcon = meta.icon;
             const isSelected = selectedTier === tier.id;
+            const usages = [
+              { label: "标准绘图", count: Math.floor(tier.pointsTotal / 50) },
+              { label: "Pro绘图", count: Math.floor(tier.pointsTotal / 100) },
+              { label: "AI文案", count: Math.floor(tier.pointsTotal / 20) },
+              { label: "PPT单页", count: Math.floor(tier.pointsTotal / 50) },
+            ];
 
             return (
               <div
                 key={tier.id}
                 onClick={() => setSelectedTier(tier.id)}
                 className={cn(
-                  "relative flex flex-col rounded-2xl p-3.5 cursor-pointer border",
+                  "relative flex flex-col items-center rounded-2xl px-3 pt-5 pb-4 cursor-pointer border text-center",
                   meta.cardBg,
                   isSelected
                     ? "border-primary/50 ring-2 ring-primary/40 ring-offset-2 ring-offset-background shadow-lg shadow-primary/15"
@@ -187,9 +193,9 @@ const Recharge = () => {
               >
                 {/* Badge */}
                 {tier.badge && (
-                  <div className="absolute -top-2 right-3 z-10">
+                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 z-10">
                     <span className={cn(
-                      "px-2 py-0.5 text-[10px] font-bold rounded-full shadow-sm",
+                      "px-2.5 py-0.5 text-[10px] font-bold rounded-full shadow-sm whitespace-nowrap",
                       tier.badge === "最划算"
                         ? "bg-gradient-to-r from-primary to-amber-500 text-white"
                         : "bg-primary/90 text-white"
@@ -206,18 +212,18 @@ const Recharge = () => {
                   </div>
                 )}
 
-                {/* Icon + Plan name */}
-                <div className="flex items-center gap-2 mb-2">
-                  <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0", meta.iconBg)}>
-                    <TierIcon className={cn("w-4 h-4", meta.iconColor)} />
-                  </div>
-                  <span className="text-xs font-medium text-muted-foreground">{meta.name}</span>
+                {/* Icon */}
+                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mb-2", meta.iconBg)}>
+                  <TierIcon className={cn("w-5 h-5", meta.iconColor)} />
                 </div>
 
+                {/* Plan name */}
+                <p className="text-xs font-medium text-muted-foreground mb-1.5">{meta.name}</p>
+
                 {/* Price */}
-                <div className="flex items-baseline gap-0.5 mb-1">
-                  <span className="text-[10px] text-foreground/50">¥</span>
-                  <span className="text-2xl font-extrabold text-foreground tracking-tight">{tier.amount}</span>
+                <div className="flex items-baseline justify-center gap-0.5 mb-1">
+                  <span className="text-xs text-foreground/50">¥</span>
+                  <span className="text-3xl font-extrabold text-foreground tracking-tight">{tier.amount}</span>
                 </div>
 
                 {/* Points */}
@@ -231,11 +237,19 @@ const Recharge = () => {
                   </div>
                 )}
 
-                {/* Usage hints */}
-                <div className="mt-2 pt-2 border-t border-border/40 flex flex-wrap gap-x-2 gap-y-0.5">
-                  <span className="text-[10px] text-muted-foreground">绘图<span className="font-semibold text-foreground">×{Math.floor(tier.pointsTotal / 50)}</span></span>
-                  <span className="text-[10px] text-muted-foreground">Pro<span className="font-semibold text-foreground">×{Math.floor(tier.pointsTotal / 100)}</span></span>
-                  <span className="text-[10px] text-muted-foreground">文案<span className="font-semibold text-foreground">×{Math.floor(tier.pointsTotal / 20)}</span></span>
+                {/* Divider */}
+                <div className="w-full h-px bg-border/50 my-3" />
+
+                {/* Feature checklist */}
+                <div className="w-full space-y-1.5 text-left">
+                  {usages.map((u) => (
+                    <div key={u.label} className="flex items-center gap-1.5">
+                      <Check className="w-3 h-3 text-primary flex-shrink-0" />
+                      <span className="text-[11px] text-muted-foreground leading-tight">
+                        {u.label} <span className="font-semibold text-foreground">×{u.count}</span>
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
             );
