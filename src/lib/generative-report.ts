@@ -875,13 +875,16 @@ async function requestSingleImageReport(
 ): Promise<GenerativeReportDocument> {
   const prompt = buildPrompt(params);
   const token = await getAccessToken();
+  if (!token) {
+    throw new Error('请先登录后再使用报告生成功能');
+  }
   const response = await withTimeout(
     fetch(CHAT_FUNCTION_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         apikey: supabaseAnonKey,
-        Authorization: `Bearer ${token || supabaseAnonKey}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         mode: "generative-report",

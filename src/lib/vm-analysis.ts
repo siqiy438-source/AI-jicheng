@@ -204,13 +204,16 @@ export async function identifySingleGarment(image: string): Promise<string> {
 
   try {
     const token = await getAccessToken();
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      apikey: supabaseAnonKey,
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
     const response = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        apikey: supabaseAnonKey,
-        'Authorization': `Bearer ${token || supabaseAnonKey}`,
-      },
+      headers,
       body: JSON.stringify({
         mode: 'vm-identify',
         prompt: '请描述这件衣服：颜色+款式+关键特征',
@@ -286,12 +289,15 @@ ${additionalNotes ? `\n店主补充说明：${additionalNotes}` : ''}`;
 
   try {
     const token = await getAccessToken();
+    if (!token) {
+      throw new Error('请先登录后再使用陈列分析功能');
+    }
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         apikey: supabaseAnonKey,
-        'Authorization': `Bearer ${token || supabaseAnonKey}`,
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify({
         mode: 'vm-analysis',

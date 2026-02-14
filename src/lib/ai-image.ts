@@ -48,10 +48,13 @@ export async function generateImage(params: ImageGenerationParams): Promise<Imag
   try {
     // 获取当前用户的 access_token（用于认证和积分扣减）
     const token = await getAccessToken();
+    if (!token) {
+      return { success: false, error: '请先登录后再使用图像生成功能' };
+    }
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       apikey: supabaseAnonKey,
-      'Authorization': `Bearer ${token || supabaseAnonKey}`,
+      'Authorization': `Bearer ${token}`,
     };
 
     // 设置 180 秒超时（AI 图像生成 + Storage 上传可能需要较长时间）

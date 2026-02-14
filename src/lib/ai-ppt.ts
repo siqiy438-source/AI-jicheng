@@ -66,10 +66,13 @@ const getEdgeFunctionUrl = () => {
 
 const getHeaders = async () => {
   const token = await getAccessToken();
+  if (!token) {
+    throw new Error('请先登录后再使用 PPT 功能');
+  }
   return {
     'Content-Type': 'application/json',
     apikey: supabaseAnonKey,
-    'Authorization': `Bearer ${token || supabaseAnonKey}`,
+    'Authorization': `Bearer ${token}`,
   };
 };
 
