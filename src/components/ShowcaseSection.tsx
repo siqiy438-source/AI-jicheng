@@ -4,7 +4,7 @@ import { showcaseCategories } from "@/data/showcaseData";
 export const ShowcaseSection = () => {
   let cardIndex = 0;
   return (
-    <div className="space-y-10">
+    <div className="space-y-8 sm:space-y-10">
       <IntroSection />
       {showcaseCategories.map((cat, catIdx) => {
         const baseDelay = 300 + catIdx * 200;
@@ -15,7 +15,7 @@ export const ShowcaseSection = () => {
               <h2 className="text-base font-bold text-foreground tracking-wide">{cat.name}</h2>
               <span className="flex-1 h-px bg-gradient-to-r from-border to-transparent" />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
               {cat.items.map((item) => {
                 const d = baseDelay + 100 + cardIndex * 80;
                 cardIndex++;

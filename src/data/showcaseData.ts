@@ -5,6 +5,7 @@ export interface ShowcaseItem {
   beforeImages: string[];   // 上传的原图（1~3张）
   afterImages: string[];      // 生成的效果图（1~多张）
   promptText?: string;        // 文字提示词（如 AI 绘图只需一句话）
+  promptLabel?: string;        // 提示框标签（默认"只需输入一句话"）
   toolRoute: string;        // 点击"立即体验"跳转的路由
 }
 
@@ -46,7 +47,7 @@ export const showcaseCategories: ShowcaseCategory[] = [
           "/showcase/flatlayout-before-2.webp",
           "/showcase/flatlayout-before-3.webp",
         ],
-        afterImages: ["/showcase/flatlayout-after.webp"],
+        afterImages: ["/showcase/flatlayout-after.webp", "/showcase/flatlayout-after-2.webp"],
         toolRoute: "/fashion-outfit",
       },
       {
@@ -85,7 +86,9 @@ export const showcaseCategories: ShowcaseCategory[] = [
       {
         id: "ppt",
         title: "AI PPT",
-        description: "文字变演示，智能生成幻灯片",
+        description: "一句话或读书笔记生成大纲，AI 自动配图，轻松制作演示文稿",
+        promptText: "高效能人士的七个习惯启示录",
+        promptLabel: "输入主题、读书笔记或会议记录",
         beforeImages: [],
         afterImages: ["/showcase/ppt-after.webp"],
         toolRoute: "/ai-ppt",
