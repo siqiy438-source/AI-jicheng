@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { useCredits } from "@/contexts/CreditsContext";
-import { RECHARGE_TIERS, getPaymentOrders, getCreditTransactions } from "@/lib/credits";
+import { RECHARGE_TIERS, FEATURE_PRICES, getPaymentOrders, getCreditTransactions } from "@/lib/credits";
 import { getAccessToken, supabaseAnonKey, supabaseUrl } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -230,6 +230,13 @@ const Recharge = () => {
                     <span className="text-[11px] font-semibold text-emerald-600">+{tier.pointsBonus} 赠送</span>
                   </div>
                 )}
+
+                {/* Usage hints */}
+                <div className="mt-2 pt-2 border-t border-border/40 flex flex-wrap gap-x-2 gap-y-0.5">
+                  <span className="text-[10px] text-muted-foreground">绘图<span className="font-semibold text-foreground">×{Math.floor(tier.pointsTotal / 50)}</span></span>
+                  <span className="text-[10px] text-muted-foreground">Pro<span className="font-semibold text-foreground">×{Math.floor(tier.pointsTotal / 100)}</span></span>
+                  <span className="text-[10px] text-muted-foreground">文案<span className="font-semibold text-foreground">×{Math.floor(tier.pointsTotal / 20)}</span></span>
+                </div>
               </div>
             );
           })}
