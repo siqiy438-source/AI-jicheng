@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { useCredits } from "@/contexts/CreditsContext";
-import { RECHARGE_TIERS, FEATURE_PRICES, getPaymentOrders } from "@/lib/credits";
+import { RECHARGE_TIERS, getPaymentOrders } from "@/lib/credits";
 import { getAccessToken, supabaseAnonKey, supabaseUrl } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -44,14 +44,6 @@ const TIER_META: Record<string, {
   "tier_39.9": { name: "超值包", icon: Crown,   cardBg: "bg-gradient-to-b from-orange-50 to-amber-100/60",     iconBg: "bg-gradient-to-br from-primary to-amber-500",           iconColor: "text-white",      ctaVariant: "default" },
   "tier_79.9": { name: "至尊包", icon: Diamond, cardBg: "bg-gradient-to-b from-amber-100/80 to-orange-100/60", iconBg: "bg-gradient-to-br from-primary via-amber-500 to-yellow-500", iconColor: "text-white", ctaVariant: "craft" },
 };
-
-/* 代表性功能，用于计算可用次数 */
-const SHOWCASE_FEATURES = [
-  { key: "ai_image_standard", label: "标准绘图" },
-  { key: "ai_image_premium",  label: "Pro绘图" },
-  { key: "ai_copywriting",    label: "AI文案" },
-  { key: "ai_ppt_slide",      label: "PPT单页" },
-];
 
 const Recharge = () => {
   const { balance } = useCredits();
@@ -138,39 +130,33 @@ const Recharge = () => {
         </div>
       </div>
 
-      {/* Tier Carousel */}
-      <div className="-mx-3 xs:-mx-4 md:mx-0 mb-6">
-        <div className="flex gap-3 md:gap-4 overflow-x-auto snap-x snap-mandatory px-3 xs:px-4 md:px-0 pb-4 scrollbar-hide">
+      {/* Tier Grid */}
+      <div className="mb-6 opacity-0 animate-fade-in" style={{ animationDelay: "150ms" }}>
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 items-start">
           {RECHARGE_TIERS.map((tier, index) => {
             const meta = TIER_META[tier.id];
             const TierIcon = meta.icon;
             const isSelected = selectedTier === tier.id;
-            const usages = SHOWCASE_FEATURES.map((f) => ({
-              label: f.label,
-              count: Math.floor(tier.pointsTotal / (FEATURE_PRICES[f.key]?.cost || 50)),
-            }));
 
             return (
               <div
                 key={tier.id}
                 onClick={() => setSelectedTier(tier.id)}
                 className={cn(
-                  "relative flex flex-col rounded-2xl p-5 cursor-pointer",
-                  "min-w-[72vw] xs:min-w-[62vw] md:min-w-0 md:flex-1",
-                  "snap-center border",
+                  "relative flex flex-col rounded-2xl p-3.5 cursor-pointer border",
                   meta.cardBg,
                   isSelected
                     ? "border-primary/50 ring-2 ring-primary/40 ring-offset-2 ring-offset-background shadow-lg shadow-primary/15"
-                    : "border-border/50 shadow-md hover:shadow-lg hover:border-primary/30",
+                    : "border-border/50 shadow-sm hover:shadow-md hover:border-primary/30",
                   "opacity-0 animate-card-slide-in"
                 )}
-                style={{ animationDelay: `${index * 80 + 150}ms` }}
+                style={{ animationDelay: `${index * 60 + 150}ms` }}
               >
                 {/* Badge */}
                 {tier.badge && (
-                  <div className="absolute -top-2.5 right-4 z-10">
+                  <div className="absolute -top-2 right-3 z-10">
                     <span className={cn(
-                      "px-3 py-1 text-[11px] font-bold rounded-full shadow-sm",
+                      "px-2 py-0.5 text-[10px] font-bold rounded-full shadow-sm",
                       tier.badge === "最划算"
                         ? "bg-gradient-to-r from-primary to-amber-500 text-white"
                         : "bg-primary/90 text-white"
@@ -182,107 +168,77 @@ const Recharge = () => {
 
                 {/* Selected check */}
                 {isSelected && (
-                  <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                  <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
                     <Check className="w-3 h-3 text-primary-foreground" strokeWidth={3} />
                   </div>
                 )}
 
-                {/* Icon */}
-                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mb-3", meta.iconBg)}>
-                  <TierIcon className={cn("w-5 h-5", meta.iconColor)} />
+                {/* Icon + Plan name */}
+                <div className="flex items-center gap-2 mb-2">
+                  <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0", meta.iconBg)}>
+                    <TierIcon className={cn("w-4 h-4", meta.iconColor)} />
+                  </div>
+                  <span className="text-xs font-medium text-muted-foreground">{meta.name}</span>
                 </div>
-
-                {/* Plan name */}
-                <p className="text-sm font-medium text-muted-foreground mb-1">{meta.name}</p>
 
                 {/* Price */}
                 <div className="flex items-baseline gap-0.5 mb-1">
-                  <span className="text-xs text-foreground/50">¥</span>
-                  <span className="text-3xl font-extrabold text-foreground tracking-tight">{tier.amount}</span>
+                  <span className="text-[10px] text-foreground/50">¥</span>
+                  <span className="text-2xl font-extrabold text-foreground tracking-tight">{tier.amount}</span>
                 </div>
 
                 {/* Points */}
-                <div className="text-base font-bold text-primary">
-                  {tier.pointsBase} <span className="text-xs font-normal text-muted-foreground">积分</span>
+                <div className="text-sm font-bold text-primary">
+                  {tier.pointsBase} <span className="text-[10px] font-normal text-muted-foreground">积分</span>
                 </div>
                 {tier.pointsBonus > 0 && (
                   <div className="flex items-center gap-1 mt-0.5">
-                    <Gift className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
-                    <span className="text-xs font-semibold text-emerald-600">+{tier.pointsBonus} 赠送</span>
+                    <Gift className="w-3 h-3 text-emerald-500 flex-shrink-0" />
+                    <span className="text-[11px] font-semibold text-emerald-600">+{tier.pointsBonus} 赠送</span>
                   </div>
                 )}
-
-                {/* Divider */}
-                <div className="h-px bg-border/60 my-3" />
-
-                {/* Feature usage */}
-                <div className="flex-1 space-y-1.5 mb-4">
-                  {usages.map((u) => (
-                    <div key={u.label} className="flex items-center gap-2">
-                      <Check className="w-3.5 h-3.5 text-primary flex-shrink-0" />
-                      <span className="text-xs text-muted-foreground">
-                        {u.label} <span className="font-semibold text-foreground">x{u.count}</span>
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Mobile CTA */}
-                <Button
-                  variant={meta.ctaVariant}
-                  className="w-full md:hidden rounded-xl h-10 text-sm font-semibold"
-                  disabled={loading}
-                  onClick={(e) => { e.stopPropagation(); handleRecharge(tier.id); }}
-                >
-                  {loading && selectedTier === tier.id ? (
-                    <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
-                  ) : (
-                    <Zap className="w-4 h-4 mr-1.5" />
-                  )}
-                  {loading && selectedTier === tier.id ? "创建中..." : "立即充值"}
-                </Button>
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* Desktop Payment Bar */}
+      {/* Payment Action */}
       <div
-        className="hidden md:flex items-center justify-between glass-card rounded-2xl px-6 py-4 mb-6 opacity-0 animate-fade-in"
-        style={{ animationDelay: "550ms" }}
+        className="glass-card rounded-2xl p-4 md:p-6 mb-6 opacity-0 animate-fade-in"
+        style={{ animationDelay: "450ms" }}
       >
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-[#1677FF] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-            支
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-[#1677FF] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+              支
+            </div>
+            <div>
+              <p className="text-sm font-medium text-foreground">支付宝支付</p>
+              <p className="text-xs text-muted-foreground">安全快捷</p>
+            </div>
           </div>
-          <div>
-            <p className="text-sm font-medium text-foreground">支付宝支付</p>
-            <p className="text-xs text-muted-foreground">安全快捷</p>
-          </div>
-        </div>
-        {selectedTierData && (
-          <div className="flex items-center gap-6">
+          {selectedTierData && (
             <div className="text-right">
-              <p className="text-2xl font-extrabold text-foreground">¥{selectedTierData.amount}</p>
+              <p className="text-xl font-extrabold text-foreground">¥{selectedTierData.amount}</p>
               <p className="text-xs text-muted-foreground">
                 共 <span className="text-primary font-semibold">{selectedTierData.pointsTotal}</span> 积分
               </p>
             </div>
-            <Button
-              className="min-w-[140px] h-12 text-base font-semibold rounded-xl"
-              disabled={loading}
-              onClick={() => handleRecharge()}
-            >
-              {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin mr-2" />
-              ) : (
-                <Zap className="w-5 h-5 mr-2" />
-              )}
-              {loading ? "创建订单..." : "立即充值"}
-            </Button>
-          </div>
-        )}
+          )}
+        </div>
+        <Button
+          className="w-full h-12 text-base font-semibold rounded-xl"
+          disabled={loading}
+          onClick={() => handleRecharge()}
+        >
+          {loading ? (
+            <Loader2 className="w-5 h-5 animate-spin mr-2" />
+          ) : (
+            <Zap className="w-5 h-5 mr-2" />
+          )}
+          {loading ? "正在创建订单..." : "立即充值"}
+        </Button>
       </div>
 
       {/* Pricing Guide (collapsible) */}
