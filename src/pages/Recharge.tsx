@@ -67,7 +67,7 @@ const Recharge = () => {
       if (!response.ok) {
         const text = await response.text();
         let msg = "请稍后重试";
-        try { msg = JSON.parse(text).error || msg; } catch {}
+        try { const j = JSON.parse(text); msg = j.error || j.message || msg; } catch {}
         toast({ title: "创建订单失败", description: msg });
         return;
       }
