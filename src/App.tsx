@@ -31,6 +31,7 @@ const GenerativeReport = lazy(() => import("./pages/GenerativeReport"));
 const Recharge = lazy(() => import("./pages/Recharge"));
 const PaymentResult = lazy(() => import("./pages/PaymentResult"));
 const Admin = lazy(() => import("./pages/Admin"));
+const Tutorials = lazy(() => import("./pages/Tutorials"));
 
 const queryClient = new QueryClient();
 
@@ -63,6 +64,7 @@ const App = () => (
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="/recharge" element={<ProtectedRoute><Recharge /></ProtectedRoute>} />
               <Route path="/payment-result" element={<ProtectedRoute><PaymentResult /></ProtectedRoute>} />
+              <Route path="/tutorials" element={<ProtectedRoute><Tutorials /></ProtectedRoute>} />
               <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>

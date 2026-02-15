@@ -1,4 +1,4 @@
-import { Bell, HelpCircle, User, LogOut, Sparkles, Coins, Shield } from "lucide-react";
+import { Bell, BookOpen, User, LogOut, Sparkles, Coins, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCredits } from "@/contexts/CreditsContext";
@@ -56,10 +56,20 @@ export const Header = () => {
 
       {/* 右侧：操作按钮 */}
       <div className="flex items-center gap-1 md:gap-2">
-        {/* 帮助按钮 - 移动端隐藏 */}
-        <button className="hidden md:flex p-2.5 rounded-xl hover:bg-accent transition-colors touch-target">
-          <HelpCircle className="w-5 h-5 text-muted-foreground" />
-        </button>
+        {/* 使用教程按钮 */}
+        <Link
+          to="/tutorials"
+          className="flex md:hidden p-2.5 rounded-xl bg-secondary/40 active:bg-secondary/70 transition-colors touch-target"
+        >
+          <BookOpen className="w-5 h-5 text-muted-foreground" />
+        </Link>
+        <Link
+          to="/tutorials"
+          className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl hover:bg-accent transition-colors touch-target text-sm text-muted-foreground hover:text-foreground"
+        >
+          <BookOpen className="w-4 h-4" />
+          使用教程
+        </Link>
 
         {/* 积分余额 */}
         {user && !creditsLoading && (
@@ -165,6 +175,12 @@ export const Header = () => {
               <DropdownMenuItem asChild>
                 <Link to="/settings" className="cursor-pointer">
                   设置
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="md:hidden">
+                <Link to="/tutorials" className="cursor-pointer">
+                  <BookOpen className="w-4 h-4 mr-2" />
+                  使用教程
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
