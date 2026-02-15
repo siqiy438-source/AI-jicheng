@@ -113,7 +113,7 @@ const OutfitRecommend = () => {
       <div className="hidden md:flex items-center gap-4 mb-8 opacity-0 animate-fade-in">
         <div>
           <h1 className="text-xl font-bold text-foreground">穿搭推荐</h1>
-          <p className="text-sm text-muted-foreground">上传一件单品，AI 提供专业穿搭方案</p>
+          <p className="text-sm text-muted-foreground">上传一件单品，20年资深服装搭配师为你提供穿搭方案</p>
         </div>
       </div>
 

@@ -45,7 +45,7 @@ const tools: ToolItem[] = [
   },
   {
     title: "穿搭推荐",
-    description: "上传一件单品，AI 提供专业穿搭方案。",
+    description: "上传一件单品，20年资深服装搭配师为你提供穿搭方案。",
     iconSrc: "/icons/fashion-outfit-custom.webp",
     to: "/outfit-recommend",
   },
