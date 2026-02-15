@@ -254,6 +254,29 @@ const OutfitRecommend = () => {
             </div>
           </div>
 
+          {/* 商品档案 */}
+          {result.productProfile && (
+            <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5">
+              <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                <Tag className="w-4 h-4 text-primary" /> 商品档案
+              </h3>
+              <div className="space-y-2 text-sm">
+                <p><span className="text-muted-foreground mr-2">风格标签</span><span className="text-foreground">{result.productProfile.styleTags}</span></p>
+                <p><span className="text-muted-foreground mr-2">陈列区域</span><span className="text-foreground">{result.productProfile.displayArea}</span></p>
+                <p><span className="text-muted-foreground mr-2">目标客群</span><span className="text-foreground">{result.productProfile.targetCustomer}</span></p>
+                <p><span className="text-muted-foreground mr-2">体型适配</span><span className="text-foreground">{result.productProfile.bodyFit}</span></p>
+                <div className="mt-2 p-2.5 rounded-lg bg-muted/30">
+                  <p className="text-xs font-medium text-foreground mb-1 flex items-center gap-1.5"><Palette className="w-3.5 h-3.5 text-primary" /> 搭配色建议</p>
+                  <div className="space-y-1 text-xs">
+                    <p><span className="text-green-600 mr-1.5">安全牌</span><span className="text-muted-foreground">{result.productProfile.colorMatch.safe}</span></p>
+                    <p><span className="text-amber-600 mr-1.5">进阶牌</span><span className="text-muted-foreground">{result.productProfile.colorMatch.advanced}</span></p>
+                    <p><span className="text-red-500 mr-1.5">避雷</span><span className="text-muted-foreground">{result.productProfile.colorMatch.avoid}</span></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* 搭配方案卡片（最多显示2套） */}
           {result.combinations.slice(0, 2).map((combo, idx) => (
             <div key={idx} className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5">
@@ -322,29 +345,6 @@ const OutfitRecommend = () => {
               </div>
             </div>
           ))}
-
-          {/* 商品档案 */}
-          {result.productProfile && (
-            <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5">
-              <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                <Tag className="w-4 h-4 text-primary" /> 商品档案
-              </h3>
-              <div className="space-y-2 text-sm">
-                <p><span className="text-muted-foreground mr-2">风格标签</span><span className="text-foreground">{result.productProfile.styleTags}</span></p>
-                <p><span className="text-muted-foreground mr-2">陈列区域</span><span className="text-foreground">{result.productProfile.displayArea}</span></p>
-                <p><span className="text-muted-foreground mr-2">目标客群</span><span className="text-foreground">{result.productProfile.targetCustomer}</span></p>
-                <p><span className="text-muted-foreground mr-2">体型适配</span><span className="text-foreground">{result.productProfile.bodyFit}</span></p>
-                <div className="mt-2 p-2.5 rounded-lg bg-muted/30">
-                  <p className="text-xs font-medium text-foreground mb-1 flex items-center gap-1.5"><Palette className="w-3.5 h-3.5 text-primary" /> 搭配色建议</p>
-                  <div className="space-y-1 text-xs">
-                    <p><span className="text-green-600 mr-1.5">安全牌</span><span className="text-muted-foreground">{result.productProfile.colorMatch.safe}</span></p>
-                    <p><span className="text-amber-600 mr-1.5">进阶牌</span><span className="text-muted-foreground">{result.productProfile.colorMatch.advanced}</span></p>
-                    <p><span className="text-red-500 mr-1.5">避雷</span><span className="text-muted-foreground">{result.productProfile.colorMatch.avoid}</span></p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* 客诉应对 */}
           {result.objectionHandling && (
