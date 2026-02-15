@@ -195,6 +195,50 @@ const AGENT_SYSTEM_PROMPTS: Record<string, string> = {
   请直接输出文案内容，不要解释你在做什么。`,
 }
 
+// 穿搭推荐专用系统提示词
+const OUTFIT_RECOMMEND_SYSTEM_PROMPT = `你是顶级时尚搭配师（Celine/The Row 级别），专门帮女装店主做穿搭推荐，提升连带销售。只返回有效 JSON，不要 markdown 和多余文字。所有内容用中文。
+
+## 任务
+用户会上传一件服装单品的图片，并指定场景和季节。你需要：
+1. 先分析这件单品（类型、颜色、风格、面料）
+2. 基于分析结果，推荐 3-5 套完整穿搭方案
+3. 每套方案包含：上装、下装、鞋子、包包、配饰，以及搭配理由
+
+## 规则
+1. 所有推荐必须与用户上传的单品搭配，不能忽略这件单品
+2. 推荐要实用、可购买，不要推荐过于小众或难买到的单品
+3. 颜色搭配要和谐，给出具体颜色而非"浅色""深色"
+4. 每套方案风格要有差异，给店主多种选择
+5. 话术要口语化，像闺蜜推荐一样自然
+6. 如果用户上传的单品本身就是上装，则"上装"栏写"用户上传的单品"，不要重复描述
+
+返回 JSON：
+{
+  "inputAnalysis": {
+    "itemType": "单品类型，如外套/上衣/裤装/裙装",
+    "color": "颜色描述",
+    "style": "风格描述",
+    "material": "面料描述"
+  },
+  "combinations": [
+    {
+      "name": "方案名称，如法式优雅通勤风",
+      "theme": "一句话描述整体风格",
+      "items": [
+        {
+          "category": "上衣/下装/鞋子/包包/配饰",
+          "description": "具体描述，包含颜色、款式、面料",
+          "colorSuggestion": "推荐颜色",
+          "styleTip": "为什么这样搭"
+        }
+      ],
+      "stylingTips": ["搭配小技巧1", "搭配小技巧2"],
+      "overallLook": "整体效果描述，80字以内"
+    }
+  ],
+  "generalTips": ["通用搭配建议1", "通用搭配建议2"]
+}`
+
 function dataUrlToInlineData(dataUrl: string): { mimeType: string; data: string } | null {
   const matches = dataUrl.match(/^data:([^;]+);base64,(.+)$/)
   if (!matches) return null
@@ -228,11 +272,10 @@ serve(async (req) => {
   let creditCost = 0
 
   try {
-    // 获取环境变量中的 API Key
-    const ZENMUX_API_KEY = Deno.env.get('ZENMUX_API_KEY')
-    const ZENMUX_BASE_URL = Deno.env.get('ZENMUX_BASE_URL') || 'https://zenmux.ai/api/v1'
-    // 文案生成使用 Gemini 2.5 Flash
-    const ZENMUX_MODEL = Deno.env.get('ZENMUX_MODEL') || 'google/gemini-2.5-flash'
+    // 获取环境变量中的 API Key（BLTCY 文字 API）
+    const TEXT_API_KEY = Deno.env.get('BLTCY_TEXT_API_KEY')
+    const TEXT_BASE_URL = (Deno.env.get('BLTCY_TEXT_BASE_URL') || 'https://api.bltcy.ai').replace(/\/$/, '')
+    const TEXT_MODEL = Deno.env.get('BLTCY_TEXT_MODEL') || 'claude-sonnet-4-5-20250929'
 
     // 生成式报告独立 API（仅使用报告专用 Key，避免误用图像 Key）
     const REPORT_API_KEY =
@@ -259,6 +302,7 @@ serve(async (req) => {
       ai_copywriting: 20,
       ai_display_standard: 50,
       ai_report_page: 40,
+      ai_outfit_recommend: 20,
     }
 
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
@@ -318,14 +362,14 @@ serve(async (req) => {
         { role: 'user', content: userContent },
       ]
 
-      const identifyResponse = await fetch(`${ZENMUX_BASE_URL}/chat/completions`, {
+      const identifyResponse = await fetch(`${TEXT_BASE_URL}/v1/chat/completions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${ZENMUX_API_KEY}`,
+          'Authorization': `Bearer ${TEXT_API_KEY}`,
         },
         body: JSON.stringify({
-          model: ZENMUX_MODEL,
+          model: TEXT_MODEL,
           messages: identifyMessages,
           temperature: 0.1,
           max_tokens: 200,
@@ -378,14 +422,14 @@ serve(async (req) => {
         { role: 'user', content: userContent },
       ]
 
-      const vmResponse = await fetch(`${ZENMUX_BASE_URL}/chat/completions`, {
+      const vmResponse = await fetch(`${TEXT_BASE_URL}/v1/chat/completions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${ZENMUX_API_KEY}`,
+          'Authorization': `Bearer ${TEXT_API_KEY}`,
         },
         body: JSON.stringify({
-          model: ZENMUX_MODEL,
+          model: TEXT_MODEL,
           messages: vmMessages,
           temperature: 0.3,
           max_tokens: 8000,
@@ -395,11 +439,63 @@ serve(async (req) => {
 
       if (!vmResponse.ok) {
         const errorText = await vmResponse.text()
-        throw new Error(`ZenMux VM Analysis error: ${vmResponse.status} - ${errorText}`)
+        throw new Error(`VM Analysis error: ${vmResponse.status} - ${errorText}`)
       }
 
       const vmData = await vmResponse.json()
       return new Response(JSON.stringify(vmData), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    // ========== 穿搭推荐模式 ==========
+    if (mode === 'outfit-recommend') {
+      if (!userId) {
+        return new Response(JSON.stringify({ error: '请先登录后再使用穿搭推荐功能' }), {
+          status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+      if (!TEXT_API_KEY) {
+        throw new Error('BLTCY_TEXT_API_KEY not configured for outfit-recommend mode')
+      }
+
+      const userContent: Array<{type: string; text?: string; image_url?: {url: string}}> = []
+      userContent.push({ type: 'text', text: prompt })
+      if (images && Array.isArray(images)) {
+        for (const imageBase64 of images) {
+          if (typeof imageBase64 === 'string' && imageBase64.startsWith('data:')) {
+            userContent.push({ type: 'image_url', image_url: { url: imageBase64 } })
+          }
+        }
+      }
+
+      const outfitMessages = [
+        { role: 'system', content: OUTFIT_RECOMMEND_SYSTEM_PROMPT },
+        { role: 'user', content: userContent },
+      ]
+
+      const outfitResponse = await fetch(`${TEXT_BASE_URL}/v1/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${TEXT_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-5-20250929',
+          messages: outfitMessages,
+          temperature: 0.4,
+          max_tokens: 6000,
+          stream: false,
+        }),
+      })
+
+      if (!outfitResponse.ok) {
+        const errorText = await outfitResponse.text()
+        throw new Error(`Outfit Recommend error: ${outfitResponse.status} - ${errorText}`)
+      }
+
+      const outfitData = await outfitResponse.json()
+      return new Response(JSON.stringify(outfitData), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
@@ -529,9 +625,9 @@ serve(async (req) => {
       })
     }
 
-    // 其它模式仍使用 ZenMux
-    if (!ZENMUX_API_KEY) {
-      throw new Error('ZENMUX_API_KEY not configured')
+    // 其它模式使用 BLTCY Text API
+    if (!TEXT_API_KEY) {
+      throw new Error('BLTCY_TEXT_API_KEY not configured')
     }
 
     // ========== 原有文案生成模式 ==========
@@ -544,15 +640,15 @@ serve(async (req) => {
       { role: 'user', content: prompt },
     ]
 
-    // 调用 ZenMux API
-    const response = await fetch(`${ZENMUX_BASE_URL}/chat/completions`, {
+    // 调用 BLTCY Text API
+    const response = await fetch(`${TEXT_BASE_URL}/v1/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${ZENMUX_API_KEY}`,
+        'Authorization': `Bearer ${TEXT_API_KEY}`,
       },
       body: JSON.stringify({
-        model: ZENMUX_MODEL,
+        model: TEXT_MODEL,
         messages,
         temperature: 0.7,
         max_tokens: 2000,
@@ -562,7 +658,7 @@ serve(async (req) => {
 
     if (!response.ok) {
       const error = await response.text()
-      throw new Error(`ZenMux API error: ${response.status} - ${error}`)
+      throw new Error(`Text API error: ${response.status} - ${error}`)
     }
 
     // 流式响应

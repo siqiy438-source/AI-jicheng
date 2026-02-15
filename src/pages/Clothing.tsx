@@ -43,6 +43,12 @@ const tools: ToolItem[] = [
     iconSrc: "/icons/fashion-outfit-custom.webp",
     to: "/fashion-detail-focus",
   },
+  {
+    title: "穿搭推荐",
+    description: "上传一件单品，AI 推荐 3-5 套完整穿搭方案。",
+    iconSrc: "/icons/fashion-outfit-custom.webp",
+    to: "/outfit-recommend",
+  },
 ];
 
 const Clothing = () => {

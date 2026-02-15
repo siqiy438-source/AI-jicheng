@@ -32,6 +32,7 @@ const Recharge = lazy(() => import("./pages/Recharge"));
 const PaymentResult = lazy(() => import("./pages/PaymentResult"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Tutorials = lazy(() => import("./pages/Tutorials"));
+const OutfitRecommend = lazy(() => import("./pages/OutfitRecommend"));
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,7 @@ const App = () => (
               <Route path="/fashion-outfit" element={<ProtectedRoute><FashionOutfit /></ProtectedRoute>} />
               <Route path="/fashion-model-outfit" element={<ProtectedRoute><FashionModelOutfit /></ProtectedRoute>} />
               <Route path="/fashion-detail-focus" element={<ProtectedRoute><FashionDetailFocus /></ProtectedRoute>} />
+              <Route path="/outfit-recommend" element={<ProtectedRoute><OutfitRecommend /></ProtectedRoute>} />
               <Route path="/creative-tools" element={<ProtectedRoute><CreativeTools /></ProtectedRoute>} />
               <Route path="/generative-report" element={<ProtectedRoute><GenerativeReport /></ProtectedRoute>} />
               <Route path="/my-works" element={<ProtectedRoute><MyWorks /></ProtectedRoute>} />
