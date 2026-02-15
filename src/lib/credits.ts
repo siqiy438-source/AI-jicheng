@@ -25,7 +25,7 @@ export const FEATURE_PRICES: Record<string, { name: string; cost: number }> = {
   ai_ppt_outline: { name: 'PPT大纲', cost: 30 },
   ai_ppt_slide: { name: 'PPT单页', cost: 50 },
   ai_report_page: { name: '报告(每页)', cost: 40 },
-  ai_outfit_recommend: { name: '穿搭推荐', cost: 20 },
+  ai_outfit_recommend: { name: '专业搭配师', cost: 20 },
 }
 
 export async function getBalance() {

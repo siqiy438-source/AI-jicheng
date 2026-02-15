@@ -1,5 +1,5 @@
 /**
- * 穿搭推荐服务
+ * 专业搭配师服务
  * 上传单品图片 → AI 提供专业穿搭方案
  */
 
@@ -94,7 +94,7 @@ export async function getOutfitRecommendation(
   };
 
   let token = await getAccessToken();
-  if (!token) throw new Error('请先登录后再使用穿搭推荐功能');
+  if (!token) throw new Error('请先登录后再使用专业搭配师功能');
 
   let response = await doFetch(token);
 

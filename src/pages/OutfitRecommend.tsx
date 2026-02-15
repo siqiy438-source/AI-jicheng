@@ -79,11 +79,11 @@ const OutfitRecommend = () => {
       // 保存到历史记录
       const title = data.inputAnalysis.itemType
         ? `穿搭：${data.inputAnalysis.itemType}`
-        : "穿搭推荐";
+        : "专业搭配师";
       void saveWork({
         title,
         type: "outfit-recommend",
-        tool: "穿搭推荐",
+        tool: "专业搭配师",
         thumbnailDataUrl: image,
         content: data as unknown as Record<string, unknown>,
       });
@@ -112,7 +112,7 @@ const OutfitRecommend = () => {
       {/* 页面标题 */}
       <div className="hidden md:flex items-center gap-4 mb-8 opacity-0 animate-fade-in">
         <div>
-          <h1 className="text-xl font-bold text-foreground">穿搭推荐</h1>
+          <h1 className="text-xl font-bold text-foreground">专业搭配师</h1>
           <p className="text-sm text-muted-foreground">上传一件单品，20年资深服装搭配师为你提供穿搭方案</p>
         </div>
       </div>
