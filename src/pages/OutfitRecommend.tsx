@@ -11,14 +11,6 @@ import {
   ShoppingBag,
   Gem,
   Lightbulb,
-  Sun,
-  Snowflake,
-  Leaf,
-  Flower2,
-  Briefcase,
-  Heart,
-  Coffee,
-  GraduationCap,
   Upload,
   MessageCircle,
   Tag,
@@ -28,35 +20,17 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { compressImage } from "@/lib/image-utils";
 import {
   getOutfitRecommendation,
-  type OutfitScene,
-  type OutfitSeason,
   type OutfitRecommendResult,
-  SCENE_LABELS,
-  SEASON_LABELS,
 } from "@/lib/outfit-recommend";
+import { saveWork } from "@/lib/repositories/works";
 import { useCreditCheck } from "@/hooks/use-credit-check";
 import { InsufficientBalanceDialog } from "@/components/InsufficientBalanceDialog";
 import { useToast } from "@/hooks/use-toast";
 
 type Phase = "upload" | "analyzing" | "result";
-
-const sceneOptions: { id: OutfitScene; label: string; icon: typeof Briefcase }[] = [
-  { id: "commute", label: "通勤", icon: Briefcase },
-  { id: "date", label: "约会", icon: Heart },
-  { id: "casual", label: "休闲", icon: Coffee },
-  { id: "formal", label: "正式", icon: GraduationCap },
-];
-
-const seasonOptions: { id: OutfitSeason; label: string; icon: typeof Sun }[] = [
-  { id: "spring", label: "春", icon: Flower2 },
-  { id: "summer", label: "夏", icon: Sun },
-  { id: "autumn", label: "秋", icon: Leaf },
-  { id: "winter", label: "冬", icon: Snowflake },
-];
 
 const categoryIcons: Record<string, typeof Shirt> = {
   "内搭": Shirt,
@@ -76,8 +50,6 @@ const OutfitRecommend = () => {
 
   const [phase, setPhase] = useState<Phase>("upload");
   const [image, setImage] = useState<string | null>(null);
-  const [selectedScene, setSelectedScene] = useState<OutfitScene>("commute");
-  const [selectedSeason, setSelectedSeason] = useState<OutfitSeason>("spring");
   const [result, setResult] = useState<OutfitRecommendResult | null>(null);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -99,10 +71,22 @@ const OutfitRecommend = () => {
 
     setPhase("analyzing");
     try {
-      const data = await getOutfitRecommendation(image, selectedScene, selectedSeason);
+      const data = await getOutfitRecommendation(image);
       setResult(data);
       setPhase("result");
       refreshBalance();
+
+      // 保存到历史记录
+      const title = data.inputAnalysis.itemType
+        ? `穿搭：${data.inputAnalysis.itemType}`
+        : "穿搭推荐";
+      void saveWork({
+        title,
+        type: "outfit-recommend",
+        tool: "穿搭推荐",
+        thumbnailDataUrl: image,
+        content: data as unknown as Record<string, unknown>,
+      });
     } catch (error) {
       toast({ title: "推荐失败", description: error instanceof Error ? error.message : "请重试", variant: "destructive" });
       setPhase("upload");
@@ -166,50 +150,6 @@ const OutfitRecommend = () => {
             )}
           </div>
 
-          {/* 场景选择 */}
-          <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5">
-            <h3 className="text-sm font-semibold text-foreground mb-3">选择场景</h3>
-            <div className="grid grid-cols-4 gap-2">
-              {sceneOptions.map((opt) => (
-                <button
-                  key={opt.id}
-                  onClick={() => setSelectedScene(opt.id)}
-                  className={cn(
-                    "flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all",
-                    selectedScene === opt.id
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border/50 text-muted-foreground hover:border-primary/30"
-                  )}
-                >
-                  <opt.icon className="w-5 h-5" />
-                  <span className="text-xs font-medium">{opt.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* 季节选择 */}
-          <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5">
-            <h3 className="text-sm font-semibold text-foreground mb-3">选择季节</h3>
-            <div className="grid grid-cols-4 gap-2">
-              {seasonOptions.map((opt) => (
-                <button
-                  key={opt.id}
-                  onClick={() => setSelectedSeason(opt.id)}
-                  className={cn(
-                    "flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all",
-                    selectedSeason === opt.id
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border/50 text-muted-foreground hover:border-primary/30"
-                  )}
-                >
-                  <opt.icon className="w-5 h-5" />
-                  <span className="text-xs font-medium">{opt.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* 生成按钮 */}
           <Button
             onClick={handleGenerate}
@@ -234,21 +174,21 @@ const OutfitRecommend = () => {
 
           {/* 单品分析卡片 */}
           <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5">
-            <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-              <Shirt className="w-4 h-4 text-primary" /> 单品分析
+            <h3 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
+              <Shirt className="w-4 h-4" /> 单品分析
             </h3>
             <div className="flex gap-4">
               {image && <img src={image} alt="单品" className="w-20 h-20 md:w-24 md:h-24 object-cover rounded-lg flex-shrink-0" />}
               <div className="space-y-1.5 text-sm">
-                <p><span className="text-muted-foreground mr-2">类型</span><span className="text-foreground font-medium">{result.inputAnalysis.itemType}</span></p>
-                <p><span className="text-muted-foreground mr-2">颜色</span><span className="text-foreground">{result.inputAnalysis.color}</span></p>
-                <p><span className="text-muted-foreground mr-2">风格</span><span className="text-foreground">{result.inputAnalysis.style}</span></p>
-                <p><span className="text-muted-foreground mr-2">面料</span><span className="text-foreground">{result.inputAnalysis.material}</span></p>
+                <p><span className="text-primary font-medium mr-2">类型</span><span className="text-foreground font-medium">{result.inputAnalysis.itemType}</span></p>
+                <p><span className="text-primary font-medium mr-2">颜色</span><span className="text-foreground">{result.inputAnalysis.color}</span></p>
+                <p><span className="text-primary font-medium mr-2">风格</span><span className="text-foreground">{result.inputAnalysis.style}</span></p>
+                <p><span className="text-primary font-medium mr-2">面料</span><span className="text-foreground">{result.inputAnalysis.material}</span></p>
                 {result.inputAnalysis.silhouette && (
-                  <p><span className="text-muted-foreground mr-2">版型</span><span className="text-foreground">{result.inputAnalysis.silhouette}</span></p>
+                  <p><span className="text-primary font-medium mr-2">版型</span><span className="text-foreground">{result.inputAnalysis.silhouette}</span></p>
                 )}
                 {result.inputAnalysis.bestFor && (
-                  <p><span className="text-muted-foreground mr-2">适合</span><span className="text-foreground">{result.inputAnalysis.bestFor}</span></p>
+                  <p><span className="text-primary font-medium mr-2">适合</span><span className="text-foreground">{result.inputAnalysis.bestFor}</span></p>
                 )}
               </div>
             </div>
@@ -257,10 +197,10 @@ const OutfitRecommend = () => {
           {/* 商品档案 */}
           {result.productProfile && (
             <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5">
-              <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                <Tag className="w-4 h-4 text-primary" /> 商品档案
+              <h3 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
+                <Tag className="w-4 h-4" /> 商品档案
               </h3>
-              <div className="space-y-2 text-sm">
+              <div className="space-y-2.5 text-sm">
                 <p><span className="text-muted-foreground mr-2">风格标签</span><span className="text-foreground">{result.productProfile.styleTags}</span></p>
                 <p><span className="text-muted-foreground mr-2">陈列区域</span><span className="text-foreground">{result.productProfile.displayArea}</span></p>
                 <p><span className="text-muted-foreground mr-2">目标客群</span><span className="text-foreground">{result.productProfile.targetCustomer}</span></p>

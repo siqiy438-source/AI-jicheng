@@ -7,22 +7,6 @@ import { supabaseUrl, supabaseAnonKey, getAccessToken, forceRefreshToken } from 
 
 // ---- 类型定义 ----
 
-export type OutfitScene = 'commute' | 'date' | 'casual' | 'formal';
-export type OutfitSeason = 'spring' | 'summer' | 'autumn' | 'winter';
-
-export const SCENE_LABELS: Record<OutfitScene, string> = {
-  commute: '通勤',
-  date: '约会',
-  casual: '休闲',
-  formal: '正式',
-};
-
-export const SEASON_LABELS: Record<OutfitSeason, string> = {
-  spring: '春',
-  summer: '夏',
-  autumn: '秋',
-  winter: '冬',
-};
 
 export interface OutfitItem {
   category: string;
@@ -81,12 +65,10 @@ export interface OutfitRecommendResult {
 
 export async function getOutfitRecommendation(
   image: string,
-  scene: OutfitScene,
-  season: OutfitSeason,
 ): Promise<OutfitRecommendResult> {
   const url = `${supabaseUrl}/functions/v1/ai-chat`;
 
-  const prompt = `请分析这件衣服，并推荐适合「${SCENE_LABELS[scene]}」场景、「${SEASON_LABELS[season]}季」的 2 套穿搭方案，同时提供商品档案、客诉应对话术和陈列指导。`;
+  const prompt = `请分析这件衣服，并推荐 2 套专业穿搭方案，同时提供商品档案、客诉应对话术和陈列指导。`;
 
   const doFetch = async (token: string) => {
     const controller = new AbortController();
