@@ -555,7 +555,7 @@ const AIDrawing = () => {
             onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={conversationHistory.length > 0 ? "描述你想修改的地方，如：把背景换成蓝色..." : "输入你想要可视化的内容..."}
-            rows={2}
+            rows={4}
             enterKeyHint="send"
             className="w-full bg-transparent text-foreground placeholder:text-muted-foreground resize-none focus:outline-none text-base leading-relaxed"
           />

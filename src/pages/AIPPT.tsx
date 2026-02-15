@@ -418,7 +418,7 @@ const AIPPT = () => {
             value={inputContent}
             onChange={(e) => setInputContent(e.target.value)}
             placeholder={PLACEHOLDERS[generationMode]}
-            rows={generationMode === "sentence" ? 3 : 6}
+            rows={generationMode === "sentence" ? 4 : 8}
             className="w-full bg-transparent text-foreground placeholder:text-muted-foreground resize-none focus:outline-none text-base leading-relaxed"
           />
           <div className="flex justify-end mt-1">

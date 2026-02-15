@@ -310,7 +310,7 @@ cropped garments, partial view, flat lay, frontal view, low quality, blurry, dis
           value={additionalNotes}
           onChange={(event) => setAdditionalNotes(event.target.value)}
           placeholder="补充说明（可选）：如“更偏轻熟通勤”“配色要低饱和”"
-          rows={2}
+          rows={3}
           className="w-full bg-secondary/30 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-1 focus:ring-primary/30 mb-3"
         />
 

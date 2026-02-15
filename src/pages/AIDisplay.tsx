@@ -392,7 +392,7 @@ const AIDisplay = () => {
                 value={additionalNotes}
                 onChange={(e) => setAdditionalNotes(e.target.value)}
                 placeholder="补充说明（可选）：如「主推红色大衣放C位」「按颜色深浅排列」..."
-                rows={2}
+                rows={3}
                 className="w-full bg-secondary/30 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-1 focus:ring-primary/30 mb-3"
               />
 

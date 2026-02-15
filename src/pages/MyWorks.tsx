@@ -15,10 +15,11 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { deleteWork, listWorks, type WorkListItem } from "@/lib/repositories/works";
+import { deleteWork, listWorks, WORKS_PAGE_SIZE, type WorkListItem } from "@/lib/repositories/works";
 import { downloadGeneratedImage } from "@/lib/image-utils";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { ProgressiveImage } from "@/components/ProgressiveImage";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -65,13 +66,16 @@ const MyWorks = () => {
   const [selectedWork, setSelectedWork] = useState<string | null>(null);
   const [works, setWorks] = useState<WorkListItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const refreshWorks = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoading(true);
-      const data = await listWorks();
-      setWorks(data);
+      const result = await listWorks(0);
+      setWorks(result.items);
+      setHasMore(result.hasMore);
     } catch (error) {
       console.error("加载作品失败", error);
       if (!silent) toast.error("加载作品失败");
@@ -79,6 +83,20 @@ const MyWorks = () => {
       if (!silent) setLoading(false);
     }
   }, []);
+
+  const loadMore = useCallback(async () => {
+    try {
+      setLoadingMore(true);
+      const result = await listWorks(works.length);
+      setWorks((prev) => [...prev, ...result.items]);
+      setHasMore(result.hasMore);
+    } catch (error) {
+      console.error("加载更多失败", error);
+      toast.error("加载更多失败");
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [works.length]);
 
   useEffect(() => {
     if (!user?.id) {
@@ -254,7 +272,17 @@ const MyWorks = () => {
 
       {/* 作品列表 */}
       {loading ? (
-        <div className="text-center py-12 text-muted-foreground">加载中...</div>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="glass-card rounded-xl overflow-hidden">
+              <div className="aspect-[4/3] bg-secondary/30 animate-pulse" />
+              <div className="p-3 md:p-4 space-y-2">
+                <div className="h-4 w-2/3 bg-secondary/40 rounded animate-pulse" />
+                <div className="h-3 w-1/2 bg-secondary/30 rounded animate-pulse" />
+              </div>
+            </div>
+          ))}
+        </div>
       ) : filteredWorks.length > 0 ? (
         viewMode === "grid" ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
@@ -270,12 +298,10 @@ const MyWorks = () => {
                 {/* 缩略图 */}
                 <div className="aspect-[4/3] bg-secondary/30 relative overflow-hidden">
                   {work.thumbnail ? (
-                    <img
+                    <ProgressiveImage
                       src={work.thumbnail}
                       alt={work.title}
-                      loading="lazy"
-                      decoding="async"
-                      fetchPriority="low"
+                      containerClassName="w-full h-full"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
@@ -376,12 +402,10 @@ const MyWorks = () => {
                 {/* 缩略图 */}
                 <div className="w-14 h-14 md:w-16 md:h-16 rounded-lg bg-secondary/30 overflow-hidden flex-shrink-0">
                   {work.thumbnail ? (
-                    <img
+                    <ProgressiveImage
                       src={work.thumbnail}
                       alt={work.title}
-                      loading="lazy"
-                      decoding="async"
-                      fetchPriority="low"
+                      containerClassName="w-full h-full"
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -475,6 +499,19 @@ const MyWorks = () => {
           </div>
           <p className="text-muted-foreground mb-2">暂无作品</p>
           <p className="text-sm text-muted-foreground/70">开始创作你的第一个作品吧</p>
+        </div>
+      )}
+
+      {/* 加载更多 */}
+      {hasMore && !loading && filteredWorks.length > 0 && (
+        <div className="text-center py-6">
+          <button
+            onClick={loadMore}
+            disabled={loadingMore}
+            className="px-6 py-2.5 rounded-full bg-secondary/70 text-sm text-muted-foreground hover:bg-secondary transition-colors disabled:opacity-50"
+          >
+            {loadingMore ? "加载中..." : "加载更多"}
+          </button>
         </div>
       )}
       <AlertDialog open={!!deleteConfirmId} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>

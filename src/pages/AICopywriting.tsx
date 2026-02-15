@@ -438,7 +438,7 @@ const AICopywriting = () => {
           onChange={(e) => setPrompt(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="描述你需要的文案内容..."
-          rows={3}
+          rows={4}
           enterKeyHint="send"
           className="w-full bg-transparent text-foreground placeholder:text-muted-foreground resize-none focus:outline-none text-base leading-relaxed"
         />

@@ -1,8 +1,13 @@
 import { createRoot } from "react-dom/client";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import App from "./App.tsx";
 import "./index.css";
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <ErrorBoundary>
+    <App />
+  </ErrorBoundary>
+);
 
 // ==================== PWA Service Worker 注册 ====================
 // 延迟注册，避免抢占首屏渲染的主线程资源

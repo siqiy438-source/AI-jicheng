@@ -106,20 +106,22 @@ const resolveImage = async (userId: string, imageInput: string): Promise<{ bucke
 
 // ==================== 列表 ====================
 
-export const listWorks = async (): Promise<WorkListItem[]> => {
+export const WORKS_PAGE_SIZE = 20;
+
+export const listWorks = async (offset = 0): Promise<{ items: WorkListItem[]; hasMore: boolean }> => {
   const userId = await getCurrentUserId();
-  if (!userId) return [];
+  if (!userId) return { items: [], hasMore: false };
 
   const { data, error } = await supabase
     .from('works')
     .select('id, title, type, tool, content_json, thumbnail_url, created_at, storage_bucket, storage_path')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
-    .limit(30);
+    .range(offset, offset + WORKS_PAGE_SIZE); // 多取 1 条用于判断 hasMore
 
   if (error) throw error;
 
-  return (data ?? []).map((row) => {
+  const items = (data ?? []).map((row) => {
     let thumbnail: string | null = null;
 
     // 优先用 storage_bucket + storage_path 生成公开 URL
@@ -146,6 +148,9 @@ export const listWorks = async (): Promise<WorkListItem[]> => {
       createdAt: formatCreatedAt(row.created_at),
     };
   });
+
+  const hasMore = items.length > WORKS_PAGE_SIZE;
+  return { items: hasMore ? items.slice(0, WORKS_PAGE_SIZE) : items, hasMore };
 };
 
 // ==================== 保存 ====================
