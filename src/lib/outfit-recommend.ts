@@ -1,6 +1,6 @@
 /**
  * 穿搭推荐服务
- * 上传单品图片 → AI 推荐 3-5 套完整搭配方案
+ * 上传单品图片 → AI 提供专业穿搭方案
  */
 
 import { supabaseUrl, supabaseAnonKey, getAccessToken, forceRefreshToken } from './supabase';
@@ -34,9 +34,12 @@ export interface OutfitItem {
 export interface OutfitCombination {
   name: string;
   theme: string;
+  targetBody?: string;
   items: OutfitItem[];
+  matchingLogic?: string;
   stylingTips: string[];
   overallLook: string;
+  salesTalk?: string;
 }
 
 export interface OutfitRecommendResult {
@@ -45,8 +48,32 @@ export interface OutfitRecommendResult {
     color: string;
     style: string;
     material: string;
+    silhouette?: string;
+    bestFor?: string;
   };
   combinations: OutfitCombination[];
+  productProfile?: {
+    styleTags: string;
+    displayArea: string;
+    targetCustomer: string;
+    bodyFit: string;
+    colorMatch: {
+      safe: string;
+      advanced: string;
+      avoid: string;
+    };
+  };
+  objectionHandling?: {
+    looksFat: string;
+    tooExpensive: string;
+    notSuitable: string;
+  };
+  displayGuide?: {
+    zone: string;
+    vpDisplay: string;
+    colorArrangement: string;
+    tagTip: string;
+  };
   generalTips: string[];
 }
 
@@ -59,7 +86,7 @@ export async function getOutfitRecommendation(
 ): Promise<OutfitRecommendResult> {
   const url = `${supabaseUrl}/functions/v1/ai-chat`;
 
-  const prompt = `请分析这件衣服，并推荐适合「${SCENE_LABELS[scene]}」场景、「${SEASON_LABELS[season]}季」穿搭的 3-5 套完整搭配方案。每套方案需包含上装、下装、鞋子、包包、配饰。`;
+  const prompt = `请分析这件衣服，并推荐适合「${SCENE_LABELS[scene]}」场景、「${SEASON_LABELS[season]}季」的 2 套穿搭方案，同时提供商品档案、客诉应对话术和陈列指导。`;
 
   const doFetch = async (token: string) => {
     const controller = new AbortController();

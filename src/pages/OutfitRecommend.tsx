@@ -20,6 +20,11 @@ import {
   Coffee,
   GraduationCap,
   Upload,
+  MessageCircle,
+  Tag,
+  ShieldAlert,
+  LayoutGrid,
+  Palette,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -54,6 +59,8 @@ const seasonOptions: { id: OutfitSeason; label: string; icon: typeof Sun }[] = [
 ];
 
 const categoryIcons: Record<string, typeof Shirt> = {
+  "内搭": Shirt,
+  "外套": Shirt,
   "上衣": Shirt,
   "下装": Shirt,
   "鞋子": Footprints,
@@ -122,7 +129,7 @@ const OutfitRecommend = () => {
       <div className="hidden md:flex items-center gap-4 mb-8 opacity-0 animate-fade-in">
         <div>
           <h1 className="text-xl font-bold text-foreground">穿搭推荐</h1>
-          <p className="text-sm text-muted-foreground">上传一件单品，AI 推荐 3-5 套完整穿搭方案</p>
+          <p className="text-sm text-muted-foreground">上传一件单品，AI 提供专业穿搭方案</p>
         </div>
       </div>
 
@@ -232,25 +239,30 @@ const OutfitRecommend = () => {
             </h3>
             <div className="flex gap-4">
               {image && <img src={image} alt="单品" className="w-20 h-20 md:w-24 md:h-24 object-cover rounded-lg flex-shrink-0" />}
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                <span className="text-muted-foreground">类型</span>
-                <span className="text-foreground">{result.inputAnalysis.itemType}</span>
-                <span className="text-muted-foreground">颜色</span>
-                <span className="text-foreground">{result.inputAnalysis.color}</span>
-                <span className="text-muted-foreground">风格</span>
-                <span className="text-foreground">{result.inputAnalysis.style}</span>
-                <span className="text-muted-foreground">面料</span>
-                <span className="text-foreground">{result.inputAnalysis.material}</span>
+              <div className="space-y-1.5 text-sm">
+                <p><span className="text-muted-foreground mr-2">类型</span><span className="text-foreground font-medium">{result.inputAnalysis.itemType}</span></p>
+                <p><span className="text-muted-foreground mr-2">颜色</span><span className="text-foreground">{result.inputAnalysis.color}</span></p>
+                <p><span className="text-muted-foreground mr-2">风格</span><span className="text-foreground">{result.inputAnalysis.style}</span></p>
+                <p><span className="text-muted-foreground mr-2">面料</span><span className="text-foreground">{result.inputAnalysis.material}</span></p>
+                {result.inputAnalysis.silhouette && (
+                  <p><span className="text-muted-foreground mr-2">版型</span><span className="text-foreground">{result.inputAnalysis.silhouette}</span></p>
+                )}
+                {result.inputAnalysis.bestFor && (
+                  <p><span className="text-muted-foreground mr-2">适合</span><span className="text-foreground">{result.inputAnalysis.bestFor}</span></p>
+                )}
               </div>
             </div>
           </div>
 
-          {/* 搭配方案卡片 */}
-          {result.combinations.map((combo, idx) => (
+          {/* 搭配方案卡片（最多显示2套） */}
+          {result.combinations.slice(0, 2).map((combo, idx) => (
             <div key={idx} className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5">
               <div className="mb-3">
                 <h3 className="text-base font-semibold text-foreground">{combo.name}</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">{combo.theme}</p>
+                {combo.targetBody && (
+                  <span className="inline-block mt-1.5 text-[11px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">{combo.targetBody}</span>
+                )}
               </div>
 
               {/* 单品列表 */}
@@ -275,6 +287,13 @@ const OutfitRecommend = () => {
                 })}
               </div>
 
+              {/* 搭配逻辑 */}
+              {combo.matchingLogic && (
+                <div className="mb-3 p-2.5 rounded-lg bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/30">
+                  <p className="text-xs font-medium text-amber-700 dark:text-amber-400">{combo.matchingLogic}</p>
+                </div>
+              )}
+
               {/* 搭配技巧 */}
               {combo.stylingTips.length > 0 && (
                 <div className="mb-3">
@@ -290,9 +309,78 @@ const OutfitRecommend = () => {
               )}
 
               {/* 整体效果 */}
-              <p className="text-xs text-muted-foreground italic border-t border-border/30 pt-3">{combo.overallLook}</p>
+              <div className="border-t border-border/30 pt-3 space-y-2">
+                <p className="text-sm text-foreground leading-relaxed">{combo.overallLook}</p>
+                {combo.salesTalk && (
+                  <div className="bg-primary/5 rounded-lg p-3">
+                    <h4 className="text-xs font-semibold text-primary mb-1 flex items-center gap-1.5">
+                      <MessageCircle className="w-3.5 h-3.5" /> 推荐话术
+                    </h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{combo.salesTalk}</p>
+                  </div>
+                )}
+              </div>
             </div>
           ))}
+
+          {/* 商品档案 */}
+          {result.productProfile && (
+            <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5">
+              <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                <Tag className="w-4 h-4 text-primary" /> 商品档案
+              </h3>
+              <div className="space-y-2 text-sm">
+                <p><span className="text-muted-foreground mr-2">风格标签</span><span className="text-foreground">{result.productProfile.styleTags}</span></p>
+                <p><span className="text-muted-foreground mr-2">陈列区域</span><span className="text-foreground">{result.productProfile.displayArea}</span></p>
+                <p><span className="text-muted-foreground mr-2">目标客群</span><span className="text-foreground">{result.productProfile.targetCustomer}</span></p>
+                <p><span className="text-muted-foreground mr-2">体型适配</span><span className="text-foreground">{result.productProfile.bodyFit}</span></p>
+                <div className="mt-2 p-2.5 rounded-lg bg-muted/30">
+                  <p className="text-xs font-medium text-foreground mb-1 flex items-center gap-1.5"><Palette className="w-3.5 h-3.5 text-primary" /> 搭配色建议</p>
+                  <div className="space-y-1 text-xs">
+                    <p><span className="text-green-600 mr-1.5">安全牌</span><span className="text-muted-foreground">{result.productProfile.colorMatch.safe}</span></p>
+                    <p><span className="text-amber-600 mr-1.5">进阶牌</span><span className="text-muted-foreground">{result.productProfile.colorMatch.advanced}</span></p>
+                    <p><span className="text-red-500 mr-1.5">避雷</span><span className="text-muted-foreground">{result.productProfile.colorMatch.avoid}</span></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 客诉应对 */}
+          {result.objectionHandling && (
+            <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5">
+              <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                <ShieldAlert className="w-4 h-4 text-primary" /> 客诉应对话术
+              </h3>
+              <div className="space-y-2.5">
+                {[
+                  { label: "客人说「显胖」", text: result.objectionHandling.looksFat },
+                  { label: "客人说「太贵」", text: result.objectionHandling.tooExpensive },
+                  { label: "客人说「不适合」", text: result.objectionHandling.notSuitable },
+                ].map((item, i) => (
+                  <div key={i} className="p-2.5 rounded-lg bg-muted/30">
+                    <p className="text-xs font-medium text-foreground mb-1">{item.label}</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 陈列指导 */}
+          {result.displayGuide && (
+            <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5">
+              <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                <LayoutGrid className="w-4 h-4 text-primary" /> 陈列指导
+              </h3>
+              <div className="space-y-2 text-sm">
+                <p><span className="text-muted-foreground mr-2">分区建议</span><span className="text-foreground">{result.displayGuide.zone}</span></p>
+                <p><span className="text-muted-foreground mr-2">VP展示</span><span className="text-foreground">{result.displayGuide.vpDisplay}</span></p>
+                <p><span className="text-muted-foreground mr-2">色彩排列</span><span className="text-foreground">{result.displayGuide.colorArrangement}</span></p>
+                <p><span className="text-muted-foreground mr-2">衣架卡</span><span className="text-foreground">{result.displayGuide.tagTip}</span></p>
+              </div>
+            </div>
+          )}
 
           {/* 通用建议 */}
           {result.generalTips.length > 0 && (
