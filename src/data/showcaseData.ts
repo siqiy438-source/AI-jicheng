@@ -19,26 +19,6 @@ export const showcaseCategories: ShowcaseCategory[] = [
     name: "服装工具",
     items: [
       {
-        id: "hangoutfit",
-        title: "AI 一键挂搭图",
-        description: "上传内搭与单品，自动补全完整挂搭效果图",
-        beforeImages: [
-          "/showcase/hangoutfit-before-1.png",
-          "/showcase/hangoutfit-before-2.png",
-          "/showcase/hangoutfit-before-3.png",
-        ],
-        afterImages: ["/showcase/hangoutfit-after.jpg"],
-        toolRoute: "/ai-hangoutfit",
-      },
-      {
-        id: "display",
-        title: "AI 陈列",
-        description: "根据商品风格，一键生成店铺陈列与搭配方案",
-        beforeImages: [],
-        afterImages: ["/showcase/display-after.webp"],
-        toolRoute: "/ai-display",
-      },
-      {
         id: "flatlayout",
         title: "平铺/摆拍生成",
         description: "上传服饰单品，快速生成平铺或摆拍展示图",
@@ -68,6 +48,26 @@ export const showcaseCategories: ShowcaseCategory[] = [
         beforeImages: ["/showcase/detail-before-1.webp"],
         afterImages: ["/showcase/detail-after.webp", "/showcase/detail-after-2.webp"],
         toolRoute: "/fashion-detail-focus",
+      },
+      {
+        id: "hangoutfit",
+        title: "AI 一键挂搭图",
+        description: "上传内搭与单品，自动补全完整挂搭效果图",
+        beforeImages: [
+          "/showcase/hangoutfit-before-1.png",
+          "/showcase/hangoutfit-before-2.png",
+          "/showcase/hangoutfit-before-3.png",
+        ],
+        afterImages: ["/showcase/hangoutfit-after.jpg"],
+        toolRoute: "/ai-hangoutfit",
+      },
+      {
+        id: "display",
+        title: "AI 陈列",
+        description: "根据商品风格，一键生成店铺陈列与搭配方案",
+        beforeImages: [],
+        afterImages: ["/showcase/display-after.webp"],
+        toolRoute: "/ai-display",
       },
     ],
   },
