@@ -145,6 +145,12 @@ const visualStyles = [
     icon: "📜",
     prompt: "Visual style: vintage retro aesthetic with nostalgic warm tones (sepia, cream, brown), ornate decorative borders, aged paper texture, classic typography, retro ornamental elements."
   },
+  {
+    id: "crayon",
+    name: "蜡笔风",
+    icon: "🖍️",
+    prompt: "Visual style: crayon and color marker illustration with bold waxy strokes, visible crayon texture and grain, bright saturated childlike colors, slightly rough uneven edges, thick outlines drawn with markers, paper texture showing through, playful and whimsical hand-colored feel, layered crayon shading."
+  },
 ];
 
 // 比例选项
