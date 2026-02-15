@@ -4,7 +4,7 @@
  * 图片生成复用现有 ai-image 服务
  */
 
-import { supabaseAnonKey, getAccessToken, forceRefreshToken } from './supabase';
+import { supabaseUrl, supabaseAnonKey, getAccessToken, forceRefreshToken } from './supabase';
 
 // ============ 类型定义 ============
 
@@ -60,7 +60,6 @@ export interface BatchGenerateDescriptionsResult {
 // ============ API 调用 ============
 
 const getEdgeFunctionUrl = () => {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://kzdjqqinkonqlclbwleh.supabase.co';
   return `${supabaseUrl}/functions/v1/ai-ppt`;
 };
 
@@ -208,7 +207,6 @@ export async function generateSlideImage(params: {
   resolution?: "default" | "2k" | "4k";
 }): Promise<{ success: boolean; imageBase64?: string; imageUrl?: string; error?: string }> {
   try {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://kzdjqqinkonqlclbwleh.supabase.co';
     const imageUrl = `${supabaseUrl}/functions/v1/ai-image`;
 
     const controller = new AbortController();

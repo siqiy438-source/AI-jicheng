@@ -3,7 +3,7 @@
  * API Key 安全存储在 Supabase Secrets 中
  */
 
-import { getAccessToken, forceRefreshToken } from './supabase';
+import { supabaseUrl, getAccessToken, forceRefreshToken } from './supabase';
 
 // 消息类型
 export interface ChatMessage {
@@ -21,7 +21,6 @@ export interface StreamCallbacks {
 
 // Supabase Edge Function URL
 const getEdgeFunctionUrl = () => {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://kzdjqqinkonqlclbwleh.supabase.co';
   return `${supabaseUrl}/functions/v1/ai-chat`;
 };
 

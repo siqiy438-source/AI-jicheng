@@ -3,7 +3,7 @@
  * 使用 Gemini 2.5 Flash Image (Nano Banana) 模型
  */
 
-import { supabaseAnonKey, getAccessToken, forceRefreshToken } from './supabase';
+import { supabaseUrl, supabaseAnonKey, getAccessToken, forceRefreshToken } from './supabase';
 
 // 对话消息类型（用于多轮对话）
 export interface ConversationMessage {
@@ -37,7 +37,6 @@ export interface ImageGenerationResult {
 
 // Supabase Edge Function URL
 const getEdgeFunctionUrl = () => {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://kzdjqqinkonqlclbwleh.supabase.co';
   return `${supabaseUrl}/functions/v1/ai-image`;
 };
 

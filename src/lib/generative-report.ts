@@ -1,4 +1,4 @@
-import { supabaseAnonKey, getAccessToken, forceRefreshToken } from "./supabase";
+import { supabaseUrl, supabaseAnonKey, getAccessToken, forceRefreshToken } from "./supabase";
 
 export type ReportDomain = "dental" | "veterinary" | "k12_education" | "gym" | "general";
 export type ReportAnalysisLevel = 4 | 6 | 8;
@@ -95,9 +95,7 @@ export interface GenerativeReportDocument {
   slides: GenerativeReportSlide[];
 }
 
-const SUPABASE_URL =
-  import.meta.env.VITE_SUPABASE_URL || "https://kzdjqqinkonqlclbwleh.supabase.co";
-const CHAT_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/ai-chat`;
+const CHAT_FUNCTION_URL = `${supabaseUrl}/functions/v1/ai-chat`;
 
 const DOMAIN_CONFIG: Record<ReportDomain, { label: string; role: string; audience: string }> = {
   dental: {

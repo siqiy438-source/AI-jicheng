@@ -3,7 +3,7 @@
  * Agent Team 模式：4 位 AI 专家协同分析服装陈列方案
  */
 
-import { supabaseAnonKey, getAccessToken, forceRefreshToken } from './supabase';
+import { supabaseUrl, supabaseAnonKey, getAccessToken, forceRefreshToken } from './supabase';
 
 // ---- 景别类型 ----
 export type SceneType = 'wide' | 'medium' | 'closeup';
@@ -196,7 +196,6 @@ const DEFAULT_ANALYSIS: VMAnalysisResult = {
 // ---- 单件衣服识别 ----
 
 export async function identifySingleGarment(image: string, sharedToken?: string): Promise<string> {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://kzdjqqinkonqlclbwleh.supabase.co';
   const url = `${supabaseUrl}/functions/v1/ai-chat`;
 
   const doFetch = async (token: string) => {
@@ -279,7 +278,6 @@ export async function analyzeClothingForDisplay(
   clothingCount: number,
   additionalNotes?: string
 ): Promise<VMAnalysisResult> {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://kzdjqqinkonqlclbwleh.supabase.co';
   const url = `${supabaseUrl}/functions/v1/ai-chat`;
 
   const garmentListText = garmentList.map((g, i) => `第${i + 1}件：${g}`).join('\n');
