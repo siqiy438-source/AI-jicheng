@@ -28,6 +28,7 @@ const FashionOutfit = () => {
       styleOptions={outfitStyles}
       resultAlt="平铺摆拍效果图"
       downloadPrefix="fashion-outfit"
+      featureCodePrefix="ai_flatlay"
     />
   );
 };

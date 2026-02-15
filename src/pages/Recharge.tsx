@@ -486,7 +486,19 @@ const Recharge = () => {
               <div className="divide-y divide-border/50">
                 {transactions.map((tx) => {
                   const isDeduct = tx.type === "deduct";
-                  const label = tx.description ? (FEATURE_LABELS[tx.description] || tx.description) : (isDeduct ? "积分消费" : "积分变动");
+                  const isRefund = tx.type === "refund";
+                  // 解析 description：支持 "退款-feature_code" 格式
+                  let label: string;
+                  if (tx.description) {
+                    const refundMatch = tx.description.match(/^退款-(.+)$/);
+                    const featureKey = refundMatch ? refundMatch[1] : tx.description;
+                    const featureName = FEATURE_LABELS[featureKey];
+                    label = refundMatch
+                      ? (featureName ? `退款-${featureName}` : tx.description)
+                      : (featureName || tx.description);
+                  } else {
+                    label = isDeduct ? "积分消费" : isRefund ? "积分退款" : "积分变动";
+                  }
                   return (
                     <div key={tx.id} className="flex items-center justify-between px-4 py-3 md:px-5 md:py-4 gap-3">
                       <div className="min-w-0">
@@ -497,7 +509,7 @@ const Recharge = () => {
                       </div>
                       <div className="flex items-center gap-3 flex-shrink-0">
                         <div className="text-right">
-                          <p className={cn("text-sm font-bold", isDeduct ? "text-red-500" : "text-emerald-600")}>
+                          <p className={cn("text-sm font-bold", isDeduct ? "text-red-500" : isRefund ? "text-blue-500" : "text-emerald-600")}>
                             {isDeduct ? "-" : "+"}{tx.amount}
                           </p>
                           <p className="text-xs text-muted-foreground">余额 {tx.balance_after}</p>
@@ -506,9 +518,11 @@ const Recharge = () => {
                           "text-[10px] font-medium",
                           isDeduct
                             ? "bg-red-500/10 text-red-500 border-red-200"
-                            : "bg-emerald-500/10 text-emerald-600 border-emerald-200"
+                            : isRefund
+                              ? "bg-blue-500/10 text-blue-500 border-blue-200"
+                              : "bg-emerald-500/10 text-emerald-600 border-emerald-200"
                         )}>
-                          {isDeduct ? "消费" : tx.type === "refund" ? "退款" : tx.type === "purchase" ? "充值" : "增加"}
+                          {isDeduct ? "消费" : isRefund ? "退款" : tx.type === "purchase" ? "充值" : "增加"}
                         </Badge>
                       </div>
                     </div>

@@ -462,6 +462,7 @@ serve(async (req) => {
   let supabaseAdmin: ReturnType<typeof createClient> | null = null
   let userId: string | null = null
   let creditCost = 0
+  let savedFeatureCode: string | undefined
 
   try {
     const BLTCY_API_KEY = Deno.env.get('BLTCY_API_KEY')
@@ -472,6 +473,7 @@ serve(async (req) => {
 
     const body = await req.json()
     const { action, feature_code } = body
+    savedFeatureCode = feature_code
 
     if (!action) {
       throw new Error('缺少 action 参数，支持: generate_outline, generate_description, batch_generate_descriptions')
@@ -548,7 +550,7 @@ serve(async (req) => {
     // 生成失败时退还积分
     if (supabaseAdmin && userId && creditCost > 0) {
       try {
-        await supabaseAdmin.rpc('add_credits', { p_user_id: userId, p_amount: creditCost, p_description: '退款-' + (feature_code || 'ai_ppt') })
+        await supabaseAdmin.rpc('add_credits', { p_user_id: userId, p_amount: creditCost, p_description: '退款-' + (savedFeatureCode || 'ai_ppt') })
         console.log(`[ai-ppt] Refunded ${creditCost} credits to user ${userId}`)
       } catch (refundErr) {
         console.error(`[ai-ppt] Refund failed:`, refundErr)

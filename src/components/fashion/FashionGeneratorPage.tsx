@@ -22,6 +22,7 @@ import { generateImage } from "@/lib/ai-image";
 import { compressImage, downloadGeneratedImage } from "@/lib/image-utils";
 import { saveGeneratedImageWork } from "@/lib/repositories/works";
 import { cn } from "@/lib/utils";
+import { useCreditCheck } from "@/hooks/use-credit-check";
 
 export interface StyleOption {
   id: string;
@@ -42,6 +43,7 @@ interface FashionGeneratorPageProps {
   styleSelectorVariant?: "dropdown" | "cards";
   resultAlt: string;
   downloadPrefix: string;
+  featureCodePrefix?: string;
 }
 
 const ratioOptions = [
@@ -69,8 +71,10 @@ export const FashionGeneratorPage = ({
   styleSelectorVariant = "dropdown",
   resultAlt,
   downloadPrefix,
+  featureCodePrefix,
 }: FashionGeneratorPageProps) => {
   const navigate = useNavigate();
+  const { checkCredits, InsufficientCreditsDialog } = useCreditCheck();
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [prompt, setPrompt] = useState("");
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -154,6 +158,11 @@ export const FashionGeneratorPage = ({
     if (!canGenerate) return;
 
     const selectedLineOption = lineOptions.find((lineOption) => lineOption.id === selectedLine) || lineOptions[1];
+    const featureCode = featureCodePrefix
+      ? (selectedLineOption.line === 'premium' ? `${featureCodePrefix}_premium` : `${featureCodePrefix}_standard`)
+      : undefined;
+
+    if (featureCode && !checkCredits(featureCode)) return;
 
     setIsGenerating(true);
     setGeneratedImage(null);
@@ -167,6 +176,7 @@ export const FashionGeneratorPage = ({
         line: selectedLineOption.line,
         resolution: selectedLineOption.resolution,
         hasFrameworkPrompt: true,
+        featureCode,
       });
 
       if (!data.success) {
@@ -592,6 +602,7 @@ export const FashionGeneratorPage = ({
           </div>
         )}
       </div>
+      <InsufficientCreditsDialog />
     </PageLayout>
   );
 };

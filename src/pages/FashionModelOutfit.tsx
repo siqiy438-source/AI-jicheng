@@ -56,6 +56,7 @@ const FashionModelOutfit = () => {
       styleSelectorVariant="cards"
       resultAlt="模特生成图"
       downloadPrefix="fashion-model-outfit"
+      featureCodePrefix="ai_fashion"
     />
   );
 };

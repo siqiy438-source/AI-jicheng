@@ -170,9 +170,10 @@ export async function continueConversation(
   history: ChatMessage[],
   userMessage: string,
   agentId: string,
-  callbacks: StreamCallbacks
+  callbacks: StreamCallbacks,
+  featureCode?: string,
 ): Promise<void> {
-  return chatStream(userMessage, agentId, callbacks, history);
+  return chatStream(userMessage, agentId, callbacks, history, featureCode);
 }
 
 // 导出配置检查（Edge Function 总是可用的）

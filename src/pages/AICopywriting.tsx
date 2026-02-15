@@ -254,9 +254,9 @@ const AICopywriting = () => {
       };
 
       if (isFirstMessage) {
-        await generateCopywriting(currentPrompt, selectedAgent.id, callbacks);
+        await generateCopywriting(currentPrompt, selectedAgent.id, callbacks, 'ai_copywriting');
       } else {
-        await continueConversation(history, currentPrompt, selectedAgent.id, callbacks);
+        await continueConversation(history, currentPrompt, selectedAgent.id, callbacks, 'ai_copywriting');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "发生未知错误");

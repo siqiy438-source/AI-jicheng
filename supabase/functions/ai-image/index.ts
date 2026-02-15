@@ -76,12 +76,14 @@ serve(async (req) => {
   let supabaseAdmin: ReturnType<typeof createClient> | null = null
   let userId: string | null = null
   let creditCost = 0
+  let savedFeatureCode: string | undefined
 
   try {
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
     const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
     const { prompt, style, aspectRatio, negativePrompt, styleId, images, line, resolution, hasFrameworkPrompt, conversationHistory, feature_code } = await req.json()
+    savedFeatureCode = feature_code
 
     // ========== 积分扣减 ==========
     const CREDIT_COSTS: Record<string, number> = {
@@ -471,7 +473,7 @@ Flat-lay product showcase requirements:
     // 生成失败时退还积分
     if (supabaseAdmin && userId && creditCost > 0) {
       try {
-        await supabaseAdmin.rpc('add_credits', { p_user_id: userId, p_amount: creditCost, p_description: '退款-' + (feature_code || 'ai_image') })
+        await supabaseAdmin.rpc('add_credits', { p_user_id: userId, p_amount: creditCost, p_description: '退款-' + (savedFeatureCode || 'ai_image') })
         console.log(`[ai-image] Refunded ${creditCost} credits to user ${userId}`)
       } catch (refundErr) {
         console.error(`[ai-image] Refund failed:`, refundErr)
