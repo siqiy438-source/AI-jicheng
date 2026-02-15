@@ -42,6 +42,7 @@ const FEATURE_LABELS: Record<string, string> = {
   ai_flatlay_standard: "平铺摆拍(标准)", ai_flatlay_premium: "平铺摆拍(Pro)",
   ai_copywriting: "AI文案", ai_ppt_outline: "PPT大纲",
   ai_ppt_slide: "PPT单页", ai_report_page: "报告生成",
+  ai_outfit_recommend: "穿搭推荐",
 };
 
 const statusMap: Record<string, { label: string; color: string }> = {
