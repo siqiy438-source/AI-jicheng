@@ -23,6 +23,7 @@ import { compressImage, downloadGeneratedImage } from "@/lib/image-utils";
 import { saveGeneratedImageWork } from "@/lib/repositories/works";
 import { cn } from "@/lib/utils";
 import { useCreditCheck } from "@/hooks/use-credit-check";
+import { InsufficientBalanceDialog } from "@/components/InsufficientBalanceDialog";
 
 export interface StyleOption {
   id: string;
@@ -74,7 +75,7 @@ export const FashionGeneratorPage = ({
   featureCodePrefix,
 }: FashionGeneratorPageProps) => {
   const navigate = useNavigate();
-  const { checkCredits, InsufficientCreditsDialog } = useCreditCheck();
+  const { checkCredits, showInsufficientDialog, requiredAmount, featureName, currentBalance, goToRecharge, dismissDialog } = useCreditCheck();
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [prompt, setPrompt] = useState("");
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -602,7 +603,14 @@ export const FashionGeneratorPage = ({
           </div>
         )}
       </div>
-      <InsufficientCreditsDialog />
+      <InsufficientBalanceDialog
+        open={showInsufficientDialog}
+        onOpenChange={dismissDialog}
+        balance={currentBalance}
+        required={requiredAmount}
+        featureName={featureName}
+        onRecharge={goToRecharge}
+      />
     </PageLayout>
   );
 };
