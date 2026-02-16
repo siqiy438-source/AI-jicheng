@@ -97,6 +97,7 @@ export const MobileNav = () => {
         "/fashion-model-outfit",
         "/fashion-detail-focus",
         "/outfit-recommend",
+        "/fabric-analysis",
       ],
     },
     {
