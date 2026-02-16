@@ -12,6 +12,16 @@ import {
   Clock,
   ImageIcon,
   FileText,
+  X,
+  Shirt,
+  Tag,
+  ShieldAlert,
+  LayoutGrid,
+  Lightbulb,
+  Palette,
+  MessageCircle,
+  Copy,
+  Check,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -30,11 +40,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import type { OutfitRecommendResult } from "@/lib/outfit-recommend";
 
 type WorkCategory = "image" | "copywriting";
 
 const getWorkCategory = (workType: string): WorkCategory => {
-  return workType === "copywriting" ? "copywriting" : "image";
+  return (workType === "copywriting" || workType === "outfit-recommend") ? "copywriting" : "image";
 };
 
 // 获取类型图标
@@ -57,6 +68,216 @@ const getTypeColor = (category: WorkCategory) => {
   }
 };
 
+// 将 contentJson 转为纯文本用于复制
+const outfitResultToText = (r: OutfitRecommendResult): string => {
+  const lines: string[] = [];
+  const a = r.inputAnalysis;
+  lines.push(`【单品分析】`, `类型：${a.itemType}`, `颜色：${a.color}`, `风格：${a.style}`, `面料：${a.material}`);
+  if (a.silhouette) lines.push(`版型：${a.silhouette}`);
+  if (a.bestFor) lines.push(`适合：${a.bestFor}`);
+
+  if (r.productProfile) {
+    const p = r.productProfile;
+    lines.push("", `【商品档案】`, `风格标签：${p.styleTags}`, `陈列区域：${p.displayArea}`, `目标客群：${p.targetCustomer}`, `体型适配：${p.bodyFit}`);
+    lines.push(`搭配色 - 安全牌：${p.colorMatch.safe}`, `搭配色 - 进阶牌：${p.colorMatch.advanced}`, `搭配色 - 避雷：${p.colorMatch.avoid}`);
+  }
+
+  r.combinations.slice(0, 2).forEach((c, i) => {
+    lines.push("", `【搭配方案${i + 1}】${c.name}`, `主题：${c.theme}`);
+    if (c.targetBody) lines.push(`适合体型：${c.targetBody}`);
+    c.items.forEach((item) => lines.push(`  ${item.category}：${item.description}（${item.colorSuggestion}）- ${item.styleTip}`));
+    if (c.matchingLogic) lines.push(`搭配逻辑：${c.matchingLogic}`);
+    if (c.stylingTips.length) lines.push(`搭配技巧：${c.stylingTips.join("；")}`);
+    lines.push(`整体效果：${c.overallLook}`);
+    if (c.salesTalk) lines.push(`推荐话术：${c.salesTalk}`);
+  });
+
+  if (r.objectionHandling) {
+    const o = r.objectionHandling;
+    lines.push("", `【客诉应对】`, `显胖：${o.looksFat}`, `太贵：${o.tooExpensive}`, `不适合：${o.notSuitable}`);
+  }
+
+  if (r.displayGuide) {
+    const d = r.displayGuide;
+    lines.push("", `【陈列指导】`, `分区：${d.zone}`, `VP展示：${d.vpDisplay}`, `色彩排列：${d.colorArrangement}`, `衣架卡：${d.tagTip}`);
+  }
+
+  if (r.generalTips?.length) {
+    lines.push("", `【通用建议】`, ...r.generalTips.map((t) => `• ${t}`));
+  }
+  return lines.join("\n");
+};
+
+// 搭配师详情弹窗
+const OutfitDetailDialog = ({ work, open, onClose }: { work: WorkListItem | null; open: boolean; onClose: () => void }) => {
+  const [copied, setCopied] = useState(false);
+  if (!work || !open) return null;
+  const result = work.contentJson as unknown as OutfitRecommendResult | undefined;
+  if (!result?.inputAnalysis) return null;
+
+  const handleCopyAll = async () => {
+    try {
+      await navigator.clipboard.writeText(outfitResultToText(result));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("复制失败");
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center" onClick={onClose}>
+      <div className="fixed inset-0 bg-black/50 animate-fade-in" />
+      <div
+        className="relative z-10 w-full md:max-w-lg max-h-[85vh] bg-background rounded-t-2xl md:rounded-2xl overflow-hidden animate-slide-up md:animate-fade-in"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* 头部 */}
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/30 px-4 py-3 flex items-center justify-between">
+          <div className="min-w-0">
+            <h2 className="text-base font-semibold text-foreground truncate">{work.title}</h2>
+            <p className="text-xs text-muted-foreground">{work.createdAt} · {work.tool}</p>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button onClick={handleCopyAll} className="p-2 rounded-lg hover:bg-secondary transition-colors" title="复制全部文案">
+              {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4 text-muted-foreground" />}
+            </button>
+            <button onClick={onClose} className="p-2 rounded-lg hover:bg-secondary transition-colors">
+              <X className="w-4 h-4 text-muted-foreground" />
+            </button>
+          </div>
+        </div>
+
+        {/* 内容 */}
+        <div className="overflow-y-auto max-h-[calc(85vh-56px)] p-4 space-y-4">
+          {/* 单品分析 */}
+          <div className="rounded-xl bg-muted/30 p-3.5">
+            <h3 className="text-sm font-semibold text-primary mb-2 flex items-center gap-2"><Shirt className="w-4 h-4" /> 单品分析</h3>
+            <div className="space-y-1 text-sm">
+              <p><span className="text-primary font-medium mr-2">类型</span>{result.inputAnalysis.itemType}</p>
+              <p><span className="text-primary font-medium mr-2">颜色</span>{result.inputAnalysis.color}</p>
+              <p><span className="text-primary font-medium mr-2">风格</span>{result.inputAnalysis.style}</p>
+              <p><span className="text-primary font-medium mr-2">面料</span>{result.inputAnalysis.material}</p>
+              {result.inputAnalysis.silhouette && <p><span className="text-primary font-medium mr-2">版型</span>{result.inputAnalysis.silhouette}</p>}
+              {result.inputAnalysis.bestFor && <p><span className="text-primary font-medium mr-2">适合</span>{result.inputAnalysis.bestFor}</p>}
+            </div>
+          </div>
+
+          {/* 商品档案 */}
+          {result.productProfile && (
+            <div className="rounded-xl bg-muted/30 p-3.5">
+              <h3 className="text-sm font-semibold text-primary mb-2 flex items-center gap-2"><Tag className="w-4 h-4" /> 商品档案</h3>
+              <div className="space-y-1.5 text-sm">
+                <p><span className="text-muted-foreground mr-2">风格标签</span>{result.productProfile.styleTags}</p>
+                <p><span className="text-muted-foreground mr-2">陈列区域</span>{result.productProfile.displayArea}</p>
+                <p><span className="text-muted-foreground mr-2">目标客群</span>{result.productProfile.targetCustomer}</p>
+                <p><span className="text-muted-foreground mr-2">体型适配</span>{result.productProfile.bodyFit}</p>
+                <div className="mt-2 p-2.5 rounded-lg bg-background/60">
+                  <p className="text-xs font-medium mb-1 flex items-center gap-1.5"><Palette className="w-3.5 h-3.5 text-primary" /> 搭配色建议</p>
+                  <div className="space-y-0.5 text-xs">
+                    <p><span className="text-green-600 mr-1.5">安全牌</span><span className="text-muted-foreground">{result.productProfile.colorMatch.safe}</span></p>
+                    <p><span className="text-amber-600 mr-1.5">进阶牌</span><span className="text-muted-foreground">{result.productProfile.colorMatch.advanced}</span></p>
+                    <p><span className="text-red-500 mr-1.5">避雷</span><span className="text-muted-foreground">{result.productProfile.colorMatch.avoid}</span></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 搭配方案 */}
+          {result.combinations.slice(0, 2).map((combo, idx) => (
+            <div key={idx} className="rounded-xl bg-muted/30 p-3.5">
+              <h3 className="text-base font-semibold text-foreground">{combo.name}</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">{combo.theme}</p>
+              {combo.targetBody && <span className="inline-block mt-1.5 text-[11px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">{combo.targetBody}</span>}
+              <div className="space-y-2 mt-3">
+                {combo.items.map((item, i) => (
+                  <div key={i} className="p-2.5 rounded-lg bg-background/60">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium text-primary">{item.category}</span>
+                      <span className="text-xs text-muted-foreground">{item.colorSuggestion}</span>
+                    </div>
+                    <p className="text-sm text-foreground mt-0.5">{item.description}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{item.styleTip}</p>
+                  </div>
+                ))}
+              </div>
+              {combo.matchingLogic && (
+                <div className="mt-2.5 p-2.5 rounded-lg bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/30">
+                  <p className="text-xs font-medium text-amber-700 dark:text-amber-400">{combo.matchingLogic}</p>
+                </div>
+              )}
+              {combo.stylingTips.length > 0 && (
+                <div className="mt-2.5">
+                  <h4 className="text-xs font-semibold text-foreground mb-1 flex items-center gap-1.5"><Lightbulb className="w-3.5 h-3.5 text-amber-500" /> 搭配小技巧</h4>
+                  <ul className="space-y-0.5">
+                    {combo.stylingTips.map((tip, i) => (
+                      <li key={i} className="text-xs text-muted-foreground pl-4 relative before:content-['•'] before:absolute before:left-1 before:text-primary">{tip}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <div className="border-t border-border/30 pt-2.5 mt-2.5 space-y-2">
+                <p className="text-sm text-foreground leading-relaxed">{combo.overallLook}</p>
+                {combo.salesTalk && (
+                  <div className="bg-primary/5 rounded-lg p-2.5">
+                    <h4 className="text-xs font-semibold text-primary mb-1 flex items-center gap-1.5"><MessageCircle className="w-3.5 h-3.5" /> 推荐话术</h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{combo.salesTalk}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+
+          {/* 客诉应对 */}
+          {result.objectionHandling && (
+            <div className="rounded-xl bg-muted/30 p-3.5">
+              <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2"><ShieldAlert className="w-4 h-4 text-primary" /> 客诉应对话术</h3>
+              <div className="space-y-2">
+                {[
+                  { label: "客人说「显胖」", text: result.objectionHandling.looksFat },
+                  { label: "客人说「太贵」", text: result.objectionHandling.tooExpensive },
+                  { label: "客人说「不适合」", text: result.objectionHandling.notSuitable },
+                ].map((item, i) => (
+                  <div key={i} className="p-2.5 rounded-lg bg-background/60">
+                    <p className="text-xs font-medium text-foreground mb-0.5">{item.label}</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 陈列指导 */}
+          {result.displayGuide && (
+            <div className="rounded-xl bg-muted/30 p-3.5">
+              <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2"><LayoutGrid className="w-4 h-4 text-primary" /> 陈列指导</h3>
+              <div className="space-y-1.5 text-sm">
+                <p><span className="text-muted-foreground mr-2">分区建议</span>{result.displayGuide.zone}</p>
+                <p><span className="text-muted-foreground mr-2">VP展示</span>{result.displayGuide.vpDisplay}</p>
+                <p><span className="text-muted-foreground mr-2">色彩排列</span>{result.displayGuide.colorArrangement}</p>
+                <p><span className="text-muted-foreground mr-2">衣架卡</span>{result.displayGuide.tagTip}</p>
+              </div>
+            </div>
+          )}
+
+          {/* 通用建议 */}
+          {result.generalTips?.length > 0 && (
+            <div className="rounded-xl bg-muted/30 p-3.5">
+              <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2"><Lightbulb className="w-4 h-4 text-amber-500" /> 通用搭配建议</h3>
+              <ul className="space-y-1">
+                {result.generalTips.map((tip, i) => (
+                  <li key={i} className="text-sm text-muted-foreground pl-4 relative before:content-['•'] before:absolute before:left-1 before:text-primary">{tip}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const MyWorks = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -69,6 +290,7 @@ const MyWorks = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [detailWork, setDetailWork] = useState<WorkListItem | null>(null);
 
   const refreshWorks = useCallback(async (silent = false) => {
     try {
@@ -147,6 +369,10 @@ const MyWorks = () => {
 
   const handlePreview = (work: WorkListItem) => {
     setSelectedWork(work.id);
+    if (work.type === "outfit-recommend" && work.contentJson) {
+      setDetailWork(work);
+      return;
+    }
     if (work.thumbnail) {
       window.open(work.thumbnail, "_blank");
     }
@@ -297,7 +523,26 @@ const MyWorks = () => {
               >
                 {/* 缩略图 */}
                 <div className="aspect-[4/3] bg-secondary/30 relative overflow-hidden">
-                  {work.thumbnail ? (
+                  {work.type === "outfit-recommend" && work.contentJson ? (() => {
+                    const r = work.contentJson as unknown as OutfitRecommendResult;
+                    const combo = r?.combinations?.[0];
+                    return (
+                      <div className="w-full h-full p-3 flex flex-col justify-between bg-gradient-to-br from-primary/5 to-primary/10">
+                        <div className="space-y-1 min-w-0">
+                          <p className="text-xs font-medium text-primary truncate">{r?.inputAnalysis?.itemType} · {r?.inputAnalysis?.style}</p>
+                          {combo && <p className="text-xs font-semibold text-foreground truncate">{combo.name}</p>}
+                          {combo && <p className="text-[11px] text-muted-foreground line-clamp-2">{combo.overallLook}</p>}
+                        </div>
+                        {combo && combo.items.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {combo.items.slice(0, 3).map((item, i) => (
+                              <span key={i} className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full truncate max-w-[80px]">{item.category}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })() : work.thumbnail ? (
                     <ProgressiveImage
                       src={work.thumbnail}
                       alt={work.title}
@@ -533,6 +778,7 @@ const MyWorks = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <OutfitDetailDialog work={detailWork} open={!!detailWork} onClose={() => setDetailWork(null)} />
     </PageLayout>
   );
 };

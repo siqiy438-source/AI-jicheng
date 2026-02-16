@@ -6,6 +6,7 @@ export interface WorkListItem {
   type: string;
   thumbnail: string | null;
   content?: string;
+  contentJson?: Record<string, unknown>;
   createdAt: string;
   tool: string;
 }
@@ -144,6 +145,7 @@ export const listWorks = async (offset = 0): Promise<{ items: WorkListItem[]; ha
       type: row.type,
       tool: row.tool || 'AI 创作',
       content: typeof row.content_json?.text === 'string' ? row.content_json.text : undefined,
+      contentJson: row.content_json ?? undefined,
       thumbnail,
       createdAt: formatCreatedAt(row.created_at),
     };
