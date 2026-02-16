@@ -43,6 +43,7 @@ const FEATURE_LABELS: Record<string, string> = {
   ai_copywriting: "AI文案", ai_ppt_outline: "PPT大纲",
   ai_ppt_slide: "PPT单页", ai_report_page: "报告生成",
   ai_outfit_recommend: "专业搭配师",
+  ai_fabric_analysis: "面料说明生成器",
 };
 
 const statusMap: Record<string, { label: string; color: string }> = {

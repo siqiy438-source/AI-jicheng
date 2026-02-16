@@ -49,6 +49,12 @@ const tools: ToolItem[] = [
     iconSrc: "/icons/fashion-outfit-custom.webp",
     to: "/outfit-recommend",
   },
+  {
+    title: "面料说明生成器",
+    description: "拍一张水洗标，自动生成面向顾客的面料营销话术。",
+    iconSrc: "/icons/fashion-outfit-custom.webp",
+    to: "/fabric-analysis",
+  },
 ];
 
 const Clothing = () => {
