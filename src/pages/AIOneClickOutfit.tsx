@@ -111,25 +111,33 @@ const AIOneClickOutfit = () => {
       const outfitReference = await mergeImagesToGrid([images.inner, images.top, images.pants], 380, 1);
       const referenceImages = [outfitReference];
 
-      const prompt = `[Core Setup: The "Grand" Rack]
-A professional editorial fashion photograph. The central focus is a set of garments hanging on a long, bold, thick horizontal minimalist metal rod that spans across the frame. The rod should be made of high-quality brushed steel or matte silver, creating a sense of grand scale and architectural openness (not a cramped rectangular rack).
+      const prompt = `[Core Setup: Minimal Hanging Rod]
+A real photograph of garments displayed on a slim, simple horizontal metal rod that spans across the frame. The rod is thin and understated — plain silver or light chrome, not thick or heavy. The garments hang on natural wooden hangers, giving a warm, authentic boutique feel.
 
 [Instruction: Input Garment & Realism Patch]
-Using the item from the input image as the main piece, display it with natural gravity and heavy drape. Ensure realistic fabric tension, subtle natural wrinkles, and high-definition textile textures (visible weave, leather grain, or knit details). The clothes should look like they have weight and are interacting with the hangers and each other.
+Using the items from the input image, display them with natural gravity and relaxed drape. Show realistic fabric weight, gentle natural wrinkles, and true-to-life textile textures. The clothes should look like they were casually hung up in a real store, not perfectly arranged for a catalog.
 
-[Instruction: Layering & Pro-Styling]
-Automatically style the outfit with sophisticated layering. If the input is a top, layer it over a complementary shirt or under a jacket. Add smart accessories to fill the composition: a designer bag hanging on the rod, or a hat. Below the rack, place matching high-end footwear (boots or loafers) on a minimalist white pedestal block to create vertical depth.
-Keep the scene minimal: at most one bag or one hat, and at most one pair of footwear. Do not add extra props.
+[CRITICAL: Garment Fidelity]
+Each garment MUST be an exact reproduction of the input reference image. Strictly preserve:
+- The exact color, pattern, and print of each garment (do not alter hue, saturation, or pattern layout)
+- The exact silhouette, cut, and style (neckline, sleeve length, hem shape, collar type)
+- All design details: buttons, zippers, pockets, stitching, embroidery, logos, labels
+- The exact fabric texture and material appearance (knit, woven, denim, silk, linen, etc.)
+Do NOT reinterpret, simplify, or creatively modify any garment. The output garments must look identical to the input photos.
+
+[Instruction: Styling & Accessories]
+This is a women's fashion display. Add small feminine accessories to complete the scene: a delicate women's handbag or crossbody bag hanging on the rod, and a pair of women's shoes (heels, ballet flats, Mary Janes, or ankle boots) placed casually on a small metal stool or directly on the floor beneath the rack. You may also add one or two tiny decorative touches like a small postcard or photo clipped to the rod, or a green plant branch at the edge of the frame.
+Keep the scene minimal and curated: at most one bag, one pair of women's footwear, and one small decorative item. Do not add extra props beyond these.
 
 [Photography & Lighting]
-Three-quarter angled perspective to create a 3D sense of space. Professional cinematic side lighting from an invisible off-camera source, creating soft, graduated shadows on the wall that define the shape of the clothes. Deep ambient occlusion shadows where fabric overlaps.
+Shot from a near-frontal angle with a very slight offset. Soft, even, natural diffused daylight — as if coming from a large window nearby. The lighting is flat and gentle with minimal shadows. No dramatic side lighting, no strong directional light, no visible light source. Shadows are extremely subtle and soft.
 
 [Environment & Vibe]
-Set in a luxury, minimalist boutique showroom. The background is a clean, off-white wall with a subtle refined texture. High-end, curated, and ultra-photorealistic aesthetic. 8k resolution.
+Set in a cozy, minimalist clothing boutique. The background is a clean, plain off-white or light gray wall. The overall mood is warm, natural, and inviting — like a real indie fashion store, not a luxury showroom. The image should look like a casual iPhone photo taken in a well-lit shop.
 
 [Hard Constraints: Separation Is Mandatory]
 - You receive exactly 3 uploaded garments (#1, #2, #3).
-- Display all 3 garments in one scene on the same long rod, each on its own hanger with clear spacing.
+- Display all 3 garments in one scene on the same slim rod, each on its own wooden hanger with clear spacing.
 - One garment per hanger only. Never combine two garments on one hanger.
 - Do not style them as one worn outfit set; present them as three separate hanging pieces.
 - Keep full length visible for each garment (no heavy crop).
@@ -140,8 +148,11 @@ ${additionalNotes ? `[Additional Notes]\n${additionalNotes}` : ""}`;
       const negativePrompt = `[Crucial Removal]
 studio equipment, light stands, softboxes, lighting gear, umbrella reflector, cables, behind the scenes elements, visible edge of softbox in frame, messy environment, cluttered background.
 
+[Lighting Control]
+harsh shadows, dramatic side lighting, cinematic lighting, strong directional light, deep shadows, high contrast lighting, studio flash, HDR effect, specular highlights on metal, glossy reflections.
+
 [Quality Control]
-cropped garments, partial view, flat lay, frontal view, low quality, blurry, distorted fabric, CGI artifacts, plastic texture, merged garments, layered on same hanger, one complete worn outfit look, two garments fused together, too many props, overly busy composition.`;
+cropped garments, partial view, flat lay, low quality, blurry, distorted fabric, CGI artifacts, CGI rendering, plastic texture, overly sharp, over-processed, merged garments, layered on same hanger, one complete worn outfit look, two garments fused together, too many props, overly busy composition.`;
 
       setGenerationStep("AI 正在生成挂搭图...");
       const response = await generateImage({
