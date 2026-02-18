@@ -222,7 +222,7 @@
   }
 
   /* 允许输入框和文本区域选择文本 */
-  input, textarea, [contenteditable="true"] {
+  input, textarea, [contenteditable="true"], .prose {
     -webkit-user-select: text;
     user-select: text;
   }

@@ -8,6 +8,10 @@ import {
   Check,
   Bot,
   Sparkles,
+  Paperclip,
+  X,
+  FileText,
+  Image as ImageIcon,
 } from "lucide-react";
 import { PageLayout } from "@/components/PageLayout";
 import { GeneratingLoader } from "@/components/GeneratingLoader";
@@ -28,6 +32,7 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  imageUrls?: string[];
 }
 
 interface CopywritingGeneratorPageProps {
@@ -70,6 +75,33 @@ export const CopywritingGeneratorPage = ({
       : []
   );
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [currentPhase, setCurrentPhase] = useState<'explore' | 'generate'>('explore');
+  const [attachedFiles, setAttachedFiles] = useState<Array<{ name: string; type: 'image' | 'text'; dataUrl: string; preview?: string }>>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    for (const file of Array.from(files)) {
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const dataUrl = reader.result as string;
+          setAttachedFiles(prev => [...prev, { name: file.name, type: 'image', dataUrl, preview: dataUrl }]);
+        };
+        reader.readAsDataURL(file);
+      } else if (file.type === 'text/plain' || file.name.endsWith('.txt') || file.name.endsWith('.md')) {
+        const text = await file.text();
+        setAttachedFiles(prev => [...prev, { name: file.name, type: 'text', dataUrl: text }]);
+      }
+    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const removeFile = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  };
 
   const copyContent = (id: string, content: string) => {
     navigator.clipboard.writeText(content);
@@ -78,19 +110,30 @@ export const CopywritingGeneratorPage = ({
   };
 
   const handleSend = useCallback(async () => {
-    if (!prompt.trim() || isGenerating) return;
-    if (!checkCredits(featureCode)) return;
+    if ((!prompt.trim() && attachedFiles.length === 0) || isGenerating) return;
+    // 仅在生成阶段检查积分
+    if (currentPhase === 'generate' && !checkCredits(featureCode)) return;
+
+    // 构建发送内容：文本文件内容追加到 prompt
+    const textFileContents = attachedFiles
+      .filter(f => f.type === 'text')
+      .map(f => `【附件：${f.name}】\n${f.dataUrl}`)
+      .join('\n\n');
+    const imageDataUrls = attachedFiles.filter(f => f.type === 'image').map(f => f.dataUrl);
+    const finalPrompt = textFileContents ? `${prompt.trim()}\n\n${textFileContents}` : prompt.trim();
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
       content: prompt,
       timestamp: new Date(),
+      imageUrls: imageDataUrls.length > 0 ? imageDataUrls : undefined,
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    const currentPrompt = prompt;
+    const currentPrompt = finalPrompt;
     setPrompt("");
+    setAttachedFiles([]);
     setIsGenerating(true);
 
     const assistantMessageId = (Date.now() + 1).toString();
@@ -133,17 +176,25 @@ export const CopywritingGeneratorPage = ({
             prev.map((m) => (m.id === assistantMessageId ? { ...m, content: finalContent } : m))
           );
           setIsGenerating(false);
-          void refreshBalance();
 
-          if (finalContent.trim()) {
-            const titleText = currentPrompt.trim().slice(0, 24) || "文案";
-            void saveTextWork({
-              title: `${title}：${titleText}`,
-              type: "copywriting",
-              tool: `AI 文案-${title}`,
-              text: finalContent,
-              metadata: { agentId, prompt: currentPrompt },
-            }).catch((err) => console.error("自动保存文案失败", err));
+          // 检测确认卡标记 → 下一条消息进入 generate 阶段
+          if (finalContent.includes('📋') && finalContent.includes('确认')) {
+            setCurrentPhase('generate');
+          }
+
+          // 仅在生成阶段刷新余额和保存作品
+          if (currentPhase === 'generate') {
+            void refreshBalance();
+            if (finalContent.trim()) {
+              const titleText = currentPrompt.trim().slice(0, 24) || "文案";
+              void saveTextWork({
+                title: `${title}：${titleText}`,
+                type: "copywriting",
+                tool: `AI 文案-${title}`,
+                text: finalContent,
+                metadata: { agentId, prompt: currentPrompt },
+              }).catch((err) => console.error("自动保存文案失败", err));
+            }
           }
 
           setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
@@ -159,14 +210,14 @@ export const CopywritingGeneratorPage = ({
       };
 
       if (isFirstMessage) {
-        await generateCopywriting(currentPrompt, agentId, callbacks, featureCode);
+        await generateCopywriting(currentPrompt, agentId, callbacks, featureCode, currentPhase, imageDataUrls.length > 0 ? imageDataUrls : undefined);
       } else {
-        await continueConversation(history, currentPrompt, agentId, callbacks, featureCode);
+        await continueConversation(history, currentPrompt, agentId, callbacks, featureCode, currentPhase, imageDataUrls.length > 0 ? imageDataUrls : undefined);
       }
     } catch (err) {
       setIsGenerating(false);
     }
-  }, [prompt, messages, isGenerating, agentId, featureCode, checkCredits, refreshBalance, title]);
+  }, [prompt, messages, isGenerating, agentId, featureCode, checkCredits, refreshBalance, title, currentPhase, attachedFiles]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -231,7 +282,7 @@ export const CopywritingGeneratorPage = ({
                 >
                   {message.role === "assistant" ? (
                     message.content ? (
-                    <div className="prose max-w-none dark:prose-invert prose-headings:text-foreground prose-headings:font-semibold prose-h3:text-base prose-h4:text-sm prose-p:text-foreground prose-p:leading-relaxed prose-p:my-2.5 prose-strong:text-foreground prose-ul:text-foreground prose-ul:my-2 prose-ol:text-foreground prose-ol:my-2 prose-li:text-foreground prose-li:my-0.5 text-sm font-medium leading-relaxed">
+                    <div className="prose max-w-none dark:prose-invert prose-headings:text-foreground prose-headings:font-bold prose-h2:text-lg prose-h2:mt-8 prose-h2:mb-3 prose-h3:text-base prose-h3:mt-6 prose-h3:mb-2 prose-h4:text-sm prose-p:text-foreground prose-p:leading-relaxed prose-p:my-3 prose-strong:text-foreground prose-ul:text-foreground prose-ul:my-2 prose-ol:text-foreground prose-ol:my-2 prose-li:text-foreground prose-li:my-0.5 prose-hr:my-6 prose-hr:border-border/50 text-sm leading-relaxed select-text">
                       <ReactMarkdown>{message.content}</ReactMarkdown>
                     </div>
                     ) : isGenerating ? (
@@ -245,7 +296,16 @@ export const CopywritingGeneratorPage = ({
                     </div>
                     ) : null
                   ) : (
-                    <div className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</div>
+                    <div>
+                      {message.imageUrls && message.imageUrls.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {message.imageUrls.map((url, i) => (
+                            <img key={i} src={url} alt="" className="max-w-[120px] max-h-[120px] rounded-lg object-cover" />
+                          ))}
+                        </div>
+                      )}
+                      <div className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</div>
+                    </div>
                   )}
 
                   {message.role === "assistant" && message.content && !isGenerating && (
@@ -279,6 +339,25 @@ export const CopywritingGeneratorPage = ({
 
       {/* 输入卡片 */}
       <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5 shadow-lg">
+        {/* 附件预览 */}
+        {attachedFiles.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {attachedFiles.map((file, index) => (
+              <div key={index} className="relative group flex items-center gap-1.5 bg-secondary/50 rounded-lg px-2.5 py-1.5 text-xs">
+                {file.type === 'image' ? (
+                  <img src={file.preview} alt="" className="w-8 h-8 rounded object-cover" />
+                ) : (
+                  <FileText className="w-4 h-4 text-muted-foreground" />
+                )}
+                <span className="max-w-[100px] truncate text-muted-foreground">{file.name}</span>
+                <button onClick={() => removeFile(index)} className="ml-1 text-muted-foreground hover:text-foreground">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
@@ -291,13 +370,31 @@ export const CopywritingGeneratorPage = ({
 
         <div className="border-t border-border/50 my-3" />
 
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,.txt,.md"
+              multiple
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isGenerating}
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-muted-foreground hover:bg-secondary/50 transition-colors disabled:opacity-50"
+              title="上传文件"
+            >
+              <Paperclip className="w-5 h-5" />
+            </button>
+          </div>
           <button
             onClick={handleSend}
-            disabled={!prompt.trim() || isGenerating}
+            disabled={(!prompt.trim() && attachedFiles.length === 0) || isGenerating}
             className={cn(
               "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
-              prompt.trim() && !isGenerating
+              (prompt.trim() || attachedFiles.length > 0) && !isGenerating
                 ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 active:from-orange-700 active:to-orange-800 shadow-md"
                 : "bg-secondary/50 text-muted-foreground/50 cursor-not-allowed"
             )}

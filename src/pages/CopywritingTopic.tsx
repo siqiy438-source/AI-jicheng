@@ -8,7 +8,7 @@ const CopywritingTopic = () => (
     agentId="topic"
     placeholderText="说说你的行业和想要的选题方向..."
     featureCode="ai_copywriting"
-    welcomeMessage="你好！我是你的选题引擎，专门帮你找到能火的内容选题。告诉我你的行业、目标人群和产品，我会帮你批量生成高流量选题方案。你最近在做什么类型的内容？"
+    welcomeMessage="你好！我是你的选题引擎。在帮你出选题之前，我想先聊聊你的情况——你是做什么行业的？目标客户是谁？这样我才能给你真正合适的选题方案。"
   />
 );
 

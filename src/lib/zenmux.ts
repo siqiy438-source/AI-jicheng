@@ -33,6 +33,8 @@ export async function chatStream(
   callbacks: StreamCallbacks,
   history: ChatMessage[] = [],
   featureCode?: string,
+  phase?: 'explore' | 'generate',
+  images?: string[],
 ): Promise<void> {
   callbacks.onStart?.();
 
@@ -58,6 +60,8 @@ export async function chatStream(
         history,
         stream: true,
         feature_code: featureCode,
+        phase,
+        images,
       }),
     });
 
@@ -76,6 +80,8 @@ export async function chatStream(
               history,
               stream: true,
               feature_code: featureCode,
+              phase,
+              images,
             }),
           });
           if (retryResponse.ok) {
@@ -159,8 +165,10 @@ export async function generateCopywriting(
   agentId: string,
   callbacks: StreamCallbacks,
   featureCode?: string,
+  phase?: 'explore' | 'generate',
+  images?: string[],
 ): Promise<void> {
-  return chatStream(userPrompt, agentId, callbacks, [], featureCode);
+  return chatStream(userPrompt, agentId, callbacks, [], featureCode, phase, images);
 }
 
 /**
@@ -172,8 +180,10 @@ export async function continueConversation(
   agentId: string,
   callbacks: StreamCallbacks,
   featureCode?: string,
+  phase?: 'explore' | 'generate',
+  images?: string[],
 ): Promise<void> {
-  return chatStream(userMessage, agentId, callbacks, history, featureCode);
+  return chatStream(userMessage, agentId, callbacks, history, featureCode, phase, images);
 }
 
 // 导出配置检查（Edge Function 总是可用的）

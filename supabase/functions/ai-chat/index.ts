@@ -360,7 +360,7 @@ serve(async (req) => {
     const REPORT_API_MODEL = Deno.env.get('REPORT_API_MODEL') || 'gemini-3-flash-preview'
 
     // 解析请求
-    const { prompt, agentId, history, stream = true, mode, images, feature_code } = await req.json()
+    const { prompt, agentId, history, stream = true, mode, images, feature_code, phase } = await req.json()
     // 保存 feature_code 到外层作用域，供 catch 块退款使用
     let savedFeatureCode = feature_code
 
@@ -393,7 +393,9 @@ serve(async (req) => {
       userId = user.id
       creditCost = CREDIT_COSTS[feature_code] || 0
 
-      if (creditCost > 0) {
+      // 共创模式：explore 阶段不扣积分，仅 generate 阶段扣积分
+      const shouldCharge = !phase || phase === 'generate'
+      if (creditCost > 0 && shouldCharge) {
         const { data: deductResult, error: deductError } = await supabaseAdmin.rpc('deduct_credits', {
           p_user_id: userId,
           p_amount: creditCost,
@@ -408,6 +410,8 @@ serve(async (req) => {
           })
         }
         console.log(`[ai-chat] Deducted ${creditCost} credits from user ${userId}`)
+      } else if (!shouldCharge) {
+        creditCost = 0 // explore 阶段不扣分，确保出错时也不退款
       }
     }
 
