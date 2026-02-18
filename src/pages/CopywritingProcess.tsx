@@ -4,7 +4,7 @@ const CopywritingProcess = () => (
   <CopywritingGeneratorPage
     title="晒过程文案"
     subtitle="展示制作、成长过程的幕后内容"
-    iconSrc="/icons/ai-copywriting-custom.webp"
+    iconSrc="/icons/copywriting-process.png"
     agentId="process"
     placeholderText="把你想展示的事件/过程发给我..."
     featureCode="ai_copywriting"

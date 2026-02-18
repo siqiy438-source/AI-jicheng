@@ -4,7 +4,7 @@ const CopywritingOpinion = () => (
   <CopywritingGeneratorPage
     title="讲观点文案"
     subtitle="输出有态度、有说服力的观点内容"
-    iconSrc="/icons/ai-copywriting-custom.webp"
+    iconSrc="/icons/copywriting-opinion.png"
     agentId="opinion"
     placeholderText="把你想讲的选题/观点发给我..."
     featureCode="ai_copywriting"

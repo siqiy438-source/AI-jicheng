@@ -4,7 +4,7 @@ const CopywritingStory = () => (
   <CopywritingGeneratorPage
     title="讲故事文案"
     subtitle="用叙事手法包装产品、品牌或经历"
-    iconSrc="/icons/ai-copywriting-custom.webp"
+    iconSrc="/icons/copywriting-story.png"
     agentId="story"
     placeholderText="把你想讲的故事/经历发给我..."
     featureCode="ai_copywriting"

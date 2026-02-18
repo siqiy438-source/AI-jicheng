@@ -6,7 +6,6 @@ import {
   Send,
   Copy,
   Check,
-  Bot,
   Sparkles,
   Paperclip,
   X,
@@ -333,16 +332,16 @@ export const CopywritingGeneratorPage = ({
             >
               <div
                 className={cn(
-                  "w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0",
+                  "w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden",
                   message.role === "user"
                     ? "bg-gradient-to-br from-orange-500 to-orange-600"
-                    : "bg-gradient-to-br from-purple-100 to-purple-50"
+                    : ""
                 )}
               >
                 {message.role === "user" ? (
                   <span className="text-white text-xs md:text-sm font-medium">我</span>
                 ) : (
-                  <Bot className="w-4 h-4 md:w-5 md:h-5 text-purple-600" />
+                  <img src="/icons/copywriting-bot-avatar.png" alt="AI" className="w-full h-full object-cover" />
                 )}
               </div>
 

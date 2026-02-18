@@ -4,7 +4,7 @@ const CopywritingStoreVisit = () => (
   <CopywritingGeneratorPage
     title="到店理由文案"
     subtitle="提炼吸引顾客到店消费的核心理由"
-    iconSrc="/icons/ai-copywriting-custom.webp"
+    iconSrc="/icons/copywriting-store-visit.png"
     agentId="store_visit"
     placeholderText="说说你的店铺类型和真实优势..."
     featureCode="ai_copywriting"

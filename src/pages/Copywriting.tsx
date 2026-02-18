@@ -13,37 +13,37 @@ const tools: ToolItem[] = [
   {
     title: "讲观点文案",
     description: "输出有态度、有说服力的观点内容。",
-    iconSrc: "/icons/ai-copywriting-custom.webp",
+    iconSrc: "/icons/copywriting-opinion.png",
     to: "/copywriting-opinion",
   },
   {
     title: "教知识文案",
     description: "把专业知识转化为通俗易懂的科普内容。",
-    iconSrc: "/icons/ai-copywriting-custom.webp",
+    iconSrc: "/icons/copywriting-knowledge.png",
     to: "/copywriting-knowledge",
   },
   {
     title: "晒过程文案",
     description: "展示制作、成长过程的幕后内容。",
-    iconSrc: "/icons/ai-copywriting-custom.webp",
+    iconSrc: "/icons/copywriting-process.png",
     to: "/copywriting-process",
   },
   {
     title: "讲故事文案",
     description: "用叙事手法包装产品、品牌或经历。",
-    iconSrc: "/icons/ai-copywriting-custom.webp",
+    iconSrc: "/icons/copywriting-story.png",
     to: "/copywriting-story",
   },
   {
     title: "选题引擎",
     description: "批量生成有吸引力的内容选题灵感。",
-    iconSrc: "/icons/ai-copywriting-custom.webp",
+    iconSrc: "/icons/copywriting-topic.png",
     to: "/copywriting-topic",
   },
   {
     title: "到店理由文案",
     description: "提炼吸引顾客到店消费的核心理由。",
-    iconSrc: "/icons/ai-copywriting-custom.webp",
+    iconSrc: "/icons/copywriting-store-visit.png",
     to: "/copywriting-store-visit",
   },
 ];

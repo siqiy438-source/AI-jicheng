@@ -4,7 +4,7 @@ const CopywritingKnowledge = () => (
   <CopywritingGeneratorPage
     title="教知识文案"
     subtitle="把专业知识转化为通俗易懂的科普内容"
-    iconSrc="/icons/ai-copywriting-custom.webp"
+    iconSrc="/icons/copywriting-knowledge.png"
     agentId="knowledge"
     placeholderText="把你想教的知识点发给我..."
     featureCode="ai_copywriting"
