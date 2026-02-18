@@ -6,9 +6,9 @@ const CopywritingStoreVisit = () => (
     subtitle="提炼吸引顾客到店消费的核心理由"
     iconSrc="/icons/ai-copywriting-custom.webp"
     agentId="store_visit"
-    placeholderText="说说你的店铺和想吸引的顾客..."
+    placeholderText="说说你的店铺类型和真实优势..."
     featureCode="ai_copywriting"
-    welcomeMessage="你好！我是到店理由脚本生成器，专门帮实体店设计引流内容。告诉我你的店铺类型、位置和 3-5 个真实优势，我来帮你写出让顾客想来的文案。"
+    welcomeMessage="你好！我是到店理由脚本生成器。在帮你写引流内容之前，我想先了解你的店——你是开什么店的？在哪里？有什么真实的优势？这样我才能帮你设计出让顾客真正想来的理由。"
   />
 );
 
