@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -79,7 +79,6 @@ export const CopywritingGeneratorPage = ({
   const [currentPhase, setCurrentPhase] = useState<'explore' | 'generate'>('explore');
   const [attachedFiles, setAttachedFiles] = useState<Array<{ name: string; type: 'image' | 'text'; dataUrl: string; preview?: string }>>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const regenerateRef = useRef(false);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -228,19 +227,79 @@ export const CopywritingGeneratorPage = ({
     }
   };
 
-  // 自动触发重新生成
-  useEffect(() => {
-    if (regenerateRef.current && prompt === "请重新生成" && !isGenerating) {
-      regenerateRef.current = false;
-      handleSend();
-    }
-  }, [prompt, handleSend, isGenerating]);
-
-  const handleRegenerate = () => {
+  // 重新生成：静默删除最后一条 AI 回复，重新调用 API
+  const handleRegenerate = useCallback(async () => {
     if (isGenerating) return;
-    regenerateRef.current = true;
-    setPrompt("请重新生成");
-  };
+
+    // 找到最后一条 assistant 消息并移除
+    const withoutLast = [...messages];
+    for (let i = withoutLast.length - 1; i >= 0; i--) {
+      if (withoutLast[i].role === "assistant" && withoutLast[i].id !== "welcome") {
+        withoutLast.splice(i, 1);
+        break;
+      }
+    }
+    setMessages(withoutLast);
+    setIsGenerating(true);
+
+    const assistantMessageId = Date.now().toString();
+    const history: ChatMessage[] = withoutLast
+      .filter((m) => m.content.trim() && m.id !== "welcome")
+      .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
+
+    try {
+      let fullContent = "";
+      setMessages((prev) => [
+        ...prev,
+        { id: assistantMessageId, role: "assistant", content: "", timestamp: new Date() },
+      ]);
+
+      const regenPrompt = "请重新生成上一条内容，要求不同的表达方式和角度";
+      const callbacks = {
+        onStart: () => {},
+        onToken: (token: string) => {
+          fullContent += token;
+          setMessages((prev) =>
+            prev.map((m) => (m.id === assistantMessageId ? { ...m, content: fullContent } : m))
+          );
+        },
+        onComplete: (finalContent: string) => {
+          setMessages((prev) =>
+            prev.map((m) => (m.id === assistantMessageId ? { ...m, content: finalContent } : m))
+          );
+          setIsGenerating(false);
+          if (finalContent.includes('📋') && finalContent.includes('确认')) {
+            setCurrentPhase('generate');
+          }
+          if (currentPhase === 'generate') {
+            void refreshBalance();
+            if (finalContent.trim()) {
+              void saveTextWork({
+                title: `${title}：重新生成`,
+                type: "copywriting",
+                tool: `AI 文案-${title}`,
+                text: finalContent,
+                metadata: { agentId, prompt: regenPrompt },
+              }).catch((err) => console.error("自动保存文案失败", err));
+            }
+          }
+          setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+        },
+        onError: (err: Error) => {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantMessageId ? { ...m, content: `⚠️ 生成失败: ${err.message}` } : m
+            )
+          );
+          setIsGenerating(false);
+        },
+      };
+
+      await continueConversation(history, regenPrompt, agentId, callbacks, featureCode, currentPhase);
+    } catch {
+      setIsGenerating(false);
+    }
+  }, [messages, isGenerating, agentId, featureCode, currentPhase, refreshBalance, title]);
 
   return (
     <PageLayout className="py-4 md:py-8">
