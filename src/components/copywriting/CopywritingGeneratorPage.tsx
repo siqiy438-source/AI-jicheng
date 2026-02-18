@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -12,6 +12,7 @@ import {
   X,
   FileText,
   Image as ImageIcon,
+  RefreshCw,
 } from "lucide-react";
 import { PageLayout } from "@/components/PageLayout";
 import { GeneratingLoader } from "@/components/GeneratingLoader";
@@ -78,6 +79,7 @@ export const CopywritingGeneratorPage = ({
   const [currentPhase, setCurrentPhase] = useState<'explore' | 'generate'>('explore');
   const [attachedFiles, setAttachedFiles] = useState<Array<{ name: string; type: 'image' | 'text'; dataUrl: string; preview?: string }>>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const regenerateRef = useRef(false);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -226,6 +228,20 @@ export const CopywritingGeneratorPage = ({
     }
   };
 
+  // 自动触发重新生成
+  useEffect(() => {
+    if (regenerateRef.current && prompt === "请重新生成" && !isGenerating) {
+      regenerateRef.current = false;
+      handleSend();
+    }
+  }, [prompt, handleSend, isGenerating]);
+
+  const handleRegenerate = () => {
+    if (isGenerating) return;
+    regenerateRef.current = true;
+    setPrompt("请重新生成");
+  };
+
   return (
     <PageLayout className="py-4 md:py-8">
       {/* 返回按钮 - 仅桌面端 */}
@@ -309,7 +325,14 @@ export const CopywritingGeneratorPage = ({
                   )}
 
                   {message.role === "assistant" && message.content && !isGenerating && (
-                    <div className="flex justify-end mt-3 pt-3 border-t border-border/50">
+                    <div className="flex justify-end gap-1 mt-3 pt-3 border-t border-border/50">
+                      <button
+                        onClick={handleRegenerate}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-muted-foreground hover:bg-secondary/50 transition-colors"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        <span>重新生成</span>
+                      </button>
                       <button
                         onClick={() => copyContent(message.id, message.content)}
                         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-muted-foreground hover:bg-secondary/50 transition-colors"
