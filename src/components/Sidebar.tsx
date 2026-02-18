@@ -126,6 +126,15 @@ export const Sidebar = () => {
     "/ai-ppt",
     "/generative-report",
   ].includes(location.pathname);
+  const isCopywritingActive = [
+    "/copywriting",
+    "/copywriting-opinion",
+    "/copywriting-knowledge",
+    "/copywriting-process",
+    "/copywriting-story",
+    "/copywriting-topic",
+    "/copywriting-store-visit",
+  ].includes(location.pathname);
 
   // 移动端不渲染 Sidebar
   if (isMobile) {
@@ -225,9 +234,9 @@ export const Sidebar = () => {
           <NavItem
             icon={<FileText className="w-[18px] h-[18px]" />}
             label="文案工具"
-            active={isActive("/ai-copywriting")}
+            active={isCopywritingActive}
             collapsed={collapsed}
-            to="/ai-copywriting"
+            to="/copywriting"
           />
         </NavSection>
 

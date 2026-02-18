@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CreditsProvider } from "@/contexts/CreditsContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -15,6 +15,13 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const AIDrawing = lazy(() => import("./pages/AIDrawing"));
 const AIPPT = lazy(() => import("./pages/AIPPT"));
 const AICopywriting = lazy(() => import("./pages/AICopywriting"));
+const Copywriting = lazy(() => import("./pages/Copywriting"));
+const CopywritingOpinion = lazy(() => import("./pages/CopywritingOpinion"));
+const CopywritingKnowledge = lazy(() => import("./pages/CopywritingKnowledge"));
+const CopywritingProcess = lazy(() => import("./pages/CopywritingProcess"));
+const CopywritingStory = lazy(() => import("./pages/CopywritingStory"));
+const CopywritingTopic = lazy(() => import("./pages/CopywritingTopic"));
+const CopywritingStoreVisit = lazy(() => import("./pages/CopywritingStoreVisit"));
 const MyWorks = lazy(() => import("./pages/MyWorks"));
 const MyMaterials = lazy(() => import("./pages/MyMaterials"));
 const MoreFeatures = lazy(() => import("./pages/MoreFeatures"));
@@ -53,7 +60,14 @@ const App = () => (
               <Route path="/ai-display" element={<ProtectedRoute><AIDisplay /></ProtectedRoute>} />
               <Route path="/ai-hangoutfit" element={<ProtectedRoute><AIOneClickOutfit /></ProtectedRoute>} />
               <Route path="/ai-ppt" element={<ProtectedRoute><AIPPT /></ProtectedRoute>} />
-              <Route path="/ai-copywriting" element={<ProtectedRoute><AICopywriting /></ProtectedRoute>} />
+              <Route path="/ai-copywriting" element={<Navigate to="/copywriting" replace />} />
+              <Route path="/copywriting" element={<ProtectedRoute><Copywriting /></ProtectedRoute>} />
+              <Route path="/copywriting-opinion" element={<ProtectedRoute><CopywritingOpinion /></ProtectedRoute>} />
+              <Route path="/copywriting-knowledge" element={<ProtectedRoute><CopywritingKnowledge /></ProtectedRoute>} />
+              <Route path="/copywriting-process" element={<ProtectedRoute><CopywritingProcess /></ProtectedRoute>} />
+              <Route path="/copywriting-story" element={<ProtectedRoute><CopywritingStory /></ProtectedRoute>} />
+              <Route path="/copywriting-topic" element={<ProtectedRoute><CopywritingTopic /></ProtectedRoute>} />
+              <Route path="/copywriting-store-visit" element={<ProtectedRoute><CopywritingStoreVisit /></ProtectedRoute>} />
               <Route path="/clothing" element={<ProtectedRoute><Clothing /></ProtectedRoute>} />
               <Route path="/fashion-outfit" element={<ProtectedRoute><FashionOutfit /></ProtectedRoute>} />
               <Route path="/fashion-model-outfit" element={<ProtectedRoute><FashionModelOutfit /></ProtectedRoute>} />

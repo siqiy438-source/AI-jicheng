@@ -4,6 +4,7 @@ import {
   Palette,
   User,
   Shirt,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -69,7 +70,7 @@ export const MobileNav = () => {
     );
   };
 
-  // 移动端核心导航项（保留 4 个入口）
+  // 移动端核心导航项（5 个入口）
   const navItems = [
     { icon: <LayoutDashboard className="w-5 h-5" />, label: "首页", to: "/" },
     {
@@ -81,8 +82,21 @@ export const MobileNav = () => {
         "/ai-drawing",
         "/ai-ppt",
         "/generative-report",
-        "/ai-copywriting",
         "/more-features",
+      ],
+    },
+    {
+      icon: <FileText className="w-5 h-5" />,
+      label: "文案",
+      to: "/copywriting",
+      matchPaths: [
+        "/copywriting",
+        "/copywriting-opinion",
+        "/copywriting-knowledge",
+        "/copywriting-process",
+        "/copywriting-story",
+        "/copywriting-topic",
+        "/copywriting-store-visit",
       ],
     },
     {
