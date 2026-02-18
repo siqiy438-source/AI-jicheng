@@ -8,6 +8,7 @@ const CopywritingKnowledge = () => (
     agentId="knowledge"
     placeholderText="说说你想科普什么知识..."
     featureCode="ai_copywriting"
+    welcomeMessage="你好！我是教知识脚本生成器，擅长把专业知识变成用户爱看、易懂、愿意收藏的科普内容。告诉我你想教什么知识，目标人群是谁？"
   />
 );
 

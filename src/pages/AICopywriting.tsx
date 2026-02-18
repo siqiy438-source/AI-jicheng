@@ -357,9 +357,20 @@ const AICopywriting = () => {
                   )}
                 >
                   {message.role === "assistant" ? (
-                    <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground">
+                    message.content ? (
+                    <div className="prose max-w-none dark:prose-invert prose-headings:text-foreground prose-headings:font-semibold prose-h3:text-base prose-h4:text-sm prose-p:text-foreground prose-p:leading-relaxed prose-p:my-2.5 prose-strong:text-foreground prose-ul:text-foreground prose-ul:my-2 prose-ol:text-foreground prose-ol:my-2 prose-li:text-foreground prose-li:my-0.5 text-sm font-medium leading-relaxed">
                       <ReactMarkdown>{message.content}</ReactMarkdown>
                     </div>
+                    ) : isGenerating ? (
+                    <div className="flex items-center gap-2 py-1">
+                      <span className="flex gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </span>
+                      <span className="text-sm text-muted-foreground">AI 正在思考中...</span>
+                    </div>
+                    ) : null
                   ) : (
                     <div className="whitespace-pre-wrap text-sm leading-relaxed">
                       {message.content}
@@ -367,7 +378,7 @@ const AICopywriting = () => {
                   )}
 
                   {/* AI 回复的操作按钮 */}
-                  {message.role === "assistant" && (
+                  {message.role === "assistant" && message.content && !isGenerating && (
                     <div className="flex justify-end mt-3 pt-3 border-t border-border/50">
                       <button
                         onClick={() => copyContent(message.id, message.content)}
@@ -391,18 +402,6 @@ const AICopywriting = () => {
               </div>
             </div>
           ))}
-
-          {/* 生成中状态 */}
-          {isGenerating && (
-            <div className="flex gap-3 md:gap-4">
-              <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center flex-shrink-0">
-                <Bot className="w-4 h-4 md:w-5 md:h-5 text-purple-600" />
-              </div>
-              <div className="glass-card rounded-xl md:rounded-2xl px-3 py-2 md:px-4 md:py-3">
-                <GeneratingLoader size="compact" message="正在生成文案..." />
-              </div>
-            </div>
-          )}
 
           <div ref={messagesEndRef} />
         </div>
