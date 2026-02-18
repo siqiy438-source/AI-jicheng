@@ -6,9 +6,9 @@ const CopywritingProcess = () => (
     subtitle="展示制作、成长过程的幕后内容"
     iconSrc="/icons/ai-copywriting-custom.webp"
     agentId="process"
-    placeholderText="说说你的行业和想展示的过程..."
+    placeholderText="把你想展示的事件/过程发给我..."
     featureCode="ai_copywriting"
-    welcomeMessage="你好！我是晒过程脚本生成器。在帮你写脚本之前，我想先了解你的情况——你是做什么行业的？想展示什么过程？这样我才能帮你把幕后拆解成有看点的内容。"
+    welcomeMessage="你好！把你想展示的事件或过程发给我，我来帮你写成一篇完整的短视频脚本。比如：'带大家看看我们后厨'、'收到差评后怎么处理的'、'一件衣服上架要经过哪些步骤'。"
   />
 );
 
