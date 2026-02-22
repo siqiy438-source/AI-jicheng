@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -45,6 +45,205 @@ interface CopywritingGeneratorPageProps {
   featureCode: string;
   welcomeMessage?: string;
 }
+
+interface QuestionOption {
+  id: string;
+  label: string;
+  text: string;
+}
+
+interface ParsedQuestion {
+  id: string;
+  title: string;
+  options: QuestionOption[];
+}
+
+const QUESTION_REGEX = /^Q(\d+)\s*[｜|]\s*(.+)$/i;
+const LETTER_OPTION_REGEX = /^(?:[-*•]\s*)?([A-Z])(?:[.、:：)）])\s*(.+)$/;
+const NUMBER_OPTION_REGEX = /^(?:[-*•]\s*)?([1-9]\d?)(?:[.、:：)）])\s*(.+)$/;
+const INLINE_OPTIONS_REGEX = /([A-Z])\.\s*([^A-Z]+?)(?=(?:\s+[A-Z]\.)|$)/g;
+
+const stripMarkdown = (line: string) =>
+  line
+    .replace(/\*\*/g, "")
+    .replace(/__/g, "")
+    .replace(/`/g, "")
+    .trim();
+
+const normalizeOptionText = (text: string) =>
+  text
+    .replace(/\s+/g, " ")
+    .replace(/^[：:]/, "")
+    .trim();
+
+const isOptionDescriptionLine = (line: string) => {
+  const cleaned = stripMarkdown(line);
+  return cleaned.startsWith("适合：") || cleaned.startsWith("示例：") || cleaned.startsWith("这是一种叙事技巧");
+};
+
+const parseStandaloneOptionLine = (line: string): { label: string; text: string } | null => {
+  const alphaMatch = line.match(LETTER_OPTION_REGEX);
+  if (alphaMatch) {
+    return { label: alphaMatch[1], text: normalizeOptionText(alphaMatch[2]) };
+  }
+
+  const numberMatch = line.match(NUMBER_OPTION_REGEX);
+  if (numberMatch) {
+    return { label: numberMatch[1], text: normalizeOptionText(numberMatch[2]) };
+  }
+
+  return null;
+};
+
+const parseQuestionsFromContent = (content: string): ParsedQuestion[] => {
+  const lines = content.split(/\r?\n/);
+  const questions: ParsedQuestion[] = [];
+  let currentQuestion: ParsedQuestion | null = null;
+
+  const commitQuestion = () => {
+    if (!currentQuestion) return;
+    if (currentQuestion.options.length > 0) {
+      questions.push(currentQuestion);
+    }
+    currentQuestion = null;
+  };
+
+  for (const rawLine of lines) {
+    const cleanedLine = stripMarkdown(rawLine);
+    if (!cleanedLine || cleanedLine === "---") continue;
+
+    const questionMatch = cleanedLine.match(QUESTION_REGEX);
+    if (questionMatch) {
+      commitQuestion();
+      const questionIndex = questionMatch[1];
+      const questionTitle = questionMatch[2].trim();
+      currentQuestion = {
+        id: `Q${questionIndex}`,
+        title: questionTitle,
+        options: [],
+      };
+      continue;
+    }
+
+    if (!currentQuestion || isOptionDescriptionLine(cleanedLine)) continue;
+
+    INLINE_OPTIONS_REGEX.lastIndex = 0;
+    const inlineOptions = Array.from(cleanedLine.matchAll(INLINE_OPTIONS_REGEX));
+    if (inlineOptions.length >= 2) {
+      for (const match of inlineOptions) {
+        const label = match[1];
+        const text = normalizeOptionText(match[2]);
+        currentQuestion.options.push({
+          id: `${currentQuestion.id}_${label}`,
+          label,
+          text,
+        });
+      }
+      continue;
+    }
+
+    const optionMatch = cleanedLine.match(LETTER_OPTION_REGEX);
+    if (optionMatch) {
+      const label = optionMatch[1];
+      const text = normalizeOptionText(optionMatch[2]);
+      currentQuestion.options.push({
+        id: `${currentQuestion.id}_${label}`,
+        label,
+        text,
+      });
+    }
+  }
+
+  commitQuestion();
+
+  const normalizedQuestions = questions.map((question) => {
+    const uniqueOptions = question.options.filter(
+      (option, idx, arr) => arr.findIndex((it) => it.id === option.id) === idx
+    );
+    return { ...question, options: uniqueOptions };
+  });
+
+  if (normalizedQuestions.length > 0) {
+    return normalizedQuestions;
+  }
+
+  const standaloneQuestions: ParsedQuestion[] = [];
+  let currentStandaloneQuestion: ParsedQuestion | null = null;
+  let titleCandidate = "";
+
+  const commitStandaloneQuestion = () => {
+    if (!currentStandaloneQuestion) return;
+    const dedupedOptions = currentStandaloneQuestion.options.filter(
+      (option, idx, arr) =>
+        arr.findIndex((it) => it.label === option.label && it.text === option.text) === idx
+    );
+    const hasEnoughOptions = dedupedOptions.length >= 2;
+    if (hasEnoughOptions) {
+      standaloneQuestions.push({
+        ...currentStandaloneQuestion,
+        options: dedupedOptions,
+      });
+    }
+    currentStandaloneQuestion = null;
+  };
+
+  const startStandaloneQuestion = () => {
+    const nextIndex = standaloneQuestions.length + 1;
+    currentStandaloneQuestion = {
+      id: `S${nextIndex}`,
+      title: titleCandidate || "请选择",
+      options: [],
+    };
+  };
+
+  for (const rawLine of lines) {
+    const cleanedLine = stripMarkdown(rawLine);
+    if (!cleanedLine || cleanedLine === "---") {
+      commitStandaloneQuestion();
+      continue;
+    }
+
+    const option = parseStandaloneOptionLine(cleanedLine);
+    if (option) {
+      if (!currentStandaloneQuestion) {
+        startStandaloneQuestion();
+      } else {
+        const labelReset =
+          (option.label === "A" || option.label === "1") && currentStandaloneQuestion.options.length >= 2;
+        if (labelReset) {
+          commitStandaloneQuestion();
+          startStandaloneQuestion();
+        }
+      }
+      currentStandaloneQuestion!.options.push({
+        id: `${currentStandaloneQuestion!.id}_${option.label}_${currentStandaloneQuestion!.options.length + 1}`,
+        label: option.label,
+        text: option.text,
+      });
+      continue;
+    }
+
+    if (currentStandaloneQuestion && currentStandaloneQuestion.options.length > 0) {
+      const isHardBreakLine = /^([Qq]\d+|Step\s*\d+|📋|确认|⚠️|##|###)/.test(cleanedLine);
+      if (isHardBreakLine) {
+        commitStandaloneQuestion();
+        titleCandidate = cleanedLine;
+      } else {
+        const lastOption = currentStandaloneQuestion.options[currentStandaloneQuestion.options.length - 1];
+        lastOption.text = `${lastOption.text} ${normalizeOptionText(cleanedLine)}`.trim();
+      }
+      continue;
+    }
+
+    titleCandidate = cleanedLine;
+  }
+
+  commitStandaloneQuestion();
+  return standaloneQuestions;
+};
+
+const hasConfirmationPrompt = (content: string) =>
+  /确认无误[？?]/.test(content) && /确认后/.test(content);
 
 const DOCX_MIME_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 const WORD_XML_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
@@ -132,7 +331,20 @@ export const CopywritingGeneratorPage = ({
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [currentPhase, setCurrentPhase] = useState<'explore' | 'generate'>('explore');
   const [attachedFiles, setAttachedFiles] = useState<Array<{ name: string; type: 'image' | 'text'; dataUrl: string; preview?: string }>>([]);
+  const [selectedOptionsByMessage, setSelectedOptionsByMessage] = useState<Record<string, Record<string, string[]>>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const questionMapByMessage = useMemo(() => {
+    const map: Record<string, ParsedQuestion[]> = {};
+    for (const message of messages) {
+      if (message.role !== "assistant" || !message.content) continue;
+      const parsed = parseQuestionsFromContent(message.content);
+      if (parsed.length > 0) {
+        map[message.id] = parsed;
+      }
+    }
+    return map;
+  }, [messages]);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -196,23 +408,26 @@ export const CopywritingGeneratorPage = ({
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handleSend = useCallback(async () => {
-    if ((!prompt.trim() && attachedFiles.length === 0) || isGenerating) return;
+  const handleSend = useCallback(async (manualPrompt?: string) => {
+    const promptText = (manualPrompt ?? prompt).trim();
+    const shouldUseAttachedFiles = manualPrompt === undefined;
+    const filesForSend = shouldUseAttachedFiles ? attachedFiles : [];
+    if ((!promptText && filesForSend.length === 0) || isGenerating) return;
     // 仅在生成阶段检查积分
     if (currentPhase === 'generate' && !checkCredits(featureCode)) return;
 
     // 构建发送内容：文本文件内容追加到 prompt
-    const textFileContents = attachedFiles
+    const textFileContents = filesForSend
       .filter(f => f.type === 'text')
       .map(f => `【附件：${f.name}】\n${f.dataUrl}`)
       .join('\n\n');
-    const imageDataUrls = attachedFiles.filter(f => f.type === 'image').map(f => f.dataUrl);
-    const finalPrompt = textFileContents ? `${prompt.trim()}\n\n${textFileContents}` : prompt.trim();
+    const imageDataUrls = filesForSend.filter(f => f.type === 'image').map(f => f.dataUrl);
+    const finalPrompt = textFileContents ? `${promptText}\n\n${textFileContents}` : promptText;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
-      content: prompt,
+      content: promptText,
       timestamp: new Date(),
       imageUrls: imageDataUrls.length > 0 ? imageDataUrls : undefined,
     };
@@ -220,7 +435,9 @@ export const CopywritingGeneratorPage = ({
     setMessages((prev) => [...prev, userMessage]);
     const currentPrompt = finalPrompt;
     setPrompt("");
-    setAttachedFiles([]);
+    if (shouldUseAttachedFiles) {
+      setAttachedFiles([]);
+    }
     setIsGenerating(true);
 
     const assistantMessageId = (Date.now() + 1).toString();
@@ -306,10 +523,61 @@ export const CopywritingGeneratorPage = ({
     }
   }, [prompt, messages, isGenerating, agentId, featureCode, checkCredits, refreshBalance, title, currentPhase, attachedFiles]);
 
+  const toggleQuestionOption = (messageId: string, questionId: string, optionId: string) => {
+    setSelectedOptionsByMessage((prev) => {
+      const selectedInMessage = prev[messageId] ?? {};
+      const selectedInQuestion = selectedInMessage[questionId] ?? [];
+      const alreadySelected = selectedInQuestion.includes(optionId);
+      const nextQuestionSelection = alreadySelected
+        ? selectedInQuestion.filter((id) => id !== optionId)
+        : [...selectedInQuestion, optionId];
+
+      return {
+        ...prev,
+        [messageId]: {
+          ...selectedInMessage,
+          [questionId]: nextQuestionSelection,
+        },
+      };
+    });
+  };
+
+  const buildSelectionAnswer = (messageId: string, questions: ParsedQuestion[]) => {
+    const selectedInMessage = selectedOptionsByMessage[messageId] ?? {};
+
+    const lines = questions
+      .map((question) => {
+        const selectedIds = selectedInMessage[question.id] ?? [];
+        if (selectedIds.length === 0) return null;
+
+        const selected = question.options.filter((option) => selectedIds.includes(option.id));
+        if (selected.length === 0) return null;
+
+        const labels = selected.map((option) => option.label).join("、");
+        const values = selected.map((option) => option.text).join("；");
+        const prefix = /^Q\d+$/i.test(question.id) ? `${question.id}: ` : "选择: ";
+        return `${prefix}${labels}（${values}）`;
+      })
+      .filter(Boolean) as string[];
+
+    return lines.join("\n");
+  };
+
+  const handleSendSelections = async (messageId: string, questions: ParsedQuestion[]) => {
+    const selectionAnswer = buildSelectionAnswer(messageId, questions);
+    if (!selectionAnswer) return;
+
+    await handleSend(selectionAnswer);
+    setSelectedOptionsByMessage((prev) => ({
+      ...prev,
+      [messageId]: {},
+    }));
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      void handleSend();
     }
   };
 
@@ -433,6 +701,10 @@ export const CopywritingGeneratorPage = ({
               </div>
 
               <div className={cn("flex-1 max-w-[85%] md:max-w-[80%]", message.role === "user" ? "flex flex-col items-end" : "")}>
+                {/*
+                  AI 问题场景下仅显示可点击选项，避免“原文题目 + 选项UI”重复展示
+                */}
+                {/**/}
                 <div
                   className={cn(
                     "rounded-xl md:rounded-2xl px-3 py-2 md:px-4 md:py-3",
@@ -441,11 +713,19 @@ export const CopywritingGeneratorPage = ({
                       : "glass-card"
                   )}
                 >
+                  {(() => {
+                    const hasInteractiveQuestions =
+                      message.role === "assistant" && questionMapByMessage[message.id]?.length > 0;
+
+                    return (
+                      <>
                   {message.role === "assistant" ? (
                     message.content ? (
-                    <div className="prose max-w-none dark:prose-invert prose-headings:text-foreground prose-headings:font-bold prose-h2:text-lg prose-h2:mt-8 prose-h2:mb-3 prose-h3:text-base prose-h3:mt-6 prose-h3:mb-2 prose-h4:text-sm prose-p:text-foreground prose-p:leading-relaxed prose-p:my-3 prose-strong:text-foreground prose-ul:text-foreground prose-ul:my-2 prose-ol:text-foreground prose-ol:my-2 prose-li:text-foreground prose-li:my-0.5 prose-hr:my-6 prose-hr:border-border/50 text-sm leading-relaxed select-text">
-                      <ReactMarkdown>{message.content}</ReactMarkdown>
-                    </div>
+                    !hasInteractiveQuestions ? (
+                      <div className="prose max-w-none dark:prose-invert prose-headings:text-foreground prose-headings:font-bold prose-h2:text-lg prose-h2:mt-8 prose-h2:mb-3 prose-h3:text-base prose-h3:mt-6 prose-h3:mb-2 prose-h4:text-sm prose-p:text-foreground prose-p:leading-relaxed prose-p:my-3 prose-strong:text-foreground prose-ul:text-foreground prose-ul:my-2 prose-ol:text-foreground prose-ol:my-2 prose-li:text-foreground prose-li:my-0.5 prose-hr:my-6 prose-hr:border-border/50 text-sm leading-relaxed select-text">
+                        <ReactMarkdown>{message.content}</ReactMarkdown>
+                      </div>
+                    ) : null
                     ) : isGenerating ? (
                     <div className="flex items-center gap-2 py-1">
                       <span className="flex gap-1">
@@ -468,6 +748,87 @@ export const CopywritingGeneratorPage = ({
                       <div className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</div>
                     </div>
                   )}
+
+                  {message.role === "assistant" &&
+                    questionMapByMessage[message.id]?.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-border/50 space-y-4">
+                        <div className="text-xs text-muted-foreground">点击选择（支持多选）</div>
+                        {questionMapByMessage[message.id].map((question) => {
+                          const selectedInQuestion =
+                            selectedOptionsByMessage[message.id]?.[question.id] ?? [];
+                          return (
+                            <div key={question.id} className="space-y-2">
+                              <p className="text-sm font-semibold text-foreground">{question.id} | {question.title}</p>
+                              <div className="space-y-2">
+                                {question.options.map((option) => {
+                                  const isSelected = selectedInQuestion.includes(option.id);
+                                  return (
+                                    <button
+                                      key={option.id}
+                                      type="button"
+                                      onClick={() => toggleQuestionOption(message.id, question.id, option.id)}
+                                      className={cn(
+                                        "w-full text-left rounded-xl border px-3 py-2 text-sm transition-colors",
+                                        isSelected
+                                          ? "border-orange-500 bg-orange-50 text-orange-700"
+                                          : "border-border/70 bg-background/60 text-foreground hover:bg-secondary/40"
+                                      )}
+                                    >
+                                      <span className={cn("font-semibold mr-2", isSelected ? "text-orange-700" : "text-foreground")}>
+                                        {option.label}.
+                                      </span>
+                                      <span>{option.text}</span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
+                        <div className="flex justify-end">
+                          <button
+                            type="button"
+                            onClick={() => void handleSendSelections(message.id, questionMapByMessage[message.id])}
+                            disabled={!buildSelectionAnswer(message.id, questionMapByMessage[message.id]) || isGenerating}
+                            className={cn(
+                              "px-4 py-2 rounded-xl text-sm font-medium transition-colors",
+                              !buildSelectionAnswer(message.id, questionMapByMessage[message.id]) || isGenerating
+                                ? "bg-secondary/50 text-muted-foreground/60 cursor-not-allowed"
+                                : "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700"
+                            )}
+                          >
+                            发送所选答案
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                  {message.role === "assistant" &&
+                    (!questionMapByMessage[message.id] || questionMapByMessage[message.id].length === 0) &&
+                    hasConfirmationPrompt(message.content) && (
+                      <div className="mt-4 pt-4 border-t border-border/50">
+                        <div className="text-xs text-muted-foreground mb-2">点击选择</div>
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() => void handleSend("确认，无需调整，开始生成")}
+                            className="px-3 py-1.5 rounded-lg text-sm bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors"
+                          >
+                            确认并开始生成
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void handleSend("需要调整，我要修改选项")}
+                            className="px-3 py-1.5 rounded-lg text-sm bg-secondary/60 text-foreground border border-border hover:bg-secondary transition-colors"
+                          >
+                            需要调整
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                      </>
+                    );
+                  })()}
 
                   {message.role === "assistant" && message.content && !isGenerating && (
                     <div className="flex justify-end gap-1 mt-3 pt-3 border-t border-border/50">
@@ -558,7 +919,7 @@ export const CopywritingGeneratorPage = ({
             </button>
           </div>
           <button
-            onClick={handleSend}
+            onClick={() => void handleSend()}
             disabled={(!prompt.trim() && attachedFiles.length === 0) || isGenerating}
             className={cn(
               "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
