@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import { parseCreditsValue } from '@/lib/credits'
 
 interface CreditsContextType {
   balance: number | null
@@ -26,7 +27,7 @@ export function CreditsProvider({ children }: { children: ReactNode }) {
       .select('credits')
       .eq('id', user.id)
       .single()
-    setBalance(data?.credits ?? null)
+    setBalance(parseCreditsValue(data?.credits))
     setLoading(false)
   }, [user])
 
@@ -46,8 +47,8 @@ export function CreditsProvider({ children }: { children: ReactNode }) {
           filter: `id=eq.${user.id}`,
         },
         (payload) => {
-          const newCredits = (payload.new as { credits?: number })?.credits
-          if (newCredits !== undefined) {
+          const newCredits = parseCreditsValue((payload.new as { credits?: unknown })?.credits)
+          if (newCredits !== null) {
             setBalance(newCredits)
           }
         }

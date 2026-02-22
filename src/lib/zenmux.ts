@@ -3,7 +3,7 @@
  * API Key 安全存储在 Supabase Secrets 中
  */
 
-import { supabaseUrl, getAccessToken, forceRefreshToken } from './supabase';
+import { supabaseUrl, supabaseAnonKey, getAccessToken, forceRefreshToken } from './supabase';
 
 // 消息类型
 export interface ChatMessage {
@@ -40,10 +40,14 @@ export async function chatStream(
 
   try {
     // 获取当前用户的 access_token（用于认证）
-    const token = await getAccessToken();
+    let token = await getAccessToken();
+    if (!token) {
+      token = await forceRefreshToken();
+    }
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
+      apikey: supabaseAnonKey,
     };
 
     // 如果用户已登录，添加认证头
@@ -66,8 +70,8 @@ export async function chatStream(
     });
 
     if (!response.ok) {
-      // 401 时强制刷新 token 重试一次
-      if (response.status === 401 && token) {
+      // 401 时强制刷新 token 重试一次（即使首次没拿到 token 也重试）
+      if (response.status === 401) {
         const newToken = await forceRefreshToken();
         if (newToken) {
           headers['Authorization'] = `Bearer ${newToken}`;

@@ -332,6 +332,83 @@ function extractTextFromGeminiResponse(payload: Record<string, any>): string {
   return ''
 }
 
+function toPositiveNumber(value: unknown): number {
+  const parsed = typeof value === 'number' ? value : Number(value)
+  if (!Number.isFinite(parsed) || parsed <= 0) return 0
+  return parsed
+}
+
+function parseTotalTokens(payload: Record<string, any>): number {
+  const usageTotal = toPositiveNumber(payload?.usage?.total_tokens)
+  if (usageTotal > 0) return usageTotal
+  return toPositiveNumber(payload?.usageMetadata?.totalTokenCount)
+}
+
+function normalizeMessageContent(content: unknown): string {
+  if (typeof content === 'string') return content
+  if (!Array.isArray(content)) return ''
+  return content
+    .map((part) => {
+      if (typeof part === 'string') return part
+      if (typeof part?.text === 'string') return part.text
+      return ''
+    })
+    .join('')
+}
+
+function extractAssistantMessage(payload: Record<string, any>): string {
+  const choices = payload?.choices || []
+  if (!Array.isArray(choices) || choices.length === 0) return ''
+  const message = choices[0]?.message
+  return normalizeMessageContent(message?.content).trim()
+}
+
+function estimateTokensFromText(parts: Array<string | null | undefined>): number {
+  const totalChars = parts
+    .map((part) => (typeof part === 'string' ? part : ''))
+    .join('')
+    .trim()
+    .length
+  if (totalChars <= 0) return 0
+  return Math.max(1, Math.ceil(totalChars / 4))
+}
+
+function estimateImageTokens(images: unknown): number {
+  if (!Array.isArray(images)) return 0
+  return images.length * 256
+}
+
+function extractHistoryTexts(history: unknown): string[] {
+  if (!Array.isArray(history)) return []
+  return history
+    .map((item) => normalizeMessageContent((item as Record<string, unknown>)?.content))
+    .filter((text) => text.trim().length > 0)
+}
+
+function calculateTokenCreditCost(totalTokens: number, tokenCostPerK: number, multiplier: number): number {
+  if (!Number.isFinite(totalTokens) || totalTokens <= 0) return 0
+  const raw = (totalTokens / 1000) * tokenCostPerK * multiplier
+  const rounded = Number(raw.toFixed(2))
+  if (rounded <= 0 && raw > 0) return 0.01
+  return rounded
+}
+
+function createSseResponse(content: string): Response {
+  const chunks: string[] = []
+  if (content) {
+    chunks.push(`data: ${JSON.stringify({ choices: [{ delta: { content } }] })}\n\n`)
+  }
+  chunks.push('data: [DONE]\n\n')
+  return new Response(chunks.join(''), {
+    headers: {
+      ...corsHeaders,
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+    },
+  })
+}
+
 serve(async (req) => {
   // 处理 CORS preflight
   if (req.method === 'OPTIONS') {
@@ -341,12 +418,16 @@ serve(async (req) => {
   let supabaseAdmin: ReturnType<typeof createClient> | null = null
   let userId: string | null = null
   let creditCost = 0
+  let savedFeatureCode: string | null = null
+  let tokenCreditsCharged = 0
 
   try {
     // 获取环境变量中的 API Key（BLTCY 文字 API）
     const TEXT_API_KEY = Deno.env.get('BLTCY_TEXT_API_KEY')
     const TEXT_BASE_URL = (Deno.env.get('BLTCY_TEXT_BASE_URL') || 'https://api.bltcy.ai').replace(/\/$/, '')
     const TEXT_MODEL = Deno.env.get('BLTCY_TEXT_MODEL') || 'claude-sonnet-4-5-20250929'
+    const TEXT_TOKEN_COST_PER_K = toPositiveNumber(Deno.env.get('TEXT_TOKEN_COST_PER_K') || '0.0024') || 0.0024
+    const TEXT_TOKEN_MULTIPLIER = toPositiveNumber(Deno.env.get('TEXT_TOKEN_MULTIPLIER') || '6.5') || 6.5
 
     // 生成式报告独立 API（仅使用报告专用 Key，避免误用图像 Key）
     const REPORT_API_KEY =
@@ -361,28 +442,32 @@ serve(async (req) => {
 
     // 解析请求
     const { prompt, agentId, history, stream = true, mode, images, feature_code, phase } = await req.json()
-    // 保存 feature_code 到外层作用域，供 catch 块退款使用
-    let savedFeatureCode = feature_code
+    savedFeatureCode = feature_code || null
 
     if (!prompt) {
       throw new Error('prompt is required')
     }
 
-    // ========== 积分扣减 ==========
-    const CREDIT_COSTS: Record<string, number> = {
-      ai_copywriting: 20,
-      ai_display_standard: 50,
-      ai_report_page: 40,
-      ai_outfit_recommend: 20,
-      ai_fabric_analysis: 10,
-    }
+    // ========== 积分计费 ==========
+    const FIXED_CREDIT_COSTS: Record<string, number> = {}
+    const TOKEN_BILLED_FEATURES = new Set([
+      'ai_copywriting',
+      'ai_display_analysis',
+      'ai_report_page',
+      'ai_outfit_recommend',
+      'ai_fabric_analysis',
+    ])
+    const shouldChargeFixedByPhase = !phase || phase === 'generate'
+    const fixedCreditCost = shouldChargeFixedByPhase ? (FIXED_CREDIT_COSTS[feature_code] || 0) : 0
+    const isTokenBilledFeature = TOKEN_BILLED_FEATURES.has(feature_code || '')
+    const needsCreditAuth = fixedCreditCost > 0 || isTokenBilledFeature
 
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
     const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
     const authHeader = req.headers.get('Authorization')
     const token = authHeader?.replace('Bearer ', '')
 
-    if (SUPABASE_URL && SUPABASE_SERVICE_KEY && token) {
+    if (needsCreditAuth && SUPABASE_URL && SUPABASE_SERVICE_KEY && token) {
       supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
       const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
       if (authError || !user) {
@@ -391,28 +476,109 @@ serve(async (req) => {
         })
       }
       userId = user.id
-      creditCost = CREDIT_COSTS[feature_code] || 0
-
-      // 共创模式：explore 阶段不扣积分，仅 generate 阶段扣积分
-      const shouldCharge = !phase || phase === 'generate'
-      if (creditCost > 0 && shouldCharge) {
+      if (fixedCreditCost > 0) {
         const { data: deductResult, error: deductError } = await supabaseAdmin.rpc('deduct_credits', {
           p_user_id: userId,
-          p_amount: creditCost,
+          p_amount: fixedCreditCost.toFixed(2),
           p_description: feature_code || 'ai_chat',
         })
         if (deductError || !deductResult?.success) {
+          const currentBalance = Number(deductResult?.balance || 0).toFixed(2)
           const errMsg = deductResult?.error === 'INSUFFICIENT_BALANCE'
-            ? `积分不足，需要 ${creditCost} 积分，当前余额 ${deductResult?.balance || 0}`
+            ? `积分不足，需要 ${fixedCreditCost.toFixed(2)} 积分，当前余额 ${currentBalance}`
             : '积分扣减失败'
           return new Response(JSON.stringify({ error: errMsg }), {
             status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           })
         }
-        console.log(`[ai-chat] Deducted ${creditCost} credits from user ${userId}`)
-      } else if (!shouldCharge) {
-        creditCost = 0 // explore 阶段不扣分，确保出错时也不退款
+        creditCost = fixedCreditCost
+        console.log(`[ai-chat] Deducted ${fixedCreditCost.toFixed(2)} credits from user ${userId}`)
       }
+    }
+
+    if (needsCreditAuth && !userId) {
+      return new Response(JSON.stringify({ error: '请先登录后再使用该功能' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    // token 计费：提问即实时预扣（基于输入 token 估算）
+    if (isTokenBilledFeature && userId && supabaseAdmin && feature_code) {
+      const estimatedInputTokens =
+        estimateTokensFromText([prompt, ...extractHistoryTexts(history)]) + estimateImageTokens(images)
+      const upfrontCredits = calculateTokenCreditCost(
+        estimatedInputTokens,
+        TEXT_TOKEN_COST_PER_K,
+        TEXT_TOKEN_MULTIPLIER,
+      )
+
+      if (upfrontCredits > 0) {
+        const { data: deductResult, error: deductError } = await supabaseAdmin.rpc('deduct_credits', {
+          p_user_id: userId,
+          p_amount: upfrontCredits.toFixed(2),
+          p_description: `${feature_code}-实时预扣`,
+        })
+        if (deductError || !deductResult?.success) {
+          const currentBalance = Number(deductResult?.balance || 0).toFixed(2)
+          const errMsg = deductResult?.error === 'INSUFFICIENT_BALANCE'
+            ? `积分不足，需要 ${upfrontCredits.toFixed(2)} 积分，当前余额 ${currentBalance}`
+            : '积分扣减失败'
+          return new Response(JSON.stringify({ error: errMsg }), {
+            status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
+        tokenCreditsCharged += upfrontCredits
+        creditCost += upfrontCredits
+        console.log(`[ai-chat] Upfront token charge ${feature_code}: input_tokens=${estimatedInputTokens}, credits=${upfrontCredits.toFixed(2)}`)
+      }
+    }
+
+    const chargeTokenCredits = async (
+      payload: Record<string, any>,
+      fallbackTextParts: Array<string | null | undefined>,
+    ): Promise<Response | null> => {
+      if (!isTokenBilledFeature || !userId || !supabaseAdmin || !feature_code) return null
+      const totalTokens = parseTotalTokens(payload) || estimateTokensFromText(fallbackTextParts)
+      const targetCredits = calculateTokenCreditCost(totalTokens, TEXT_TOKEN_COST_PER_K, TEXT_TOKEN_MULTIPLIER)
+      const delta = Number((targetCredits - tokenCreditsCharged).toFixed(2))
+      if (delta === 0) {
+        console.log(`[ai-chat] Token settled ${feature_code}: tokens=${totalTokens}, charged=${tokenCreditsCharged.toFixed(2)}`)
+        return null
+      }
+
+      if (delta > 0) {
+        const { data: deductResult, error: deductError } = await supabaseAdmin.rpc('deduct_credits', {
+          p_user_id: userId,
+          p_amount: delta.toFixed(2),
+          p_description: feature_code,
+        })
+        if (deductError || !deductResult?.success) {
+          const currentBalance = Number(deductResult?.balance || 0).toFixed(2)
+          const errMsg = deductResult?.error === 'INSUFFICIENT_BALANCE'
+            ? `积分不足，需要 ${delta.toFixed(2)} 积分，当前余额 ${currentBalance}`
+            : '积分扣减失败'
+          return new Response(JSON.stringify({ error: errMsg }), {
+            status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
+
+        tokenCreditsCharged = Number((tokenCreditsCharged + delta).toFixed(2))
+        creditCost = Number((creditCost + delta).toFixed(2))
+      } else {
+        const refundAmount = Number(Math.abs(delta).toFixed(2))
+        if (refundAmount > 0) {
+          await supabaseAdmin.rpc('add_credits', {
+            p_user_id: userId,
+            p_amount: refundAmount.toFixed(2),
+            p_description: `退款-${feature_code}-结算差额`,
+          })
+          tokenCreditsCharged = Number((tokenCreditsCharged - refundAmount).toFixed(2))
+          creditCost = Number((creditCost - refundAmount).toFixed(2))
+        }
+      }
+
+      console.log(`[ai-chat] Token settled ${feature_code}: tokens=${totalTokens}, charged=${tokenCreditsCharged.toFixed(2)}, multiplier=${TEXT_TOKEN_MULTIPLIER}`)
+      return null
     }
 
     // ========== VM 单件衣服识别模式 ==========
@@ -519,6 +685,8 @@ serve(async (req) => {
       }
 
       const vmData = await vmResponse.json()
+      const chargeError = await chargeTokenCredits(vmData, [prompt, extractAssistantMessage(vmData)])
+      if (chargeError) return chargeError
       return new Response(JSON.stringify(vmData), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -571,6 +739,8 @@ serve(async (req) => {
       }
 
       const outfitData = await outfitResponse.json()
+      const chargeError = await chargeTokenCredits(outfitData, [prompt, extractAssistantMessage(outfitData)])
+      if (chargeError) return chargeError
       return new Response(JSON.stringify(outfitData), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -623,6 +793,8 @@ serve(async (req) => {
       }
 
       const fabricData = await fabricResponse.json()
+      const chargeError = await chargeTokenCredits(fabricData, [prompt, extractAssistantMessage(fabricData)])
+      if (chargeError) return chargeError
       return new Response(JSON.stringify(fabricData), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -699,8 +871,13 @@ serve(async (req) => {
               },
             },
           ],
+          usage: reportData?.usageMetadata?.totalTokenCount
+            ? { total_tokens: reportData.usageMetadata.totalTokenCount }
+            : undefined,
         }
 
+        const chargeError = await chargeTokenCredits(normalized, [prompt, responseText])
+        if (chargeError) return chargeError
         return new Response(JSON.stringify(normalized), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
@@ -748,6 +925,8 @@ serve(async (req) => {
       }
 
       const reportData = await reportResponse.json()
+      const chargeError = await chargeTokenCredits(reportData, [prompt, extractAssistantMessage(reportData)])
+      if (chargeError) return chargeError
       return new Response(JSON.stringify(reportData), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -769,6 +948,7 @@ serve(async (req) => {
     ]
 
     // 调用 BLTCY Text API
+    const shouldForceNonStreaming = isTokenBilledFeature
     const response = await fetch(`${TEXT_BASE_URL}/v1/chat/completions`, {
       method: 'POST',
       headers: {
@@ -780,7 +960,7 @@ serve(async (req) => {
         messages,
         temperature: 0.7,
         max_tokens: 4000,
-        stream,
+        stream: shouldForceNonStreaming ? false : stream,
       }),
     })
 
@@ -789,8 +969,8 @@ serve(async (req) => {
       throw new Error(`Text API error: ${response.status} - ${error}`)
     }
 
-    // 流式响应
-    if (stream) {
+    // 固定积分/非 token 功能保持透传流式响应
+    if (stream && !shouldForceNonStreaming) {
       return new Response(response.body, {
         headers: {
           ...corsHeaders,
@@ -801,8 +981,16 @@ serve(async (req) => {
       })
     }
 
-    // 非流式响应
+    // token 计费场景使用非流式上游响应，结算后再返回给前端
     const data = await response.json()
+    const assistantText = extractAssistantMessage(data)
+    const chargeError = await chargeTokenCredits(data, [prompt, assistantText])
+    if (chargeError) return chargeError
+
+    if (stream) {
+      return createSseResponse(assistantText)
+    }
+
     return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
@@ -811,14 +999,14 @@ serve(async (req) => {
     // 生成失败时退还积分
     if (supabaseAdmin && userId && creditCost > 0) {
       try {
-        await supabaseAdmin.rpc('add_credits', { p_user_id: userId, p_amount: creditCost, p_description: '退款-' + (savedFeatureCode || 'ai_chat') })
-        console.log(`[ai-chat] Refunded ${creditCost} credits to user ${userId}`)
+        await supabaseAdmin.rpc('add_credits', { p_user_id: userId, p_amount: creditCost.toFixed(2), p_description: '退款-' + (savedFeatureCode || 'ai_chat') })
+        console.log(`[ai-chat] Refunded ${creditCost.toFixed(2)} credits to user ${userId}`)
       } catch (refundErr) {
         console.error(`[ai-chat] Refund failed:`, refundErr)
       }
     }
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : String(error) }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

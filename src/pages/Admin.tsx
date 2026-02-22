@@ -17,6 +17,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { formatCredits } from "@/lib/credits";
 
 interface UserRow {
   id: string;
@@ -88,7 +89,7 @@ const Admin = () => {
 
   const handleAdjust = async () => {
     if (!targetUser || !adjustAmount) return;
-    const amount = parseInt(adjustAmount, 10);
+    const amount = Number(adjustAmount);
     if (isNaN(amount) || amount <= 0) {
       toast({ title: "请输入有效的积分数量", variant: "destructive" });
       return;
@@ -108,7 +109,7 @@ const Admin = () => {
     }
     toast({
       title: adjustType === "add" ? "积分已增加" : "积分已扣减",
-      description: `${targetUser.email}: ${data.balance_before} → ${data.balance_after}`,
+      description: `${targetUser.email}: ${formatCredits(data.balance_before)} → ${formatCredits(data.balance_after)}`,
     });
     setDialogOpen(false);
     fetchUsers();
@@ -167,7 +168,7 @@ const Admin = () => {
               users.map((u) => (
                 <TableRow key={u.id}>
                   <TableCell className="font-medium max-w-[200px] truncate">{u.email}</TableCell>
-                  <TableCell className="text-right tabular-nums">{u.credits}</TableCell>
+                  <TableCell className="text-right tabular-nums">{formatCredits(u.credits)}</TableCell>
                   <TableCell className="hidden md:table-cell">
                     <Badge variant={u.role === "admin" ? "default" : "secondary"}>
                       {u.role === "admin" ? "管理员" : "用户"}
@@ -220,7 +221,7 @@ const Admin = () => {
           {targetUser && (
             <div className="space-y-4 py-2">
               <p className="text-sm text-muted-foreground">
-                用户：{targetUser.email}（当前余额：{targetUser.credits}）
+                用户：{targetUser.email}（当前余额：{formatCredits(targetUser.credits)}）
               </p>
               <div className="space-y-2">
                 <Label>操作类型</Label>
@@ -241,7 +242,7 @@ const Admin = () => {
               <div className="space-y-2">
                 <Label>数量</Label>
                 <Input
-                  type="number" min="1" placeholder="输入积分数量"
+                  type="number" min="0.01" step="0.01" placeholder="输入积分数量"
                   value={adjustAmount}
                   onChange={(e) => setAdjustAmount(e.target.value)}
                 />

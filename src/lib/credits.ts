@@ -8,26 +8,72 @@ export const RECHARGE_TIERS = [
   { id: 'tier_79.9', amount: 79.9, amountCents: 7990, pointsBase: 7990, pointsBonus: 1998, pointsTotal: 9988, label: '79.9元', badge: '最划算' },
 ] as const
 
-export const FEATURE_PRICES: Record<string, { name: string; cost: number }> = {
-  ai_image_standard: { name: '标准绘图', cost: 50 },
-  ai_image_premium: { name: 'Pro绘图', cost: 100 },
-  ai_display_standard: { name: '陈列图(标准)', cost: 50 },
-  ai_display_premium: { name: '陈列图(Pro)', cost: 100 },
-  ai_outfit_standard: { name: '挂搭图(标准)', cost: 50 },
-  ai_outfit_premium: { name: '挂搭图(Pro)', cost: 100 },
-  ai_fashion_standard: { name: '模特图(标准)', cost: 50 },
-  ai_fashion_premium: { name: '模特图(Pro)', cost: 100 },
-  ai_detail_standard: { name: '细节特写(标准)', cost: 50 },
-  ai_detail_premium: { name: '细节特写(Pro)', cost: 100 },
-  ai_flatlay_standard: { name: '平铺摆拍(标准)', cost: 50 },
-  ai_flatlay_premium: { name: '平铺摆拍(Pro)', cost: 100 },
-  ai_copywriting: { name: 'AI文案', cost: 20 },
-  ai_ppt_outline: { name: 'PPT大纲', cost: 30 },
-  ai_ppt_slide: { name: 'PPT单页', cost: 50 },
-  ai_report_page: { name: '报告(每页)', cost: 40 },
-  ai_outfit_recommend: { name: '专业搭配师', cost: 20 },
-  ai_outfit_visual_standard: { name: '搭配师模特图', cost: 50 },
-  ai_fabric_analysis: { name: '面料说明生成器', cost: 10 },
+export const TOKEN_COST_PER_K = 0.0024
+export const TEXT_TOKEN_MULTIPLIER = 6.5
+const CREDIT_PRECISION = 2
+
+export type FeatureBillingType = 'fixed' | 'token'
+
+export interface FeaturePriceConfig {
+  name: string
+  cost: number
+  billing: FeatureBillingType
+}
+
+export const FEATURE_PRICES: Record<string, FeaturePriceConfig> = {
+  ai_image_standard: { name: '标准绘图', cost: 50, billing: 'fixed' },
+  ai_image_premium: { name: 'Pro绘图', cost: 100, billing: 'fixed' },
+  ai_display_analysis: { name: '陈列分析', cost: 0, billing: 'token' },
+  ai_display_standard: { name: '陈列图(标准)', cost: 50, billing: 'fixed' },
+  ai_display_premium: { name: '陈列图(Pro)', cost: 100, billing: 'fixed' },
+  ai_outfit_standard: { name: '挂搭图(标准)', cost: 50, billing: 'fixed' },
+  ai_outfit_premium: { name: '挂搭图(Pro)', cost: 100, billing: 'fixed' },
+  ai_fashion_standard: { name: '模特图(标准)', cost: 50, billing: 'fixed' },
+  ai_fashion_premium: { name: '模特图(Pro)', cost: 100, billing: 'fixed' },
+  ai_detail_standard: { name: '细节特写(标准)', cost: 50, billing: 'fixed' },
+  ai_detail_premium: { name: '细节特写(Pro)', cost: 100, billing: 'fixed' },
+  ai_flatlay_standard: { name: '平铺摆拍(标准)', cost: 50, billing: 'fixed' },
+  ai_flatlay_premium: { name: '平铺摆拍(Pro)', cost: 100, billing: 'fixed' },
+  ai_copywriting: { name: 'AI文案', cost: 0, billing: 'token' },
+  ai_ppt_outline: { name: 'PPT大纲', cost: 0, billing: 'token' },
+  ai_ppt_slide: { name: 'PPT单页', cost: 0, billing: 'token' },
+  ai_report_page: { name: '报告(每页)', cost: 0, billing: 'token' },
+  ai_outfit_recommend: { name: '专业搭配师', cost: 0, billing: 'token' },
+  ai_outfit_visual_standard: { name: '搭配师模特图', cost: 50, billing: 'fixed' },
+  ai_fabric_analysis: { name: '面料说明生成器', cost: 0, billing: 'token' },
+}
+
+export function parseCreditsValue(value: unknown): number | null {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : null
+  }
+  if (typeof value === 'string') {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : null
+  }
+  return null
+}
+
+export function roundCredits(value: number): number {
+  if (!Number.isFinite(value)) return 0
+  return Number(value.toFixed(CREDIT_PRECISION))
+}
+
+export function formatCredits(value: unknown, fallback = '0.00'): string {
+  const parsed = parseCreditsValue(value)
+  if (parsed === null) return fallback
+  return parsed.toFixed(CREDIT_PRECISION)
+}
+
+export function calculateTokenCreditCost(totalTokens: number, multiplier = TEXT_TOKEN_MULTIPLIER): number {
+  if (!Number.isFinite(totalTokens) || totalTokens <= 0) return 0
+  const raw = (totalTokens / 1000) * TOKEN_COST_PER_K * multiplier
+  return roundCredits(raw)
+}
+
+export function isTokenBilledFeature(featureCode?: string): boolean {
+  if (!featureCode) return false
+  return FEATURE_PRICES[featureCode]?.billing === 'token'
 }
 
 export async function getBalance() {
@@ -38,7 +84,7 @@ export async function getBalance() {
     .select('credits')
     .eq('id', user.id)
     .single()
-  return data?.credits ?? null
+  return parseCreditsValue(data?.credits)
 }
 
 export async function getPaymentOrders(page = 1, pageSize = 20) {
@@ -64,5 +110,7 @@ export async function getCreditTransactions(page = 1, pageSize = 20) {
 }
 
 export function getFeatureCost(featureCode: string): number {
-  return FEATURE_PRICES[featureCode]?.cost ?? 0
+  const feature = FEATURE_PRICES[featureCode]
+  if (!feature || feature.billing !== 'fixed') return 0
+  return feature.cost
 }

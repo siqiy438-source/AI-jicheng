@@ -308,7 +308,7 @@ ${additionalNotes ? `\n店主补充说明：${additionalNotes}` : ''}`;
         mode: 'vm-analysis',
         prompt,
         stream: false,
-        feature_code: 'ai_display_standard',
+        feature_code: 'ai_display_analysis',
       }),
       signal: controller.signal,
     });

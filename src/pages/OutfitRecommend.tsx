@@ -254,7 +254,7 @@ const OutfitRecommend = () => {
             className="w-full h-12 text-base font-semibold gap-2"
           >
             <Sparkles className="w-5 h-5" />
-            生成穿搭方案（20 积分）
+            生成穿搭方案（按 token 计费）
           </Button>
         </div>
       )}

@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { formatCredits } from '@/lib/credits';
 
 interface InsufficientBalanceDialogProps {
   open: boolean;
@@ -35,19 +36,19 @@ export function InsufficientBalanceDialog({
             积分不足
           </DialogTitle>
           <DialogDescription>
-            {featureName} 需要 {required} 积分
+            {featureName} 需要 {formatCredits(required)} 积分
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-2 py-2 text-sm">
           <div className="flex justify-between">
             <span className="text-muted-foreground">当前余额</span>
-            <span className="font-medium">{balance} 积分</span>
+            <span className="font-medium">{formatCredits(balance)} 积分</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">还需</span>
             <span className="font-medium text-red-500">
-              {required - balance} 积分
+              {formatCredits(required - balance)} 积分
             </span>
           </div>
         </div>

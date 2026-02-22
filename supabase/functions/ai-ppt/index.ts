@@ -30,6 +30,16 @@ interface SlideData {
   description: string
 }
 
+interface GeminiTextResult {
+  text: string
+  totalTokens: number
+}
+
+interface ActionExecutionResult {
+  payload: Record<string, unknown>
+  totalTokens: number
+}
+
 /**
  * 构建大纲生成的 prompt
  */
@@ -197,7 +207,7 @@ async function callGeminiText(
   apiKey: string,
   prompt: string,
   retries: number = 2,
-): Promise<string> {
+): Promise<GeminiTextResult> {
   let lastError: Error | null = null
 
   for (let attempt = 0; attempt <= retries; attempt++) {
@@ -259,6 +269,7 @@ async function callGeminiText(
       }
 
       const data = await response.json()
+      const totalTokens = Number(data?.usageMetadata?.totalTokenCount || 0)
 
       // 从 Gemini 响应中提取文本
       const candidates = data.candidates || []
@@ -266,7 +277,10 @@ async function callGeminiText(
         const parts = candidate.content?.parts || []
         for (const part of parts) {
           if (part.text) {
-            return part.text
+            return {
+              text: part.text,
+              totalTokens: Number.isFinite(totalTokens) && totalTokens > 0 ? totalTokens : 0,
+            }
           }
         }
       }
@@ -285,6 +299,24 @@ async function callGeminiText(
   throw lastError || new Error('未知错误')
 }
 
+function estimateTokenCountFromText(parts: Array<string | null | undefined>): number {
+  const totalChars = parts
+    .map((part) => (typeof part === 'string' ? part : ''))
+    .join('')
+    .trim()
+    .length
+  if (totalChars <= 0) return 0
+  return Math.max(1, Math.ceil(totalChars / 4))
+}
+
+function calculateTokenCreditCost(totalTokens: number, tokenCostPerK: number, multiplier: number): number {
+  if (!Number.isFinite(totalTokens) || totalTokens <= 0) return 0
+  const raw = (totalTokens / 1000) * tokenCostPerK * multiplier
+  const rounded = Number(raw.toFixed(2))
+  if (rounded <= 0 && raw > 0) return 0.01
+  return rounded
+}
+
 // ============================================================
 // Action 处理函数
 // ============================================================
@@ -300,7 +332,7 @@ async function handleGenerateOutline(
     pageCount?: number
     style?: string
   },
-): Promise<Record<string, unknown>> {
+): Promise<ActionExecutionResult> {
   const { content, mode = 'sentence', pageCount = 8 } = body
 
   if (!content || !content.trim()) {
@@ -310,7 +342,7 @@ async function handleGenerateOutline(
   const prompt = buildOutlinePrompt(content, mode, pageCount)
   console.log(`[ai-ppt] Generating outline: mode=${mode}, pageCount=${pageCount}`)
 
-  const responseText = await callGeminiText(apiKey, prompt)
+  const { text: responseText, totalTokens } = await callGeminiText(apiKey, prompt)
 
   // 从 AI 响应中提取 JSON 大纲
   const slides = extractJsonFromText(responseText)
@@ -328,9 +360,12 @@ async function handleGenerateOutline(
   const projectTitle = extractProjectTitle(normalizedSlides)
 
   return {
-    success: true,
-    slides: normalizedSlides,
-    projectTitle,
+    payload: {
+      success: true,
+      slides: normalizedSlides,
+      projectTitle,
+    },
+    totalTokens,
   }
 }
 
@@ -347,7 +382,7 @@ async function handleGenerateDescription(
     slideIndex: number
     totalSlides: number
   },
-): Promise<Record<string, unknown>> {
+): Promise<ActionExecutionResult> {
   const {
     slideTitle,
     outlinePoints,
@@ -370,11 +405,14 @@ async function handleGenerateDescription(
 
   console.log(`[ai-ppt] Generating description for slide ${slideIndex}/${totalSlides}: "${slideTitle}"`)
 
-  const description = await callGeminiText(apiKey, prompt)
+  const { text: description, totalTokens } = await callGeminiText(apiKey, prompt)
 
   return {
-    success: true,
-    description: description.trim(),
+    payload: {
+      success: true,
+      description: description.trim(),
+    },
+    totalTokens,
   }
 }
 
@@ -388,7 +426,7 @@ async function handleBatchGenerateDescriptions(
     overallTheme: string
     style?: string
   },
-): Promise<Record<string, unknown>> {
+): Promise<ActionExecutionResult> {
   const { slides, overallTheme, style } = body
 
   if (!slides || !Array.isArray(slides) || slides.length === 0) {
@@ -400,6 +438,7 @@ async function handleBatchGenerateDescriptions(
 
   const updatedSlides: SlideData[] = []
   let processedCount = 0
+  let totalTokens = 0
 
   for (const slide of slides) {
     // 如果已有描述，跳过
@@ -423,7 +462,8 @@ async function handleBatchGenerateDescriptions(
         totalSlides,
       )
 
-      const description = await callGeminiText(apiKey, prompt)
+      const { text: description, totalTokens: callTokens } = await callGeminiText(apiKey, prompt)
+      totalTokens += callTokens
 
       updatedSlides.push({
         ...slide,
@@ -433,19 +473,23 @@ async function handleBatchGenerateDescriptions(
       processedCount++
       console.log(`[ai-ppt] Generated description for slide ${slide.id}: "${slide.title}"`)
     } catch (error) {
-      console.error(`[ai-ppt] Failed to generate description for slide ${slide.id}: ${error.message}`)
+      const message = error instanceof Error ? error.message : String(error)
+      console.error(`[ai-ppt] Failed to generate description for slide ${slide.id}: ${message}`)
       // 单页失败不中断整体流程，标记错误信息
       updatedSlides.push({
         ...slide,
-        description: `[生成失败] ${error.message}`,
+        description: `[生成失败] ${message}`,
       })
       processedCount++
     }
   }
 
   return {
-    success: true,
-    slides: updatedSlides,
+    payload: {
+      success: true,
+      slides: updatedSlides,
+    },
+    totalTokens,
   }
 }
 
@@ -463,6 +507,7 @@ serve(async (req) => {
   let userId: string | null = null
   let creditCost = 0
   let savedFeatureCode: string | undefined
+  let tokenCreditsCharged = 0
 
   try {
     const BLTCY_API_KEY = Deno.env.get('BLTCY_API_KEY')
@@ -474,6 +519,8 @@ serve(async (req) => {
     const body = await req.json()
     const { action, feature_code } = body
     savedFeatureCode = feature_code
+    const tokenCostPerK = Number(Deno.env.get('TEXT_TOKEN_COST_PER_K') || '0.0024')
+    const tokenMultiplier = Number(Deno.env.get('TEXT_TOKEN_MULTIPLIER') || '6.5')
 
     if (!action) {
       throw new Error('缺少 action 参数，支持: generate_outline, generate_description, batch_generate_descriptions')
@@ -481,12 +528,7 @@ serve(async (req) => {
 
     console.log(`[ai-ppt] Received action: ${action}`)
 
-    // ========== 积分扣减 ==========
-    const CREDIT_COSTS: Record<string, number> = {
-      ai_ppt_outline: 30,
-      ai_ppt_slide: 50,
-    }
-
+    // ========== 用户认证 ==========
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
     const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
     const authHeader = req.headers.get('Authorization')
@@ -501,57 +543,111 @@ serve(async (req) => {
         })
       }
       userId = user.id
-      creditCost = CREDIT_COSTS[feature_code] || 0
-
-      if (creditCost > 0) {
-        const { data: deductResult, error: deductError } = await supabaseAdmin.rpc('deduct_credits', {
-          p_user_id: userId,
-          p_amount: creditCost,
-          p_description: feature_code || 'ai_ppt',
-        })
-        if (deductError || !deductResult?.success) {
-          const errMsg = deductResult?.error === 'INSUFFICIENT_BALANCE'
-            ? `积分不足，需要 ${creditCost} 积分，当前余额 ${deductResult?.balance || 0}`
-            : '积分扣减失败'
-          return new Response(JSON.stringify({ success: false, error: errMsg }), {
-            status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          })
-        }
-        console.log(`[ai-ppt] Deducted ${creditCost} credits from user ${userId}`)
-      }
     }
 
-    let result: Record<string, unknown>
+    if (!supabaseAdmin || !userId) {
+      return new Response(JSON.stringify({ success: false, error: '请先登录后再使用 PPT 功能' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    // 提交请求即实时预扣（按输入 token 估算）
+    const estimatedInputTokens = estimateTokenCountFromText([JSON.stringify(body)])
+    const upfrontCredits = calculateTokenCreditCost(
+      estimatedInputTokens,
+      Number.isFinite(tokenCostPerK) && tokenCostPerK > 0 ? tokenCostPerK : 0.0024,
+      Number.isFinite(tokenMultiplier) && tokenMultiplier > 0 ? tokenMultiplier : 6.5,
+    )
+    if (upfrontCredits > 0) {
+      const { data: upfrontResult, error: upfrontError } = await supabaseAdmin.rpc('deduct_credits', {
+        p_user_id: userId,
+        p_amount: upfrontCredits.toFixed(2),
+        p_description: `${feature_code || 'ai_ppt'}-实时预扣`,
+      })
+      if (upfrontError || !upfrontResult?.success) {
+        const currentBalance = Number(upfrontResult?.balance || 0).toFixed(2)
+        const errMsg = upfrontResult?.error === 'INSUFFICIENT_BALANCE'
+          ? `积分不足，需要 ${upfrontCredits.toFixed(2)} 积分，当前余额 ${currentBalance}`
+          : '积分扣减失败'
+        return new Response(JSON.stringify({ success: false, error: errMsg }), {
+          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+      tokenCreditsCharged += upfrontCredits
+      creditCost += upfrontCredits
+      console.log(`[ai-ppt] Upfront token charge ${feature_code || 'ai_ppt'}: input_tokens=${estimatedInputTokens}, credits=${upfrontCredits.toFixed(2)}`)
+    }
+
+    let actionResult: ActionExecutionResult
 
     switch (action) {
       case 'generate_outline':
-        result = await handleGenerateOutline(BLTCY_API_KEY, body)
+        actionResult = await handleGenerateOutline(BLTCY_API_KEY, body)
         break
 
       case 'generate_description':
-        result = await handleGenerateDescription(BLTCY_API_KEY, body)
+        actionResult = await handleGenerateDescription(BLTCY_API_KEY, body)
         break
 
       case 'batch_generate_descriptions':
-        result = await handleBatchGenerateDescriptions(BLTCY_API_KEY, body)
+        actionResult = await handleBatchGenerateDescriptions(BLTCY_API_KEY, body)
         break
 
       default:
         throw new Error(`不支持的操作: ${action}，支持: generate_outline, generate_description, batch_generate_descriptions`)
     }
 
-    return new Response(JSON.stringify(result), {
+    // ========== 按 token 计费 ==========
+    const fallbackTokens = estimateTokenCountFromText([JSON.stringify(body), JSON.stringify(actionResult.payload)])
+    const totalTokens = actionResult.totalTokens > 0 ? actionResult.totalTokens : fallbackTokens
+    const finalTokenCostPerK = Number.isFinite(tokenCostPerK) && tokenCostPerK > 0 ? tokenCostPerK : 0.0024
+    const finalMultiplier = Number.isFinite(tokenMultiplier) && tokenMultiplier > 0 ? tokenMultiplier : 6.5
+    const targetCredits = calculateTokenCreditCost(totalTokens, finalTokenCostPerK, finalMultiplier)
+    const delta = Number((targetCredits - tokenCreditsCharged).toFixed(2))
+    if (delta > 0) {
+      const { data: deductResult, error: deductError } = await supabaseAdmin.rpc('deduct_credits', {
+        p_user_id: userId,
+        p_amount: delta.toFixed(2),
+        p_description: feature_code || 'ai_ppt',
+      })
+      if (deductError || !deductResult?.success) {
+        const currentBalance = Number(deductResult?.balance || 0).toFixed(2)
+        const errMsg = deductResult?.error === 'INSUFFICIENT_BALANCE'
+          ? `积分不足，需要 ${delta.toFixed(2)} 积分，当前余额 ${currentBalance}`
+          : '积分扣减失败'
+        return new Response(JSON.stringify({ success: false, error: errMsg }), {
+          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+      tokenCreditsCharged = Number((tokenCreditsCharged + delta).toFixed(2))
+      creditCost = Number((creditCost + delta).toFixed(2))
+    } else if (delta < 0) {
+      const refundAmount = Number(Math.abs(delta).toFixed(2))
+      if (refundAmount > 0) {
+        await supabaseAdmin.rpc('add_credits', {
+          p_user_id: userId,
+          p_amount: refundAmount.toFixed(2),
+          p_description: `退款-${feature_code || 'ai_ppt'}-结算差额`,
+        })
+        tokenCreditsCharged = Number((tokenCreditsCharged - refundAmount).toFixed(2))
+        creditCost = Number((creditCost - refundAmount).toFixed(2))
+      }
+    }
+    console.log(`[ai-ppt] Token settled ${feature_code || 'ai_ppt'}: tokens=${totalTokens}, charged=${tokenCreditsCharged.toFixed(2)}, multiplier=${finalMultiplier}`)
+
+    return new Response(JSON.stringify(actionResult.payload), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
 
   } catch (error) {
-    console.error(`[ai-ppt] Error: ${error.message}`)
+    const errMsg = error instanceof Error ? error.message : String(error)
+    console.error(`[ai-ppt] Error: ${errMsg}`)
 
     // 生成失败时退还积分
     if (supabaseAdmin && userId && creditCost > 0) {
       try {
-        await supabaseAdmin.rpc('add_credits', { p_user_id: userId, p_amount: creditCost, p_description: '退款-' + (savedFeatureCode || 'ai_ppt') })
-        console.log(`[ai-ppt] Refunded ${creditCost} credits to user ${userId}`)
+        await supabaseAdmin.rpc('add_credits', { p_user_id: userId, p_amount: creditCost.toFixed(2), p_description: '退款-' + (savedFeatureCode || 'ai_ppt') })
+        console.log(`[ai-ppt] Refunded ${creditCost.toFixed(2)} credits to user ${userId}`)
       } catch (refundErr) {
         console.error(`[ai-ppt] Refund failed:`, refundErr)
       }
@@ -560,7 +656,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message,
+        error: errMsg,
       }),
       {
         status: 500,

@@ -1,10 +1,12 @@
 import { useState, useCallback } from 'react';
 import { useCredits } from '@/contexts/CreditsContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { FEATURE_PRICES } from '@/lib/credits';
 import { useNavigate } from 'react-router-dom';
 
 export function useCreditCheck() {
   const { balance, refreshBalance } = useCredits();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [showInsufficientDialog, setShowInsufficientDialog] = useState(false);
   const [requiredAmount, setRequiredAmount] = useState(0);
@@ -13,6 +15,14 @@ export function useCreditCheck() {
   const checkCredits = useCallback((featureCode: string): boolean => {
     const feature = FEATURE_PRICES[featureCode];
     if (!feature) return true; // unknown feature, allow
+    if (feature.billing === 'token') {
+      // token 计费需要登录，未登录跳转到登录页
+      if (!user) {
+        navigate('/login');
+        return false;
+      }
+      return true;
+    }
 
     if (balance !== null && balance >= feature.cost) {
       return true;
@@ -22,7 +32,7 @@ export function useCreditCheck() {
     setFeatureName(feature.name);
     setShowInsufficientDialog(true);
     return false;
-  }, [balance]);
+  }, [balance, user, navigate]);
 
   const goToRecharge = useCallback(() => {
     setShowInsufficientDialog(false);

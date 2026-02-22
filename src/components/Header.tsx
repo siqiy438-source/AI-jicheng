@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { formatCredits } from "@/lib/credits";
 
 export const Header = () => {
   const { user, loading, signOut } = useAuth();
@@ -81,7 +82,7 @@ export const Header = () => {
             )}
           >
             <Coins className="w-4 h-4 text-amber-500 flex-shrink-0" />
-            <span className="text-foreground">{balance ?? 0}</span>
+            <span className="text-foreground">{formatCredits(balance)}</span>
           </Link>
         )}
 

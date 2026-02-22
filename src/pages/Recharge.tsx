@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { useCredits } from "@/contexts/CreditsContext";
-import { RECHARGE_TIERS, FEATURE_PRICES, getPaymentOrders, getCreditTransactions } from "@/lib/credits";
+import { RECHARGE_TIERS, TEXT_TOKEN_MULTIPLIER, formatCredits, getPaymentOrders, getCreditTransactions } from "@/lib/credits";
 import { getAccessToken, supabaseAnonKey, supabaseUrl } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -35,6 +35,7 @@ interface CreditTransaction {
 /* feature_code → 中文名映射 */
 const FEATURE_LABELS: Record<string, string> = {
   ai_image_standard: "标准绘图", ai_image_premium: "Pro绘图",
+  ai_display_analysis: "陈列分析",
   ai_display_standard: "陈列图(标准)", ai_display_premium: "陈列图(Pro)",
   ai_outfit_standard: "挂搭图(标准)", ai_outfit_premium: "挂搭图(Pro)",
   ai_fashion_standard: "模特图(标准)", ai_fashion_premium: "模特图(Pro)",
@@ -153,7 +154,7 @@ const Recharge = () => {
             <p className="text-primary-foreground/70 text-xs md:text-sm mb-1">当前积分余额</p>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl md:text-4xl font-extrabold text-primary-foreground tracking-tight">
-                {balance ?? "—"}
+                {balance === null ? "—" : formatCredits(balance)}
               </span>
               <span className="text-primary-foreground/60 text-sm">积分</span>
             </div>
@@ -173,10 +174,10 @@ const Recharge = () => {
             const TierIcon = meta.icon;
             const isSelected = selectedTier === tier.id;
             const usages = [
-              { label: "标准绘图", count: Math.floor(tier.pointsTotal / 50) },
-              { label: "Pro绘图", count: Math.floor(tier.pointsTotal / 100) },
-              { label: "AI文案", count: Math.floor(tier.pointsTotal / 20) },
-              { label: "PPT单页", count: Math.floor(tier.pointsTotal / 50) },
+              { label: "标准绘图", value: `×${Math.floor(tier.pointsTotal / 50)}` },
+              { label: "Pro绘图", value: `×${Math.floor(tier.pointsTotal / 100)}` },
+              { label: "文字工具", value: `按 token（${TEXT_TOKEN_MULTIPLIER}x）` },
+              { label: "图像工具", value: "固定积分" },
             ];
 
             return (
@@ -248,7 +249,7 @@ const Recharge = () => {
                     <div key={u.label} className="flex items-center gap-2">
                       <Check className="w-3.5 h-3.5 text-primary flex-shrink-0" />
                       <span className="text-xs text-muted-foreground">
-                        {u.label} <span className="font-semibold text-foreground">×{u.count}</span>
+                        {u.label} <span className="font-semibold text-foreground">{u.value}</span>
                       </span>
                     </div>
                   ))}
@@ -378,24 +379,24 @@ const Recharge = () => {
           <div>
             <div className="flex items-center gap-1.5 mb-2">
               <FileText className="w-3.5 h-3.5 text-primary" />
-              <span className="text-xs font-semibold text-foreground">文案 / PPT / 报告</span>
+              <span className="text-xs font-semibold text-foreground">文字类工具（文案 / PPT / 报告 / 专业搭配师 / 面料说明 / 陈列分析）</span>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
               <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-secondary/40">
                 <span className="text-xs text-muted-foreground">AI 文案</span>
-                <span className="text-xs font-bold text-foreground">20 积分/次</span>
+                <span className="text-xs font-bold text-foreground">按 token（{TEXT_TOKEN_MULTIPLIER}x）</span>
               </div>
               <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-secondary/40">
                 <span className="text-xs text-muted-foreground">PPT 大纲</span>
-                <span className="text-xs font-bold text-foreground">30 积分/次</span>
+                <span className="text-xs font-bold text-foreground">按 token（{TEXT_TOKEN_MULTIPLIER}x）</span>
               </div>
               <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-secondary/40">
                 <span className="text-xs text-muted-foreground">PPT 单页</span>
-                <span className="text-xs font-bold text-foreground">50 积分/次</span>
+                <span className="text-xs font-bold text-foreground">按 token（{TEXT_TOKEN_MULTIPLIER}x）</span>
               </div>
               <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-secondary/40">
                 <span className="text-xs text-muted-foreground">报告生成</span>
-                <span className="text-xs font-bold text-foreground">40 积分/页</span>
+                <span className="text-xs font-bold text-foreground">按 token（{TEXT_TOKEN_MULTIPLIER}x）</span>
               </div>
             </div>
           </div>
@@ -512,9 +513,9 @@ const Recharge = () => {
                       <div className="flex items-center gap-3 flex-shrink-0">
                         <div className="text-right">
                           <p className={cn("text-sm font-bold", isDeduct ? "text-red-500" : isRefund ? "text-blue-500" : "text-emerald-600")}>
-                            {isDeduct ? "-" : "+"}{tx.amount}
+                            {isDeduct ? "-" : "+"}{formatCredits(tx.amount)}
                           </p>
-                          <p className="text-xs text-muted-foreground">余额 {tx.balance_after}</p>
+                          <p className="text-xs text-muted-foreground">余额 {formatCredits(tx.balance_after)}</p>
                         </div>
                         <Badge variant="outline" className={cn(
                           "text-[10px] font-medium",
