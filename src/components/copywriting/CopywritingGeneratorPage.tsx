@@ -26,6 +26,7 @@ import ReactMarkdown from "react-markdown";
 import { saveTextWork } from "@/lib/repositories/works";
 import { useCreditCheck } from "@/hooks/use-credit-check";
 import { InsufficientBalanceDialog } from "@/components/InsufficientBalanceDialog";
+import { toast } from "sonner";
 
 interface Message {
   id: string;
@@ -44,6 +45,60 @@ interface CopywritingGeneratorPageProps {
   featureCode: string;
   welcomeMessage?: string;
 }
+
+const DOCX_MIME_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+const WORD_XML_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+
+const readFileAsDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error(`读取文件失败：${file.name}`));
+    reader.readAsDataURL(file);
+  });
+
+const extractDocxTextFromXml = (xmlContent: string) => {
+  const parser = new DOMParser();
+  const xmlDoc = parser.parseFromString(xmlContent, "application/xml");
+
+  if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
+    throw new Error("DOCX 内容解析失败");
+  }
+
+  const paragraphs = Array.from(xmlDoc.getElementsByTagNameNS(WORD_XML_NS, "p"));
+  const lines = paragraphs
+    .map((paragraph) => {
+      const textNodes = Array.from(paragraph.getElementsByTagNameNS(WORD_XML_NS, "t"));
+      return textNodes.map((node) => node.textContent ?? "").join("").trimEnd();
+    })
+    .filter(Boolean);
+
+  if (lines.length > 0) {
+    return lines.join("\n");
+  }
+
+  return Array.from(xmlDoc.getElementsByTagNameNS(WORD_XML_NS, "t"))
+    .map((node) => node.textContent ?? "")
+    .join("\n")
+    .trim();
+};
+
+const readDocxFileAsText = async (file: File) => {
+  const JSZip = (await import("jszip")).default;
+  const zip = await JSZip.loadAsync(await file.arrayBuffer());
+  const documentXml = await zip.file("word/document.xml")?.async("text");
+
+  if (!documentXml) {
+    throw new Error("DOCX 文件内容为空或结构异常");
+  }
+
+  const extractedText = extractDocxTextFromXml(documentXml).trim();
+  if (!extractedText) {
+    throw new Error("DOCX 文件未提取到可用文字");
+  }
+
+  return extractedText;
+};
 
 export const CopywritingGeneratorPage = ({
   title,
@@ -83,19 +138,51 @@ export const CopywritingGeneratorPage = ({
     const files = e.target.files;
     if (!files) return;
 
+    const nextFiles: Array<{ name: string; type: "image" | "text"; dataUrl: string; preview?: string }> = [];
+    const unsupportedFiles: string[] = [];
+    const failedFiles: string[] = [];
+
     for (const file of Array.from(files)) {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const dataUrl = reader.result as string;
-          setAttachedFiles(prev => [...prev, { name: file.name, type: 'image', dataUrl, preview: dataUrl }]);
-        };
-        reader.readAsDataURL(file);
-      } else if (file.type === 'text/plain' || file.name.endsWith('.txt') || file.name.endsWith('.md')) {
-        const text = await file.text();
-        setAttachedFiles(prev => [...prev, { name: file.name, type: 'text', dataUrl: text }]);
+      const lowerName = file.name.toLowerCase();
+
+      try {
+        if (file.type.startsWith("image/")) {
+          const dataUrl = await readFileAsDataUrl(file);
+          nextFiles.push({ name: file.name, type: "image", dataUrl, preview: dataUrl });
+          continue;
+        }
+
+        if (file.type === "text/plain" || lowerName.endsWith(".txt") || lowerName.endsWith(".md")) {
+          const text = await file.text();
+          nextFiles.push({ name: file.name, type: "text", dataUrl: text });
+          continue;
+        }
+
+        if (file.type === DOCX_MIME_TYPE || lowerName.endsWith(".docx")) {
+          const text = await readDocxFileAsText(file);
+          nextFiles.push({ name: file.name, type: "text", dataUrl: text });
+          continue;
+        }
+
+        unsupportedFiles.push(file.name);
+      } catch (error) {
+        console.error("读取附件失败", file.name, error);
+        failedFiles.push(file.name);
       }
     }
+
+    if (nextFiles.length > 0) {
+      setAttachedFiles((prev) => [...prev, ...nextFiles]);
+    }
+
+    if (unsupportedFiles.length > 0) {
+      toast.error(`不支持的文件类型：${unsupportedFiles.join("、")}`);
+    }
+
+    if (failedFiles.length > 0) {
+      toast.error(`文件读取失败：${failedFiles.join("、")}`);
+    }
+
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -456,7 +543,7 @@ export const CopywritingGeneratorPage = ({
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*,.txt,.md"
+              accept="image/*,.txt,.md,.docx"
               multiple
               onChange={handleFileSelect}
               className="hidden"
