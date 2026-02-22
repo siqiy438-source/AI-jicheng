@@ -6,6 +6,8 @@ import {
   X,
   Sparkles,
   RefreshCw,
+  Loader2,
+  Download,
   Shirt,
   Footprints,
   ShoppingBag,
@@ -20,15 +22,23 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { compressImage } from "@/lib/image-utils";
+import { compressImage, downloadGeneratedImage } from "@/lib/image-utils";
 import {
   getOutfitRecommendation,
   type OutfitRecommendResult,
 } from "@/lib/outfit-recommend";
-import { saveWork } from "@/lib/repositories/works";
+import { saveGeneratedImageWork, saveWork } from "@/lib/repositories/works";
 import { useCreditCheck } from "@/hooks/use-credit-check";
 import { InsufficientBalanceDialog } from "@/components/InsufficientBalanceDialog";
 import { useToast } from "@/hooks/use-toast";
+import { generateImage } from "@/lib/ai-image";
+import {
+  applyStyleProfileToResult,
+  buildOutfitModelNegativePrompt,
+  buildOutfitModelPrompt,
+  extractOutfitStyleTags,
+  resolveOutfitStyleProfile,
+} from "@/lib/outfit-visualization";
 
 type Phase = "upload" | "analyzing" | "result";
 
@@ -51,6 +61,10 @@ const OutfitRecommend = () => {
   const [phase, setPhase] = useState<Phase>("upload");
   const [image, setImage] = useState<string | null>(null);
   const [result, setResult] = useState<OutfitRecommendResult | null>(null);
+  const [styleTags, setStyleTags] = useState<string[]>([]);
+  const [selectedStyleTag, setSelectedStyleTag] = useState("");
+  const [isGeneratingModel, setIsGeneratingModel] = useState(false);
+  const [generatedLookByTag, setGeneratedLookByTag] = useState<Record<string, string>>({});
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -72,7 +86,13 @@ const OutfitRecommend = () => {
     setPhase("analyzing");
     try {
       const data = await getOutfitRecommendation(image);
-      setResult(data);
+      const styleProfile = resolveOutfitStyleProfile(data);
+      const normalizedResult = applyStyleProfileToResult(data, styleProfile);
+      const parsedStyleTags = extractOutfitStyleTags(normalizedResult);
+      setResult(normalizedResult);
+      setStyleTags(parsedStyleTags);
+      setSelectedStyleTag(styleProfile.mainStyle || parsedStyleTags[0] || "");
+      setGeneratedLookByTag({});
       setPhase("result");
       refreshBalance();
 
@@ -85,7 +105,7 @@ const OutfitRecommend = () => {
         type: "outfit-recommend",
         tool: "专业搭配师",
         thumbnailDataUrl: image,
-        content: data as unknown as Record<string, unknown>,
+        content: normalizedResult as unknown as Record<string, unknown>,
       });
     } catch (error) {
       toast({ title: "推荐失败", description: error instanceof Error ? error.message : "请重试", variant: "destructive" });
@@ -93,11 +113,88 @@ const OutfitRecommend = () => {
     }
   };
 
+  const handleGenerateModelImage = async () => {
+    if (!result || !image || !selectedStyleTag || isGeneratingModel) return;
+
+    const hasCredits = checkCredits("ai_outfit_visual_standard");
+    if (!hasCredits) return;
+
+    setIsGeneratingModel(true);
+    try {
+      const finalPrompt = buildOutfitModelPrompt(result, selectedStyleTag);
+      const negativePrompt = buildOutfitModelNegativePrompt(result);
+      const data = await generateImage({
+        prompt: finalPrompt,
+        negativePrompt,
+        images: [image],
+        aspectRatio: "9:16",
+        line: "standard",
+        resolution: "default",
+        hasFrameworkPrompt: true,
+        featureCode: "ai_outfit_visual_standard",
+      });
+
+      if (!data.success) {
+        throw new Error(data.error || "生成失败");
+      }
+
+      const resultImage = data.imageUrl || data.imageBase64;
+      if (!resultImage) {
+        throw new Error("未获取到模特图");
+      }
+
+      setGeneratedLookByTag((prev) => ({
+        ...prev,
+        [selectedStyleTag]: resultImage,
+      }));
+
+      refreshBalance();
+
+      void saveGeneratedImageWork({
+        title: `${selectedStyleTag}模特图`,
+        type: "drawing",
+        tool: "专业搭配师-模特图",
+        prompt: finalPrompt,
+        imageDataUrl: resultImage,
+        metadata: {
+          sourceTool: "专业搭配师",
+          sourceItem: result.inputAnalysis.itemType,
+          styleTag: selectedStyleTag,
+        },
+      });
+    } catch (error) {
+      toast({
+        title: "模特图生成失败",
+        description: error instanceof Error ? error.message : "请稍后重试",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingModel(false);
+    }
+  };
+
+  const handleDownloadModelImage = async () => {
+    const currentImage = generatedLookByTag[selectedStyleTag];
+    if (!currentImage) return;
+    const safeTag = selectedStyleTag.replace(/[^\w\u4e00-\u9fa5-]+/g, "_");
+    try {
+      await downloadGeneratedImage(currentImage, `outfit-model-${safeTag}-${Date.now()}.png`);
+    } catch {
+      window.open(currentImage, "_blank");
+    }
+  };
+
   const handleReset = () => {
     setPhase("upload");
     setImage(null);
     setResult(null);
+    setStyleTags([]);
+    setSelectedStyleTag("");
+    setGeneratedLookByTag({});
+    setIsGeneratingModel(false);
   };
+
+  const currentGeneratedLook = selectedStyleTag ? generatedLookByTag[selectedStyleTag] : null;
 
   return (
     <PageLayout maxWidth="4xl" className="py-6 md:py-8">
@@ -216,6 +313,52 @@ const OutfitRecommend = () => {
               </div>
             </div>
           )}
+
+          {/* 模特图生成 */}
+          <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5">
+            <h3 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
+              <Sparkles className="w-4 h-4" /> 专业搭配可视化
+            </h3>
+            <p className="text-xs text-muted-foreground mb-3">
+              先选风格标签，再点击立即生成。系统会强制结合你首次上传的单品图，确保款式一致性。
+            </p>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {styleTags.map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() => setSelectedStyleTag(tag)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                    selectedStyleTag === tag
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted/60 text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-2 mb-4">
+              <Button
+                onClick={handleGenerateModelImage}
+                disabled={!selectedStyleTag || isGeneratingModel}
+                className="gap-2"
+              >
+                {isGeneratingModel ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                {isGeneratingModel ? "正在生成..." : "立即生成模特图（50 积分）"}
+              </Button>
+              {currentGeneratedLook && (
+                <Button variant="outline" onClick={handleDownloadModelImage} className="gap-2">
+                  <Download className="w-4 h-4" /> 下载图片
+                </Button>
+              )}
+            </div>
+
+            {currentGeneratedLook && (
+              <div className="rounded-xl overflow-hidden border border-border/40 bg-muted/20">
+                <img src={currentGeneratedLook} alt={`${selectedStyleTag} 模特图`} className="w-full max-h-[520px] object-contain" />
+              </div>
+            )}
+          </div>
 
           {/* 搭配方案卡片（最多显示2套） */}
           {result.combinations.slice(0, 2).map((combo, idx) => (

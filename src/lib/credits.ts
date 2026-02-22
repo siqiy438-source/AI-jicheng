@@ -26,6 +26,7 @@ export const FEATURE_PRICES: Record<string, { name: string; cost: number }> = {
   ai_ppt_slide: { name: 'PPT单页', cost: 50 },
   ai_report_page: { name: '报告(每页)', cost: 40 },
   ai_outfit_recommend: { name: '专业搭配师', cost: 20 },
+  ai_outfit_visual_standard: { name: '搭配师模特图', cost: 50 },
   ai_fabric_analysis: { name: '面料说明生成器', cost: 10 },
 }
 
