@@ -8,8 +8,8 @@ export const RECHARGE_TIERS = [
   { id: 'tier_79.9', amount: 79.9, amountCents: 7990, pointsBase: 7990, pointsBonus: 1998, pointsTotal: 9988, label: '79.9元', badge: '最划算' },
 ] as const
 
-export const TOKEN_COST_PER_K = 0.0024
-export const TEXT_TOKEN_MULTIPLIER = 6.5
+export const TOKEN_COST_PER_K = 10
+export const TEXT_TOKEN_MULTIPLIER = 1
 const CREDIT_PRECISION = 2
 
 export type FeatureBillingType = 'fixed' | 'token'
@@ -34,7 +34,7 @@ export const FEATURE_PRICES: Record<string, FeaturePriceConfig> = {
   ai_detail_premium: { name: '细节特写(Pro)', cost: 100, billing: 'fixed' },
   ai_flatlay_standard: { name: '平铺摆拍(标准)', cost: 50, billing: 'fixed' },
   ai_flatlay_premium: { name: '平铺摆拍(Pro)', cost: 100, billing: 'fixed' },
-  ai_copywriting: { name: 'AI文案', cost: 0, billing: 'token' },
+  ai_copywriting: { name: 'AI文案', cost: 1, billing: 'fixed' },
   ai_ppt_outline: { name: 'PPT大纲', cost: 0, billing: 'token' },
   ai_ppt_slide: { name: 'PPT单页', cost: 0, billing: 'token' },
   ai_report_page: { name: '报告(每页)', cost: 0, billing: 'token' },

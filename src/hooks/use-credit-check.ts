@@ -12,7 +12,7 @@ export function useCreditCheck() {
   const [requiredAmount, setRequiredAmount] = useState(0);
   const [featureName, setFeatureName] = useState('');
 
-  const checkCredits = useCallback((featureCode: string): boolean => {
+  const checkCredits = useCallback((featureCode: string, costOverride?: number): boolean => {
     const feature = FEATURE_PRICES[featureCode];
     if (!feature) return true; // unknown feature, allow
     if (feature.billing === 'token') {
@@ -24,11 +24,12 @@ export function useCreditCheck() {
       return true;
     }
 
-    if (balance !== null && balance >= feature.cost) {
+    const cost = costOverride ?? feature.cost;
+    if (balance !== null && balance >= cost) {
       return true;
     }
 
-    setRequiredAmount(feature.cost);
+    setRequiredAmount(cost);
     setFeatureName(feature.name);
     setShowInsufficientDialog(true);
     return false;

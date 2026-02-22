@@ -451,14 +451,19 @@ serve(async (req) => {
     // ========== 积分计费 ==========
     const FIXED_CREDIT_COSTS: Record<string, number> = {}
     const TOKEN_BILLED_FEATURES = new Set([
-      'ai_copywriting',
       'ai_display_analysis',
       'ai_report_page',
       'ai_outfit_recommend',
       'ai_fabric_analysis',
     ])
-    const shouldChargeFixedByPhase = !phase || phase === 'generate'
-    const fixedCreditCost = shouldChargeFixedByPhase ? (FIXED_CREDIT_COSTS[feature_code] || 0) : 0
+    // ai_copywriting: 固定积分计费，每轮探索扣1积分，生成阶段扣20积分
+    let fixedCreditCost = 0
+    if (feature_code === 'ai_copywriting') {
+      fixedCreditCost = phase === 'generate' ? 20 : 1
+    } else {
+      const shouldChargeFixedByPhase = !phase || phase === 'generate'
+      fixedCreditCost = shouldChargeFixedByPhase ? (FIXED_CREDIT_COSTS[feature_code] || 0) : 0
+    }
     const isTokenBilledFeature = TOKEN_BILLED_FEATURES.has(feature_code || '')
     const needsCreditAuth = fixedCreditCost > 0 || isTokenBilledFeature
 
