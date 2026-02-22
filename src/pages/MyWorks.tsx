@@ -108,6 +108,56 @@ const outfitResultToText = (r: OutfitRecommendResult): string => {
   return lines.join("\n");
 };
 
+const CopywritingDetailDialog = ({ work, open, onClose }: { work: WorkListItem | null; open: boolean; onClose: () => void }) => {
+  const [copied, setCopied] = useState(false);
+  if (!work || !open) return null;
+
+  const content = work.content?.trim();
+  if (!content) return null;
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("复制失败");
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center" onClick={onClose}>
+      <div className="fixed inset-0 bg-black/50 animate-fade-in" />
+      <div
+        className="relative z-10 w-full md:max-w-3xl max-h-[85vh] bg-background rounded-t-2xl md:rounded-2xl overflow-hidden animate-slide-up md:animate-fade-in"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/30 px-4 py-3 flex items-center justify-between">
+          <div className="min-w-0">
+            <h2 className="text-base font-semibold text-foreground truncate">{work.title}</h2>
+            <p className="text-xs text-muted-foreground">{work.createdAt} · {work.tool}</p>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button onClick={handleCopy} className="p-2 rounded-lg hover:bg-secondary transition-colors" title="复制文案">
+              {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4 text-muted-foreground" />}
+            </button>
+            <button onClick={onClose} className="p-2 rounded-lg hover:bg-secondary transition-colors">
+              <X className="w-4 h-4 text-muted-foreground" />
+            </button>
+          </div>
+        </div>
+        <div className="overflow-y-auto max-h-[calc(85vh-56px)] p-4 md:p-5">
+          <div className="rounded-xl bg-muted/30 p-4 md:p-5">
+            <p className="whitespace-pre-wrap break-words text-sm md:text-base leading-relaxed text-foreground">
+              {content}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // 搭配师详情弹窗
 const OutfitDetailDialog = ({ work, open, onClose }: { work: WorkListItem | null; open: boolean; onClose: () => void }) => {
   const [copied, setCopied] = useState(false);
@@ -291,6 +341,7 @@ const MyWorks = () => {
   const [hasMore, setHasMore] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [detailWork, setDetailWork] = useState<WorkListItem | null>(null);
+  const [copyDetailWork, setCopyDetailWork] = useState<WorkListItem | null>(null);
 
   const refreshWorks = useCallback(async (silent = false) => {
     try {
@@ -371,6 +422,10 @@ const MyWorks = () => {
     setSelectedWork(work.id);
     if (work.type === "outfit-recommend" && work.contentJson) {
       setDetailWork(work);
+      return;
+    }
+    if (getWorkCategory(work.type) === "copywriting" && work.content?.trim()) {
+      setCopyDetailWork(work);
       return;
     }
     if (work.thumbnail) {
@@ -779,6 +834,7 @@ const MyWorks = () => {
         </AlertDialogContent>
       </AlertDialog>
       <OutfitDetailDialog work={detailWork} open={!!detailWork} onClose={() => setDetailWork(null)} />
+      <CopywritingDetailDialog work={copyDetailWork} open={!!copyDetailWork} onClose={() => setCopyDetailWork(null)} />
     </PageLayout>
   );
 };
