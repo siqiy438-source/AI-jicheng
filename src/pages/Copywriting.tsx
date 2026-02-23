@@ -7,7 +7,6 @@ interface ToolItem {
   description: string;
   iconSrc: string;
   to: string;
-  iconBg: string;
   badge?: string;
 }
 
@@ -17,7 +16,6 @@ const tools: ToolItem[] = [
     description: "输出有态度、有说服力的观点内容。",
     iconSrc: "/icons/copywriting-opinion.png",
     to: "/copywriting-opinion",
-    iconBg: "bg-orange-100",
     badge: "热门",
   },
   {
@@ -25,21 +23,18 @@ const tools: ToolItem[] = [
     description: "把专业知识转化为通俗易懂的科普内容。",
     iconSrc: "/icons/copywriting-knowledge.png",
     to: "/copywriting-knowledge",
-    iconBg: "bg-blue-100",
   },
   {
     title: "晒过程文案",
     description: "展示制作、成长过程的幕后内容。",
     iconSrc: "/icons/copywriting-process.png",
     to: "/copywriting-process",
-    iconBg: "bg-green-100",
   },
   {
     title: "讲故事文案",
     description: "用叙事手法包装产品、品牌或经历。",
     iconSrc: "/icons/copywriting-story.png",
     to: "/copywriting-story",
-    iconBg: "bg-purple-100",
     badge: "热门",
   },
   {
@@ -47,14 +42,12 @@ const tools: ToolItem[] = [
     description: "批量生成有吸引力的内容选题灵感。",
     iconSrc: "/icons/copywriting-topic.png",
     to: "/copywriting-topic",
-    iconBg: "bg-rose-100",
   },
   {
     title: "到店理由文案",
     description: "提炼吸引顾客到店消费的核心理由。",
     iconSrc: "/icons/copywriting-store-visit.png",
     to: "/copywriting-store-visit",
-    iconBg: "bg-teal-100",
   },
 ];
 
@@ -90,7 +83,7 @@ const Copywriting = () => {
                   {tool.badge}
                 </span>
               )}
-              <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center mb-2.5 md:mb-4 transition-transform group-hover:scale-110 ${tool.iconBg}`}>
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center mb-2.5 md:mb-4 transition-transform group-hover:scale-110">
                 <img src={tool.iconSrc} alt={tool.title} loading="lazy" decoding="async" className="w-6 h-6 md:w-8 md:h-8 object-contain" />
               </div>
               <h3 className="font-semibold text-foreground mb-1 md:mb-2 text-sm md:text-base leading-tight">{tool.title}</h3>
