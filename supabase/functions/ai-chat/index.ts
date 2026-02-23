@@ -420,6 +420,26 @@ serve(async (req) => {
   let creditCost = 0
   let savedFeatureCode: string | null = null
   let tokenCreditsCharged = 0
+  let fixedCreditOperationId: string | null = null
+  let fixedCreditOperationFeatureCode: string | null = null
+
+  const finalizeFixedCreditOperation = async (isSuccess: boolean, errorMessage?: string) => {
+    if (!supabaseAdmin || !userId || !fixedCreditOperationId || !fixedCreditOperationFeatureCode) return
+    try {
+      const { data: finalizeResult, error: finalizeError } = await supabaseAdmin.rpc('finalize_credit_operation', {
+        p_user_id: userId,
+        p_operation_id: fixedCreditOperationId,
+        p_feature_code: fixedCreditOperationFeatureCode,
+        p_success: isSuccess,
+        p_error_message: errorMessage || null,
+      })
+      if (finalizeError || !finalizeResult?.success) {
+        console.error('[ai-chat] finalize_credit_operation failed:', finalizeError || finalizeResult)
+      }
+    } catch (finalizeErr) {
+      console.error('[ai-chat] finalize_credit_operation exception:', finalizeErr)
+    }
+  }
 
   try {
     // 获取环境变量中的 API Key（BLTCY 文字 API）
@@ -441,7 +461,7 @@ serve(async (req) => {
     const REPORT_API_MODEL = Deno.env.get('REPORT_API_MODEL') || 'gemini-3-flash-preview'
 
     // 解析请求
-    const { prompt, agentId, history, stream = true, mode, images, feature_code, phase } = await req.json()
+    const { prompt, agentId, history, stream = true, mode, images, feature_code, phase, request_id } = await req.json()
     savedFeatureCode = feature_code || null
 
     if (!prompt) {
@@ -483,22 +503,51 @@ serve(async (req) => {
       }
       userId = user.id
       if (fixedCreditCost > 0) {
-        const { data: deductResult, error: deductError } = await supabaseAdmin.rpc('deduct_credits', {
-          p_user_id: userId,
-          p_amount: fixedCreditCost.toFixed(2),
-          p_description: feature_code || 'ai_chat',
-        })
-        if (deductError || !deductResult?.success) {
-          const currentBalance = Number(deductResult?.balance || 0).toFixed(2)
-          const errMsg = deductResult?.error === 'INSUFFICIENT_BALANCE'
-            ? `积分不足，需要 ${fixedCreditCost.toFixed(2)} 积分，当前余额 ${currentBalance}`
-            : '积分扣减失败'
-          return new Response(JSON.stringify({ error: errMsg }), {
-            status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        // V1：先覆盖 ai_copywriting，使用幂等扣费/退款操作
+        if (feature_code === 'ai_copywriting') {
+          const resolvedRequestId = typeof request_id === 'string' && request_id.trim() ? request_id.trim() : crypto.randomUUID()
+          fixedCreditOperationId = resolvedRequestId
+          fixedCreditOperationFeatureCode = feature_code
+
+          const { data: beginResult, error: beginError } = await supabaseAdmin.rpc('begin_credit_operation', {
+            p_user_id: userId,
+            p_operation_id: resolvedRequestId,
+            p_feature_code: feature_code,
+            p_amount: fixedCreditCost.toFixed(2),
+            p_description: feature_code,
           })
+          if (beginError || !beginResult?.success) {
+            const currentBalance = Number(beginResult?.balance || 0).toFixed(2)
+            const errMsg = beginResult?.error === 'INSUFFICIENT_BALANCE'
+              ? `积分不足，需要 ${fixedCreditCost.toFixed(2)} 积分，当前余额 ${currentBalance}`
+              : '积分扣减失败'
+            return new Response(JSON.stringify({ error: errMsg }), {
+              status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            })
+          }
+          if (!beginResult?.already_exists) {
+            console.log(`[ai-chat] Deducted ${fixedCreditCost.toFixed(2)} credits from user ${userId}`)
+          } else {
+            console.log(`[ai-chat] Reused credit operation ${resolvedRequestId} for user ${userId} (status=${beginResult?.status})`)
+          }
+        } else {
+          const { data: deductResult, error: deductError } = await supabaseAdmin.rpc('deduct_credits', {
+            p_user_id: userId,
+            p_amount: fixedCreditCost.toFixed(2),
+            p_description: feature_code || 'ai_chat',
+          })
+          if (deductError || !deductResult?.success) {
+            const currentBalance = Number(deductResult?.balance || 0).toFixed(2)
+            const errMsg = deductResult?.error === 'INSUFFICIENT_BALANCE'
+              ? `积分不足，需要 ${fixedCreditCost.toFixed(2)} 积分，当前余额 ${currentBalance}`
+              : '积分扣减失败'
+            return new Response(JSON.stringify({ error: errMsg }), {
+              status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            })
+          }
+          creditCost = fixedCreditCost
+          console.log(`[ai-chat] Deducted ${fixedCreditCost.toFixed(2)} credits from user ${userId}`)
         }
-        creditCost = fixedCreditCost
-        console.log(`[ai-chat] Deducted ${fixedCreditCost.toFixed(2)} credits from user ${userId}`)
       }
     }
 
@@ -977,14 +1026,23 @@ serve(async (req) => {
 
     // 固定积分/非 token 功能保持透传流式响应
     if (stream && !shouldForceNonStreaming) {
-      return new Response(response.body, {
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'text/event-stream',
-          'Cache-Control': 'no-cache',
-          'Connection': 'keep-alive',
-        },
-      })
+      const sseHeaders = {
+        ...corsHeaders,
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+      }
+      // 有积分操作时，用 TransformStream 拦截流结束事件来 finalize
+      if (fixedCreditOperationId && response.body) {
+        const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>()
+        const pipePromise = response.body.pipeTo(writable).then(
+          () => finalizeFixedCreditOperation(true),
+          (err: unknown) => finalizeFixedCreditOperation(false, String(err))
+        )
+        try { (globalThis as any).EdgeRuntime?.waitUntil?.(pipePromise) } catch (_) { /* ignore */ }
+        return new Response(readable, { headers: sseHeaders })
+      }
+      return new Response(response.body, { headers: sseHeaders })
     }
 
     // token 计费场景使用非流式上游响应，结算后再返回给前端
@@ -992,6 +1050,8 @@ serve(async (req) => {
     const assistantText = extractAssistantMessage(data)
     const chargeError = await chargeTokenCredits(data, [prompt, assistantText])
     if (chargeError) return chargeError
+
+    await finalizeFixedCreditOperation(true)
 
     if (stream) {
       return createSseResponse(assistantText)
@@ -1002,6 +1062,8 @@ serve(async (req) => {
     })
 
   } catch (error) {
+    await finalizeFixedCreditOperation(false, error instanceof Error ? error.message : String(error))
+
     // 生成失败时退还积分
     if (supabaseAdmin && userId && creditCost > 0) {
       try {

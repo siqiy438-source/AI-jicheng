@@ -139,6 +139,7 @@ export async function chatStream(
       headers['Authorization'] = `Bearer ${token}`;
     }
 
+    const requestId = crypto.randomUUID();
     const payload = {
       prompt,
       agentId,
@@ -147,6 +148,7 @@ export async function chatStream(
       feature_code: featureCode,
       phase,
       images,
+      request_id: requestId,
     };
 
     const response = await fetch(getEdgeFunctionUrl(), {

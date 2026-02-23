@@ -76,14 +76,32 @@ serve(async (req) => {
   let supabaseAdmin: ReturnType<typeof createClient> | null = null
   let userId: string | null = null
   let creditCost = 0
-  let savedFeatureCode: string | undefined
+  let creditOperationId: string | null = null
+  let creditOperationFeatureCode: string | null = null
+
+  const finalizeCreditOperation = async (isSuccess: boolean, errorMessage?: string) => {
+    if (!supabaseAdmin || !userId || !creditOperationId || !creditOperationFeatureCode) return
+    try {
+      const { data: finalizeResult, error: finalizeError } = await supabaseAdmin.rpc('finalize_credit_operation', {
+        p_user_id: userId,
+        p_operation_id: creditOperationId,
+        p_feature_code: creditOperationFeatureCode,
+        p_success: isSuccess,
+        p_error_message: errorMessage || null,
+      })
+      if (finalizeError || !finalizeResult?.success) {
+        console.error('[ai-image] finalize_credit_operation failed:', finalizeError || finalizeResult)
+      }
+    } catch (finalizeErr) {
+      console.error('[ai-image] finalize_credit_operation exception:', finalizeErr)
+    }
+  }
 
   try {
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
     const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
-    const { prompt, style, aspectRatio, negativePrompt, styleId, images, line, resolution, hasFrameworkPrompt, conversationHistory, feature_code } = await req.json()
-    savedFeatureCode = feature_code
+    const { prompt, style, aspectRatio, negativePrompt, styleId, images, line, resolution, hasFrameworkPrompt, conversationHistory, feature_code, request_id } = await req.json()
 
     // ========== 积分扣减 ==========
     const CREDIT_COSTS: Record<string, number> = {
@@ -111,20 +129,31 @@ serve(async (req) => {
       creditCost = CREDIT_COSTS[feature_code] || 0
 
       if (creditCost > 0) {
-        const { data: deductResult, error: deductError } = await supabaseAdmin.rpc('deduct_credits', {
+        const resolvedRequestId = typeof request_id === 'string' && request_id.trim() ? request_id.trim() : crypto.randomUUID()
+        creditOperationId = resolvedRequestId
+        creditOperationFeatureCode = feature_code || 'ai_image'
+
+        const { data: beginResult, error: beginError } = await supabaseAdmin.rpc('begin_credit_operation', {
           p_user_id: userId,
+          p_operation_id: resolvedRequestId,
+          p_feature_code: creditOperationFeatureCode,
           p_amount: creditCost,
-          p_description: feature_code || 'ai_image',
+          p_description: creditOperationFeatureCode,
         })
-        if (deductError || !deductResult?.success) {
-          const errMsg = deductResult?.error === 'INSUFFICIENT_BALANCE'
-            ? `积分不足，需要 ${creditCost} 积分，当前余额 ${deductResult?.balance || 0}`
+
+        if (beginError || !beginResult?.success) {
+          const errMsg = beginResult?.error === 'INSUFFICIENT_BALANCE'
+            ? `积分不足，需要 ${creditCost} 积分，当前余额 ${beginResult?.balance || 0}`
             : '积分扣减失败'
           return new Response(JSON.stringify({ success: false, error: errMsg }), {
             status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           })
         }
-        console.log(`[ai-image] Deducted ${creditCost} credits from user ${userId}`)
+        if (!beginResult?.already_exists) {
+          console.log(`[ai-image] Deducted ${creditCost} credits from user ${userId}`)
+        } else {
+          console.log(`[ai-image] Reused credit operation ${resolvedRequestId} for user ${userId} (status=${beginResult?.status})`)
+        }
       }
     }
 
@@ -322,6 +351,7 @@ Flat-lay product showcase requirements:
       }
 
       if (imageUrl) {
+        await finalizeCreditOperation(true)
         console.log(`[ai-image] HD 图片已上传 Storage，返回 URL`)
         return new Response(JSON.stringify({
           success: true,
@@ -332,6 +362,7 @@ Flat-lay product showcase requirements:
       }
 
       // Storage 上传失败时回退到 base64
+      await finalizeCreditOperation(true)
       console.log(`[ai-image] HD Storage 上传失败，回退 base64`)
       return new Response(JSON.stringify({
         success: true,
@@ -450,6 +481,7 @@ Flat-lay product showcase requirements:
     }
 
     if (imageUrl) {
+      await finalizeCreditOperation(true)
       console.log(`[ai-image] 标准线路图片已上传 Storage，返回 URL`)
       return new Response(JSON.stringify({
         success: true,
@@ -461,6 +493,7 @@ Flat-lay product showcase requirements:
     }
 
     // Storage 上传失败时回退到 base64
+    await finalizeCreditOperation(true)
     console.log(`[ai-image] 标准线路 Storage 上传失败，回退 base64`)
     return new Response(JSON.stringify({
       success: true,
@@ -471,15 +504,7 @@ Flat-lay product showcase requirements:
     })
 
   } catch (error) {
-    // 生成失败时退还积分
-    if (supabaseAdmin && userId && creditCost > 0) {
-      try {
-        await supabaseAdmin.rpc('add_credits', { p_user_id: userId, p_amount: creditCost, p_description: '退款-' + (savedFeatureCode || 'ai_image') })
-        console.log(`[ai-image] Refunded ${creditCost} credits to user ${userId}`)
-      } catch (refundErr) {
-        console.error(`[ai-image] Refund failed:`, refundErr)
-      }
-    }
+    await finalizeCreditOperation(false, error instanceof Error ? error.message : String(error))
 
     return new Response(
       JSON.stringify({

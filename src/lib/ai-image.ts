@@ -24,6 +24,7 @@ export interface ImageGenerationParams {
   hasFrameworkPrompt?: boolean;
   conversationHistory?: ConversationMessage[];
   featureCode?: string;
+  requestId?: string;
 }
 
 // 图像生成结果
@@ -45,6 +46,8 @@ const getEdgeFunctionUrl = () => {
  */
 export async function generateImage(params: ImageGenerationParams): Promise<ImageGenerationResult> {
   try {
+    const requestId = params.requestId ?? crypto.randomUUID();
+
     // 获取当前用户的 access_token（用于认证和积分扣减）
     const token = await getAccessToken();
     if (!token) {
@@ -63,7 +66,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Imag
     const response = await fetch(getEdgeFunctionUrl(), {
       method: 'POST',
       headers,
-      body: JSON.stringify({ ...params, feature_code: params.featureCode }),
+      body: JSON.stringify({ ...params, feature_code: params.featureCode, request_id: requestId }),
       signal: controller.signal,
     });
 
@@ -79,7 +82,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Imag
       const retryResponse = await fetch(getEdgeFunctionUrl(), {
         method: 'POST',
         headers,
-        body: JSON.stringify({ ...params, feature_code: params.featureCode }),
+        body: JSON.stringify({ ...params, feature_code: params.featureCode, request_id: requestId }),
         signal: retryController.signal,
       });
       clearTimeout(retryTimeoutId);
