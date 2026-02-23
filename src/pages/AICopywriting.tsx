@@ -358,7 +358,7 @@ const AICopywriting = () => {
                 >
                   {message.role === "assistant" ? (
                     message.content ? (
-                    <div className="prose max-w-none dark:prose-invert prose-headings:text-foreground prose-headings:font-semibold prose-h3:text-base prose-h4:text-sm prose-p:text-foreground prose-p:leading-relaxed prose-p:my-2.5 prose-strong:text-foreground prose-ul:text-foreground prose-ul:my-2 prose-ol:text-foreground prose-ol:my-2 prose-li:text-foreground prose-li:my-0.5 text-sm font-medium leading-relaxed">
+                    <div className="prose max-w-none dark:prose-invert prose-headings:text-foreground prose-headings:font-semibold prose-h3:text-base prose-h4:text-sm prose-p:text-foreground prose-p:leading-relaxed prose-p:my-2.5 prose-strong:text-foreground prose-ul:text-foreground prose-ul:my-2 prose-ol:text-foreground prose-ol:my-2 prose-li:text-foreground prose-li:my-0.5 text-sm font-medium leading-relaxed select-text">
                       <ReactMarkdown>{message.content}</ReactMarkdown>
                     </div>
                     ) : isGenerating ? (

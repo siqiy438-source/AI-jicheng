@@ -221,10 +221,11 @@
     min-height: 100dvh;
   }
 
-  /* 允许输入框和文本区域选择文本 */
-  input, textarea, [contenteditable="true"], .prose {
+  /* 允许输入框和文本区域选择文本（修复移动端文案按段复制） */
+  input, textarea, [contenteditable="true"], .prose, .prose *, .select-text, .select-text * {
     -webkit-user-select: text;
     user-select: text;
+    -webkit-touch-callout: default;
   }
 
   /* 所有可交互元素的触摸优化 */
