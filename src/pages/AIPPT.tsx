@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { type ChangeEvent, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageLayout } from "@/components/PageLayout";
 import { GeneratingLoader } from "@/components/GeneratingLoader";
@@ -21,6 +21,7 @@ import {
   X,
   RefreshCw,
   Check,
+  Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,7 @@ import {
   exportToPDF,
   exportToPPTX,
   exportToImages,
+  saveSingleSlideImage,
 } from "@/lib/ai-ppt";
 import { useToast } from "@/hooks/use-toast";
 import { saveWork, updateWork } from "@/lib/repositories/works";
@@ -93,6 +95,30 @@ const PLACEHOLDERS: Record<string, string> = {
   description: "输入详细描述内容...",
 };
 
+const WORD_EXTENSIONS = [".docx"];
+const TEXT_EXTENSIONS = [".txt", ".md", ".markdown", ".csv", ".json"];
+
+const decodeXmlEntities = (value: string): string =>
+  value
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, "\"")
+    .replace(/&apos;/g, "'");
+
+const extractTextFromDocxXml = (xml: string): string => {
+  const paragraphs = xml.split("</w:p>");
+  const lines = paragraphs
+    .map((paragraph) => {
+      const matches = [...paragraph.matchAll(/<w:t[^>]*>([\s\S]*?)<\/w:t>/g)];
+      if (matches.length === 0) return "";
+      const line = matches.map((m) => decodeXmlEntities(m[1] || "")).join("");
+      return line.trim();
+    })
+    .filter(Boolean);
+  return lines.join("\n");
+};
+
 // ==================== Component ====================
 const AIPPT = () => {
   const navigate = useNavigate();
@@ -108,8 +134,11 @@ const AIPPT = () => {
   const [style, setStyle] = useState("free");
   const [template, setTemplate] = useState("none");
   const [aspectRatio, setAspectRatio] = useState("16:9");
-  const [selectedLine, setSelectedLine] = useState("standard");
+  const [selectedLine, setSelectedLine] = useState("standard_2k");
   const [showLineMenu, setShowLineMenu] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState("");
+  const [isParsingFile, setIsParsingFile] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Step 2 states
   const [slides, setSlides] = useState<SlideData[]>([]);
@@ -138,7 +167,7 @@ const AIPPT = () => {
   const { toast } = useToast();
 
   const persistPptWork = async (options?: {
-    format?: "pptx" | "pdf" | "images";
+    format?: "pptx" | "pdf" | "images" | "image";
     nextSlides?: SlideData[];
     nextProjectTitle?: string;
     forceCreate?: boolean;
@@ -172,6 +201,63 @@ const AIPPT = () => {
       }
     } catch (error) {
       console.error("自动保存 AI PPT 作品失败", error);
+    }
+  };
+
+  const parseUploadedFile = async (file: File): Promise<string> => {
+    const fileName = file.name.toLowerCase();
+    const isDocx = WORD_EXTENSIONS.some((ext) => fileName.endsWith(ext));
+    const isTextFile = TEXT_EXTENSIONS.some((ext) => fileName.endsWith(ext));
+
+    if (isDocx) {
+      const JSZip = (await import("jszip")).default;
+      const zip = await JSZip.loadAsync(await file.arrayBuffer());
+      const docXmlFile = zip.file("word/document.xml");
+      if (!docXmlFile) {
+        throw new Error("未读取到 Word 正文内容，请检查文件是否损坏");
+      }
+      const xml = await docXmlFile.async("string");
+      return extractTextFromDocxXml(xml);
+    }
+
+    if (isTextFile) {
+      return await file.text();
+    }
+
+    if (fileName.endsWith(".doc")) {
+      throw new Error("暂不支持 .doc，请先另存为 .docx 后上传");
+    }
+
+    throw new Error("仅支持 .docx / .txt / .md / .csv / .json 文件");
+  };
+
+  const handleUploadDocument = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsParsingFile(true);
+    try {
+      const content = (await parseUploadedFile(file)).trim();
+      if (!content) {
+        throw new Error("文件内容为空，无法用于生成 PPT");
+      }
+
+      setInputContent(content);
+      setUploadedFileName(file.name);
+      setGenerationMode("description");
+      toast({
+        title: "导入成功",
+        description: `已读取 ${file.name}，并切换到“从描述生成”模式`,
+      });
+    } catch (error) {
+      toast({
+        title: "导入失败",
+        description: error instanceof Error ? error.message : "请更换文件后重试",
+        variant: "destructive",
+      });
+    } finally {
+      setIsParsingFile(false);
+      event.target.value = "";
     }
   };
 
@@ -209,6 +295,7 @@ const AIPPT = () => {
   const handleGenerateDescription = async (slideIndex: number) => {
     const slide = slides[slideIndex];
     if (!slide) return;
+    if (!checkCredits("ai_ppt_slide")) return;
     setIsGeneratingDescription(true);
 
     const result = await generateSlideDescription({
@@ -226,26 +313,35 @@ const AIPPT = () => {
       const newSlides = [...slides];
       newSlides[slideIndex] = { ...newSlides[slideIndex], description: result.description };
       setSlides(newSlides);
+      void refreshBalance();
+      void persistPptWork({ nextSlides: newSlides });
     } else {
       toast({ title: "生成描述失败", description: result.error || "请稍后重试", variant: "destructive" });
     }
   };
 
   const handleBatchGenerateDescriptions = async () => {
-    const needGenerate = slides.filter((s) => !s.description || !s.description.trim());
-    if (needGenerate.length === 0) {
+    const needGenerateIndexes = slides
+      .map((slide, index) => (slide.description?.trim() ? -1 : index))
+      .filter((index) => index >= 0);
+
+    if (needGenerateIndexes.length === 0) {
       toast({ title: "无需生成", description: "所有页面已有描述" });
       return;
     }
 
     setIsGeneratingDescription(true);
+    const updatedSlides = [...slides];
     let successCount = 0;
     let failCount = 0;
 
-    for (let i = 0; i < slides.length; i++) {
-      const slide = slides[i];
-      // 跳过已有描述的
-      if (slide.description && slide.description.trim()) continue;
+    for (const index of needGenerateIndexes) {
+      const slide = updatedSlides[index];
+      if (!slide) continue;
+      if (!checkCredits("ai_ppt_slide")) {
+        failCount += (needGenerateIndexes.length - successCount - failCount);
+        break;
+      }
 
       const result = await generateSlideDescription({
         slideTitle: slide.title,
@@ -253,16 +349,12 @@ const AIPPT = () => {
         overallTheme: projectTitle,
         style,
         slideIndex: slide.id,
-        totalSlides: slides.length,
+        totalSlides: updatedSlides.length,
       });
 
       if (result.success && result.description) {
-        // 每生成一页就立即更新 UI
-        setSlides((prev) => {
-          const updated = [...prev];
-          updated[i] = { ...updated[i], description: result.description! };
-          return updated;
-        });
+        updatedSlides[index] = { ...slide, description: result.description };
+        setSlides([...updatedSlides]);
         successCount++;
       } else {
         failCount++;
@@ -270,30 +362,65 @@ const AIPPT = () => {
     }
 
     setIsGeneratingDescription(false);
+    void refreshBalance();
+    void persistPptWork({ nextSlides: updatedSlides });
+
     if (failCount === 0) {
-      toast({ title: "批量生成完成", description: `已生成 ${successCount} 页描述` });
+      toast({ title: "批量描述完成", description: `已生成 ${successCount} 页描述` });
     } else {
       toast({ title: "部分生成完成", description: `成功 ${successCount} 页，失败 ${failCount} 页`, variant: "destructive" });
     }
   };
 
+  const canGenerateImageFromSlide = (slide: SlideData): boolean => {
+    const hasDescription = Boolean(slide.description?.trim());
+    const hasOutline = slide.outlinePoints.some((point) => Boolean(point?.trim()));
+    const hasTitle = Boolean(slide.title?.trim());
+    return hasDescription || hasOutline || hasTitle;
+  };
+
+  const buildImageDescriptionFromSlide = (slide: SlideData): string => {
+    const description = slide.description?.trim();
+    if (description) return description;
+
+    const title = slide.title?.trim() || "未命名页面";
+    const outlineText = slide.outlinePoints
+      .map((point) => point.trim())
+      .filter(Boolean)
+      .map((point, index) => `${index + 1}. ${point}`)
+      .join("\n");
+
+    return `请根据以下 PPT 页面大纲信息生成一张演示页面视觉图。
+页面标题：${title}
+核心要点：
+${outlineText || "暂无要点，请基于标题延展"}
+
+要求：
+- 强调信息层级与重点结论
+- 将要点转化为清晰可视化布局
+- 画面适合商业演示场景`;
+  };
+
   const handleGenerateImage = async (slideIndex: number) => {
     const slide = slides[slideIndex];
-    if (!slide || !slide.description) {
-      toast({ title: "请先生成描述", description: "需要先为该页生成内容描述", variant: "destructive" });
+    if (!slide) return;
+    if (!canGenerateImageFromSlide(slide)) {
+      toast({ title: "内容不足", description: "请至少补充页面标题、大纲要点或内容描述后再出图", variant: "destructive" });
       return;
     }
-    if (!checkCredits('ai_ppt_slide')) return;
+    if (!checkCredits('ai_ppt_image_standard')) return;
     setIsGeneratingImage(true);
 
+    const imageDescription = buildImageDescriptionFromSlide(slide);
     const selectedLineOption = PPT_LINE_OPTIONS.find(l => l.id === selectedLine) || PPT_LINE_OPTIONS[0];
     const result = await generateSlideImage({
-      description: slide.description,
+      description: imageDescription,
       style,
       template,
       aspectRatio,
       line: selectedLineOption.line,
       resolution: selectedLineOption.resolution,
+      featureCode: "ai_ppt_image_standard",
     });
 
     setIsGeneratingImage(false);
@@ -310,25 +437,27 @@ const AIPPT = () => {
   };
 
   const handleBatchGenerateImages = async () => {
-    const slidesNeedingImages = slides.filter((s) => !s.generatedImage && s.description);
+    const slidesNeedingImages = slides.filter((s) => !s.generatedImage && canGenerateImageFromSlide(s));
     if (slidesNeedingImages.length === 0) {
-      toast({ title: "无需生成", description: "所有有描述的页面已生成图片" });
+      toast({ title: "无需生成", description: "没有可出图的页面（请先补充标题/要点/描述）" });
       return;
     }
-    if (!checkCredits('ai_ppt_slide')) return;
+    if (!checkCredits('ai_ppt_image_standard')) return;
     setIsGeneratingImage(true);
 
     const selectedLineOption2 = PPT_LINE_OPTIONS.find(l => l.id === selectedLine) || PPT_LINE_OPTIONS[0];
     const newSlides = [...slides];
     for (let i = 0; i < newSlides.length; i++) {
-      if (newSlides[i].generatedImage || !newSlides[i].description) continue;
+      if (newSlides[i].generatedImage || !canGenerateImageFromSlide(newSlides[i])) continue;
+      const imageDescription = buildImageDescriptionFromSlide(newSlides[i]);
       const result = await generateSlideImage({
-        description: newSlides[i].description,
+        description: imageDescription,
         style,
         template,
         aspectRatio,
         line: selectedLineOption2.line,
         resolution: selectedLineOption2.resolution,
+        featureCode: "ai_ppt_image_standard",
       });
       if (result.success && (result.imageUrl || result.imageBase64)) {
         newSlides[i] = { ...newSlides[i], generatedImage: result.imageUrl || result.imageBase64 };
@@ -359,6 +488,22 @@ const AIPPT = () => {
     }
   };
 
+  const handleSaveCurrentSlideImage = async () => {
+    const slide = slides[selectedSlideIndex];
+    if (!slide?.generatedImage) {
+      toast({ title: "暂无可保存图片", description: "请先为当前页面生成图片", variant: "destructive" });
+      return;
+    }
+
+    try {
+      await saveSingleSlideImage(slide, projectTitle, selectedSlideIndex);
+      void persistPptWork({ format: "image" });
+      toast({ title: "保存成功" });
+    } catch (error) {
+      toast({ title: "保存失败", description: error instanceof Error ? error.message : "请稍后重试", variant: "destructive" });
+    }
+  };
+
   const handleShare = () => {
     toast({ title: "分享功能", description: "即将上线，敬请期待" });
   };
@@ -368,6 +513,7 @@ const AIPPT = () => {
     setShowStyleMenu(false);
     setShowTemplateMenu(false);
     setShowRatioMenu(false);
+    setShowLineMenu(false);
     setShowExportMenu(false);
   };
 
@@ -410,6 +556,37 @@ const AIPPT = () => {
               {tab.label}
             </button>
           ))}
+        </div>
+
+        {/* File upload */}
+        <div className="glass-card rounded-xl p-3 md:p-4 mb-4 border border-border/50">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-foreground">上传文档快速生成</p>
+              <p className="text-xs text-muted-foreground">支持 Word(.docx)、TXT、MD、CSV、JSON</p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isParsingFile}
+              className="text-xs"
+            >
+              {isParsingFile ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Upload className="w-3.5 h-3.5 mr-1" />}
+              {isParsingFile ? "读取中..." : "上传文件"}
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".docx,.txt,.md,.markdown,.csv,.json,.doc"
+              onChange={handleUploadDocument}
+              className="hidden"
+            />
+          </div>
+          {uploadedFileName ? (
+            <p className="mt-2 text-xs text-muted-foreground truncate">已导入：{uploadedFileName}</p>
+          ) : null}
         </div>
 
         {/* Textarea */}
@@ -622,7 +799,7 @@ const AIPPT = () => {
             className="text-xs min-h-[36px]"
           >
             {isGeneratingDescription ? <Loader2 className="w-3.5 h-3.5 md:mr-1 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 md:mr-1" />}
-            <span className="hidden md:inline">{isGeneratingDescription ? "生成中..." : "批量生成"}</span>
+            <span className="hidden md:inline">{isGeneratingDescription ? "生成中..." : "批量描述（每页5分）"}</span>
           </Button>
           <Button size="sm" onClick={() => setCurrentStep(3)} className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs min-h-[36px]">
             下一步
@@ -714,16 +891,6 @@ const AIPPT = () => {
                     {selectedSlideIndex + 1}/{slides.length}
                   </span>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleGenerateDescription(selectedSlideIndex)}
-                  disabled={isGeneratingDescription}
-                  className="text-xs"
-                >
-                  <Sparkles className="w-3.5 h-3.5 mr-1" />
-                  AI 生成
-                </Button>
               </div>
 
               {/* Outline section */}
@@ -777,7 +944,22 @@ const AIPPT = () => {
 
               {/* Description section */}
               <div className="mb-6">
-                <h3 className="text-sm font-medium text-foreground mb-3">内容描述</h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium text-foreground">内容描述</h3>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleGenerateDescription(selectedSlideIndex)}
+                    disabled={isGeneratingDescription}
+                    className="text-xs"
+                  >
+                    {isGeneratingDescription ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 mr-1" />}
+                    生成（5积分）
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mb-2">
+                  建议先生成详细描述：会补充关键信息、表达逻辑和版式建议，让最终 PPT 更完整、更专业。
+                </p>
                 <textarea
                   value={currentSlide.description}
                   onChange={(e) => {
@@ -837,7 +1019,7 @@ const AIPPT = () => {
           {/* Style dropdown */}
           <div className="relative" onClick={(e) => e.stopPropagation()}>
             <button
-              onClick={() => { setShowStyleMenu(!showStyleMenu); setShowTemplateMenu(false); }}
+              onClick={() => { setShowStyleMenu(!showStyleMenu); setShowTemplateMenu(false); setShowLineMenu(false); }}
               className="flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-lg text-xs bg-secondary/50 hover:bg-secondary border border-border/50 transition-all"
             >
               <span>{PPT_STYLES.find((s) => s.id === style)?.icon}</span>
@@ -861,7 +1043,7 @@ const AIPPT = () => {
           {/* Template dropdown */}
           <div className="relative" onClick={(e) => e.stopPropagation()}>
             <button
-              onClick={() => { setShowTemplateMenu(!showTemplateMenu); setShowStyleMenu(false); }}
+              onClick={() => { setShowTemplateMenu(!showTemplateMenu); setShowStyleMenu(false); setShowLineMenu(false); }}
               className="flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-lg text-xs bg-secondary/50 hover:bg-secondary border border-border/50 transition-all"
             >
               <span>{PPT_TEMPLATES.find((t) => t.id === template)?.icon}</span>
@@ -877,6 +1059,31 @@ const AIPPT = () => {
                     className={cn("w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-secondary/50 text-left", template === t.id && "bg-orange-50 text-orange-700")}
                   >
                     <span>{t.icon}</span><span>{t.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          {/* Resolution dropdown */}
+          <div className="relative" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => { setShowLineMenu(!showLineMenu); setShowStyleMenu(false); setShowTemplateMenu(false); }}
+              className="flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-lg text-xs bg-secondary/50 hover:bg-secondary border border-border/50 transition-all"
+            >
+              <Zap className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">{PPT_LINE_OPTIONS.find((l) => l.id === selectedLine)?.name}</span>
+              <span className="md:hidden">画质</span>
+              <ChevronDown className="w-3 h-3" />
+            </button>
+            {showLineMenu && (
+              <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 w-[130px] max-w-[calc(100vw-2rem)] max-h-[180px] overflow-y-auto scrollbar-thin dropdown-panel">
+                {PPT_LINE_OPTIONS.map((line) => (
+                  <button
+                    key={line.id}
+                    onClick={() => { setSelectedLine(line.id); setShowLineMenu(false); }}
+                    className={cn("w-full px-3 py-2 text-xs hover:bg-secondary/50 text-left", selectedLine === line.id && "bg-orange-50 text-orange-700")}
+                  >
+                    {line.name}
                   </button>
                 ))}
               </div>
@@ -900,9 +1107,10 @@ const AIPPT = () => {
               <ChevronDown className="w-3 h-3 ml-0.5 md:ml-1" />
             </Button>
             {showExportMenu && (
-              <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 w-[120px] max-w-[calc(100vw-2rem)] dropdown-panel">
+              <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 w-[148px] max-w-[calc(100vw-2rem)] dropdown-panel">
                 <button onClick={() => { handleExport("pptx"); setShowExportMenu(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-secondary/50 text-left">PPT 格式</button>
                 <button onClick={() => { handleExport("pdf"); setShowExportMenu(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-secondary/50 text-left">PDF 格式</button>
+                <button onClick={() => { handleSaveCurrentSlideImage(); setShowExportMenu(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-secondary/50 text-left">保存当前页图片</button>
                 <button onClick={() => { handleExport("images"); setShowExportMenu(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-secondary/50 text-left">图片 ZIP</button>
               </div>
             )}

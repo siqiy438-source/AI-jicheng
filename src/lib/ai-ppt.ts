@@ -5,6 +5,7 @@
  */
 
 import { supabaseUrl, supabaseAnonKey, getAccessToken, forceRefreshToken } from './supabase';
+import { downloadGeneratedImage } from './image-utils';
 
 // ============ 类型定义 ============
 
@@ -82,7 +83,11 @@ async function fetchWithRetry(url: string, init: RequestInit): Promise<Response>
     const newToken = await forceRefreshToken();
     if (!newToken) throw new Error('登录已过期，请重新登录');
     const retryHeaders = { ...init.headers, 'Authorization': `Bearer ${newToken}` } as Record<string, string>;
-    return fetch(url, { ...init, headers: retryHeaders });
+    const retryResponse = await fetch(url, { ...init, headers: retryHeaders });
+    if (retryResponse.status === 401) {
+      throw new Error('登录状态失效，请重新登录后重试');
+    }
+    return retryResponse;
   }
   return response;
 }
@@ -109,6 +114,9 @@ export async function generateOutline(params: GenerateOutlineParams): Promise<Ge
     clearTimeout(timeoutId);
 
     if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('登录状态失效，请重新登录后重试');
+      }
       const errorData = await response.json().catch(() => ({ error: response.statusText }));
       if (response.status === 504) {
         throw new Error('请求超时，AI 服务响应过慢，请稍后重试');
@@ -147,6 +155,9 @@ export async function generateSlideDescription(params: GenerateDescriptionParams
     clearTimeout(timeoutId);
 
     if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('登录状态失效，请重新登录后重试');
+      }
       const errorData = await response.json().catch(() => ({ error: response.statusText }));
       throw new Error(errorData.error || `请求失败: ${response.status}`);
     }
@@ -182,6 +193,9 @@ export async function batchGenerateDescriptions(params: BatchGenerateDescription
     clearTimeout(timeoutId);
 
     if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('登录状态失效，请重新登录后重试');
+      }
       const errorData = await response.json().catch(() => ({ error: response.statusText }));
       throw new Error(errorData.error || `请求失败: ${response.status}`);
     }
@@ -205,6 +219,7 @@ export async function generateSlideImage(params: {
   aspectRatio: string;
   line?: "standard" | "premium";
   resolution?: "default" | "2k" | "4k";
+  featureCode?: string;
 }): Promise<{ success: boolean; imageBase64?: string; imageUrl?: string; error?: string }> {
   try {
     const imageUrl = `${supabaseUrl}/functions/v1/ai-image`;
@@ -261,6 +276,7 @@ Requirements:
         aspectRatio: params.aspectRatio,
         line: params.line || 'standard',
         resolution: params.resolution || 'default',
+        feature_code: params.featureCode,
       }),
       signal: controller.signal,
     });
@@ -289,6 +305,61 @@ Requirements:
 
 // ============ 导出功能 ============
 
+const MOBILE_UA_REGEX = /iPhone|iPad|iPod|Android/i;
+
+function sanitizeFileName(input: string): string {
+  const cleaned = (input || '')
+    .trim()
+    .replace(/[\\/:*?"<>|]/g, '-')
+    .replace(/\s+/g, ' ');
+  return cleaned || 'AI-PPT';
+}
+
+function isMobileBrowser(): boolean {
+  return MOBILE_UA_REGEX.test(navigator.userAgent);
+}
+
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error('图片转换失败'));
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function ensureImageDataUrl(imageSrc: string): Promise<string> {
+  if (imageSrc.startsWith('data:image/')) return imageSrc;
+  const response = await fetch(imageSrc);
+  if (!response.ok) throw new Error('图片加载失败');
+  const blob = await response.blob();
+  return blobToDataUrl(blob);
+}
+
+async function downloadBlobFile(blob: Blob, filename: string): Promise<void> {
+  const isMobile = isMobileBrowser();
+  const mimeType = blob.type || 'application/octet-stream';
+
+  if (isMobile && navigator.share && navigator.canShare) {
+    const file = new File([blob], filename, { type: mimeType });
+    const shareData = { files: [file] };
+    if (navigator.canShare(shareData)) {
+      await navigator.share(shareData);
+      return;
+    }
+  }
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  if (isMobile) a.target = '_blank';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
 /**
  * 导出为 PDF
  */
@@ -307,8 +378,14 @@ export async function exportToPDF(slides: SlideData[], projectTitle: string): Pr
 
     const slide = slides[i];
     if (slide.generatedImage) {
-      // 添加图片
-      doc.addImage(slide.generatedImage, 'PNG', 0, 0, 1920, 1080);
+      try {
+        const imageDataUrl = await ensureImageDataUrl(slide.generatedImage);
+        const imageType = imageDataUrl.startsWith('data:image/jpeg') ? 'JPEG' : 'PNG';
+        doc.addImage(imageDataUrl, imageType, 0, 0, 1920, 1080);
+      } catch {
+        doc.setFontSize(48);
+        doc.text(slide.title, 960, 540, { align: 'center' });
+      }
     } else {
       // 没有图片时显示标题
       doc.setFontSize(48);
@@ -316,7 +393,8 @@ export async function exportToPDF(slides: SlideData[], projectTitle: string): Pr
     }
   }
 
-  doc.save(`${projectTitle || 'AI-PPT'}.pdf`);
+  const blob = doc.output('blob');
+  await downloadBlobFile(blob, `${sanitizeFileName(projectTitle)}.pdf`);
 }
 
 /**
@@ -333,14 +411,28 @@ export async function exportToPPTX(slides: SlideData[], projectTitle: string): P
     const pptSlide = pptx.addSlide();
 
     if (slide.generatedImage) {
-      // 添加图片作为背景
-      pptSlide.addImage({
-        data: slide.generatedImage,
-        x: 0,
-        y: 0,
-        w: '100%',
-        h: '100%',
-      });
+      try {
+        const imageDataUrl = await ensureImageDataUrl(slide.generatedImage);
+        // 添加图片作为背景
+        pptSlide.addImage({
+          data: imageDataUrl,
+          x: 0,
+          y: 0,
+          w: '100%',
+          h: '100%',
+        });
+      } catch {
+        pptSlide.addText(slide.title, {
+          x: 1,
+          y: 2,
+          w: 8,
+          h: 1.5,
+          fontSize: 36,
+          bold: true,
+          align: 'center',
+          valign: 'middle',
+        });
+      }
     } else {
       // 没有图片时添加标题文本
       pptSlide.addText(slide.title, {
@@ -368,7 +460,11 @@ export async function exportToPPTX(slides: SlideData[], projectTitle: string): P
     }
   }
 
-  await pptx.writeFile({ fileName: `${projectTitle || 'AI-PPT'}.pptx` });
+  const output = await pptx.write({ outputType: 'blob' });
+  const blob = output instanceof Blob
+    ? output
+    : new Blob([output as BlobPart], { type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' });
+  await downloadBlobFile(blob, `${sanitizeFileName(projectTitle)}.pptx`);
 }
 
 /**
@@ -382,10 +478,16 @@ export async function exportToImages(slides: SlideData[], projectTitle: string):
   for (let i = 0; i < slides.length; i++) {
     const slide = slides[i];
     if (slide.generatedImage) {
-      // 从 base64 data URL 提取数据
-      const base64Data = slide.generatedImage.replace(/^data:image\/\w+;base64,/, '');
-      zip.file(`slide-${String(i + 1).padStart(2, '0')}-${slide.title}.png`, base64Data, { base64: true });
-      hasImages = true;
+      try {
+        const response = await fetch(slide.generatedImage);
+        if (!response.ok) continue;
+        const blob = await response.blob();
+        const safeSlideTitle = sanitizeFileName(slide.title || `slide-${i + 1}`);
+        zip.file(`slide-${String(i + 1).padStart(2, '0')}-${safeSlideTitle}.png`, blob);
+        hasImages = true;
+      } catch {
+        // ignore current image and continue exporting others
+      }
     }
   }
 
@@ -394,12 +496,24 @@ export async function exportToImages(slides: SlideData[], projectTitle: string):
   }
 
   const blob = await zip.generateAsync({ type: 'blob' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${projectTitle || 'AI-PPT'}-images.zip`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  await downloadBlobFile(blob, `${sanitizeFileName(projectTitle)}-images.zip`);
+}
+
+/**
+ * 保存单张图片
+ */
+export async function saveSingleSlideImage(
+  slide: SlideData,
+  projectTitle: string,
+  slideIndex: number,
+): Promise<void> {
+  if (!slide.generatedImage) {
+    throw new Error('当前页面还没有生成图片');
+  }
+  const safeProjectTitle = sanitizeFileName(projectTitle);
+  const safeSlideTitle = sanitizeFileName(slide.title || `slide-${slideIndex + 1}`);
+  await downloadGeneratedImage(
+    slide.generatedImage,
+    `${safeProjectTitle}-slide-${String(slideIndex + 1).padStart(2, '0')}-${safeSlideTitle}.png`,
+  );
 }

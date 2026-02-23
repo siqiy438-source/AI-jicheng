@@ -22,12 +22,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // 获取初始 session
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data?.session ?? null)
-      setUser(data?.session?.user ?? null)
+    const syncInitialSession = async () => {
+      const { data } = await supabase.auth.getSession()
+      const initialSession = data?.session ?? null
+
+      if (!initialSession?.access_token) {
+        setSession(null)
+        setUser(null)
+        setLoading(false)
+        return
+      }
+
+      // 防止本地缓存 session 失效导致“看起来已登录，实际请求 401”
+      const { data: userData, error: userError } = await supabase.auth.getUser(initialSession.access_token)
+      if (!userError && userData?.user) {
+        setSession(initialSession)
+        setUser(userData.user)
+        setLoading(false)
+        return
+      }
+
+      const { data: refreshedData } = await supabase.auth.refreshSession()
+      const refreshedSession = refreshedData?.session ?? null
+      if (!refreshedSession?.access_token) {
+        setSession(null)
+        setUser(null)
+        setLoading(false)
+        return
+      }
+
+      const { data: refreshedUserData, error: refreshedUserError } = await supabase.auth.getUser(refreshedSession.access_token)
+      if (!refreshedUserError && refreshedUserData?.user) {
+        setSession(refreshedSession)
+        setUser(refreshedUserData.user)
+      } else {
+        setSession(null)
+        setUser(null)
+      }
       setLoading(false)
-    })
+    }
+
+    void syncInitialSession()
 
     // 监听认证状态变化
     const { data: { subscription } } = supabase.auth.onAuthStateChange(

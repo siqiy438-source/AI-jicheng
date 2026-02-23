@@ -112,6 +112,7 @@ serve(async (req) => {
       ai_detail_standard: 50, ai_detail_premium: 100,
       ai_flatlay_standard: 50, ai_flatlay_premium: 100,
       ai_outfit_visual_standard: 50,
+      ai_ppt_image_standard: 50,
     }
 
     const authHeader = req.headers.get('Authorization')

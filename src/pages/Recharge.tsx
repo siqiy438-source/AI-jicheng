@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { useCredits } from "@/contexts/CreditsContext";
-import { RECHARGE_TIERS, TEXT_TOKEN_MULTIPLIER, formatCredits, getPaymentOrders, getCreditTransactions } from "@/lib/credits";
+import { RECHARGE_TIERS, formatCredits, getPaymentOrders, getCreditTransactions } from "@/lib/credits";
 import { getAccessToken, supabaseAnonKey, supabaseUrl } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -41,10 +41,15 @@ const FEATURE_LABELS: Record<string, string> = {
   ai_fashion_standard: "模特图(标准)", ai_fashion_premium: "模特图(Pro)",
   ai_detail_standard: "细节特写(标准)", ai_detail_premium: "细节特写(Pro)",
   ai_flatlay_standard: "平铺摆拍(标准)", ai_flatlay_premium: "平铺摆拍(Pro)",
-  ai_copywriting: "AI文案", ai_ppt_outline: "PPT大纲",
-  ai_ppt_slide: "PPT单页", ai_report_page: "报告生成",
+  ai_copywriting: "AI文案生成", ai_ppt_outline: "PPT大纲",
+  ai_ppt_slide: "PPT页面描述", ai_report_page: "报告生成",
+  ai_ppt_image_standard: "PPT图片生成",
   ai_outfit_recommend: "专业搭配师",
   ai_fabric_analysis: "面料说明生成器",
+};
+
+const normalizeFeatureCode = (value: string): string => {
+  return value.split("#")[0].trim();
 };
 
 const statusMap: Record<string, { label: string; color: string }> = {
@@ -379,7 +384,7 @@ const Recharge = () => {
           <div>
             <div className="flex items-center gap-1.5 mb-2">
               <FileText className="w-3.5 h-3.5 text-primary" />
-              <span className="text-xs font-semibold text-foreground">文字类工具（文案固定积分；PPT / 报告 / 专业搭配师 / 面料说明 / 陈列分析按 token）</span>
+              <span className="text-xs font-semibold text-foreground">文字类工具（固定积分）</span>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
               <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-secondary/40">
@@ -388,15 +393,15 @@ const Recharge = () => {
               </div>
               <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-secondary/40">
                 <span className="text-xs text-muted-foreground">PPT 大纲</span>
-                <span className="text-xs font-bold text-foreground">按 token（{TEXT_TOKEN_MULTIPLIER}x）</span>
+                <span className="text-xs font-bold text-foreground">10 积分/次</span>
               </div>
               <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-secondary/40">
-                <span className="text-xs text-muted-foreground">PPT 单页</span>
-                <span className="text-xs font-bold text-foreground">按 token（{TEXT_TOKEN_MULTIPLIER}x）</span>
+                <span className="text-xs text-muted-foreground">PPT 描述生成</span>
+                <span className="text-xs font-bold text-foreground">5 积分/次</span>
               </div>
               <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-secondary/40">
-                <span className="text-xs text-muted-foreground">报告生成</span>
-                <span className="text-xs font-bold text-foreground">按 token（{TEXT_TOKEN_MULTIPLIER}x）</span>
+                <span className="text-xs text-muted-foreground">PPT 生成图片</span>
+                <span className="text-xs font-bold text-foreground">50 积分/张</span>
               </div>
             </div>
           </div>
@@ -494,11 +499,12 @@ const Recharge = () => {
                   let label: string;
                   if (tx.description) {
                     const refundMatch = tx.description.match(/^退款-(.+)$/);
-                    const featureKey = refundMatch ? refundMatch[1] : tx.description;
-                    const featureName = FEATURE_LABELS[featureKey];
+                    const rawFeatureKey = refundMatch ? refundMatch[1] : tx.description;
+                    const featureKey = normalizeFeatureCode(rawFeatureKey);
+                    const featureName = FEATURE_LABELS[featureKey] || FEATURE_LABELS[rawFeatureKey];
                     label = refundMatch
-                      ? (featureName ? `退款-${featureName}` : tx.description)
-                      : (featureName || tx.description);
+                      ? (featureName ? `退款-${featureName}` : `退款-${featureKey}`)
+                      : (featureName || featureKey);
                   } else {
                     label = isDeduct ? "积分消费" : isRefund ? "积分退款" : "积分变动";
                   }
