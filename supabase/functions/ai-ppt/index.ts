@@ -507,7 +507,6 @@ serve(async (req) => {
   let userId: string | null = null
   let creditCost = 0
   let savedFeatureCode: string | undefined
-  let tokenCreditsCharged = 0
 
   try {
     const BLTCY_API_KEY = Deno.env.get('BLTCY_API_KEY')
@@ -519,8 +518,6 @@ serve(async (req) => {
     const body = await req.json()
     const { action, feature_code } = body
     savedFeatureCode = feature_code
-    const tokenCostPerK = Number(Deno.env.get('TEXT_TOKEN_COST_PER_K') || '0.0024')
-    const tokenMultiplier = Number(Deno.env.get('TEXT_TOKEN_MULTIPLIER') || '6.5')
 
     if (!action) {
       throw new Error('缺少 action 参数，支持: generate_outline, generate_description, batch_generate_descriptions')
@@ -551,31 +548,29 @@ serve(async (req) => {
       })
     }
 
-    // 提交请求即实时预扣（按输入 token 估算）
-    const estimatedInputTokens = estimateTokenCountFromText([JSON.stringify(body)])
-    const upfrontCredits = calculateTokenCreditCost(
-      estimatedInputTokens,
-      Number.isFinite(tokenCostPerK) && tokenCostPerK > 0 ? tokenCostPerK : 0.0024,
-      Number.isFinite(tokenMultiplier) && tokenMultiplier > 0 ? tokenMultiplier : 6.5,
-    )
-    if (upfrontCredits > 0) {
-      const { data: upfrontResult, error: upfrontError } = await supabaseAdmin.rpc('deduct_credits', {
+    // ========== 固定积分计费 ==========
+    const FIXED_COSTS: Record<string, number> = {
+      ai_ppt_outline: 30,
+      ai_ppt_slide: 20,
+    }
+    const fixedCost = FIXED_COSTS[feature_code || ''] || 0
+    if (fixedCost > 0) {
+      const { data: deductResult, error: deductError } = await supabaseAdmin.rpc('deduct_credits', {
         p_user_id: userId,
-        p_amount: upfrontCredits.toFixed(2),
-        p_description: `${feature_code || 'ai_ppt'}-实时预扣`,
+        p_amount: fixedCost.toFixed(2),
+        p_description: feature_code || 'ai_ppt',
       })
-      if (upfrontError || !upfrontResult?.success) {
-        const currentBalance = Number(upfrontResult?.balance || 0).toFixed(2)
-        const errMsg = upfrontResult?.error === 'INSUFFICIENT_BALANCE'
-          ? `积分不足，需要 ${upfrontCredits.toFixed(2)} 积分，当前余额 ${currentBalance}`
+      if (deductError || !deductResult?.success) {
+        const currentBalance = Number(deductResult?.balance || 0).toFixed(2)
+        const errMsg = deductResult?.error === 'INSUFFICIENT_BALANCE'
+          ? `积分不足，需要 ${fixedCost.toFixed(2)} 积分，当前余额 ${currentBalance}`
           : '积分扣减失败'
         return new Response(JSON.stringify({ success: false, error: errMsg }), {
           status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
       }
-      tokenCreditsCharged += upfrontCredits
-      creditCost += upfrontCredits
-      console.log(`[ai-ppt] Upfront token charge ${feature_code || 'ai_ppt'}: input_tokens=${estimatedInputTokens}, credits=${upfrontCredits.toFixed(2)}`)
+      creditCost = fixedCost
+      console.log(`[ai-ppt] Deducted ${fixedCost.toFixed(2)} credits for ${feature_code}`)
     }
 
     let actionResult: ActionExecutionResult
@@ -596,44 +591,6 @@ serve(async (req) => {
       default:
         throw new Error(`不支持的操作: ${action}，支持: generate_outline, generate_description, batch_generate_descriptions`)
     }
-
-    // ========== 按 token 计费 ==========
-    const fallbackTokens = estimateTokenCountFromText([JSON.stringify(body), JSON.stringify(actionResult.payload)])
-    const totalTokens = actionResult.totalTokens > 0 ? actionResult.totalTokens : fallbackTokens
-    const finalTokenCostPerK = Number.isFinite(tokenCostPerK) && tokenCostPerK > 0 ? tokenCostPerK : 0.0024
-    const finalMultiplier = Number.isFinite(tokenMultiplier) && tokenMultiplier > 0 ? tokenMultiplier : 6.5
-    const targetCredits = calculateTokenCreditCost(totalTokens, finalTokenCostPerK, finalMultiplier)
-    const delta = Number((targetCredits - tokenCreditsCharged).toFixed(2))
-    if (delta > 0) {
-      const { data: deductResult, error: deductError } = await supabaseAdmin.rpc('deduct_credits', {
-        p_user_id: userId,
-        p_amount: delta.toFixed(2),
-        p_description: feature_code || 'ai_ppt',
-      })
-      if (deductError || !deductResult?.success) {
-        const currentBalance = Number(deductResult?.balance || 0).toFixed(2)
-        const errMsg = deductResult?.error === 'INSUFFICIENT_BALANCE'
-          ? `积分不足，需要 ${delta.toFixed(2)} 积分，当前余额 ${currentBalance}`
-          : '积分扣减失败'
-        return new Response(JSON.stringify({ success: false, error: errMsg }), {
-          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        })
-      }
-      tokenCreditsCharged = Number((tokenCreditsCharged + delta).toFixed(2))
-      creditCost = Number((creditCost + delta).toFixed(2))
-    } else if (delta < 0) {
-      const refundAmount = Number(Math.abs(delta).toFixed(2))
-      if (refundAmount > 0) {
-        await supabaseAdmin.rpc('add_credits', {
-          p_user_id: userId,
-          p_amount: refundAmount.toFixed(2),
-          p_description: `退款-${feature_code || 'ai_ppt'}-结算差额`,
-        })
-        tokenCreditsCharged = Number((tokenCreditsCharged - refundAmount).toFixed(2))
-        creditCost = Number((creditCost - refundAmount).toFixed(2))
-      }
-    }
-    console.log(`[ai-ppt] Token settled ${feature_code || 'ai_ppt'}: tokens=${totalTokens}, charged=${tokenCreditsCharged.toFixed(2)}, multiplier=${finalMultiplier}`)
 
     return new Response(JSON.stringify(actionResult.payload), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -449,10 +449,11 @@ serve(async (req) => {
     }
 
     // ========== 积分计费 ==========
-    const FIXED_CREDIT_COSTS: Record<string, number> = {}
+    const FIXED_CREDIT_COSTS: Record<string, number> = {
+      'ai_report_page': 40,
+    }
     const TOKEN_BILLED_FEATURES = new Set([
       'ai_display_analysis',
-      'ai_report_page',
       'ai_outfit_recommend',
       'ai_fabric_analysis',
     ])
