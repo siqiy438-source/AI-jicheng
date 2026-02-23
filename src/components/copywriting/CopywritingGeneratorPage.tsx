@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo } from "react";
+import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -334,6 +334,19 @@ export const CopywritingGeneratorPage = ({
   const [selectedOptionsByMessage, setSelectedOptionsByMessage] = useState<Record<string, Record<string, string[]>>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // 虚拟键盘弹出时滚动到最新消息
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+    const handleResize = () => {
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    };
+    viewport.addEventListener('resize', handleResize);
+    return () => viewport.removeEventListener('resize', handleResize);
+  }, []);
+
   const questionMapByMessage = useMemo(() => {
     const map: Record<string, ParsedQuestion[]> = {};
     for (const message of messages) {
@@ -658,7 +671,27 @@ export const CopywritingGeneratorPage = ({
 
   return (
     <PageLayout className="py-4 md:py-8">
-      {/* 返回按钮 - 仅桌面端 */}
+      {/* 手机端紧凑 header：返回 + 工具名 + 阶段 badge */}
+      <div className="flex md:hidden items-center gap-2 mb-4">
+        <button
+          onClick={() => navigate("/copywriting")}
+          className="flex items-center justify-center w-8 h-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors flex-shrink-0"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </button>
+        <div className="flex-1 min-w-0 flex items-center gap-2">
+          <img src={iconSrc} alt={title} className="w-6 h-6 object-contain flex-shrink-0" />
+          <span className="font-semibold text-foreground text-sm truncate">{title}</span>
+        </div>
+        <span className={cn(
+          "text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0",
+          currentPhase === 'explore' ? "bg-orange-100 text-orange-700" : "bg-green-100 text-green-700"
+        )}>
+          {currentPhase === 'explore' ? '探索中' : '生成中'}
+        </span>
+      </div>
+
+      {/* 桌面端：返回按钮 */}
       <button
         onClick={() => navigate("/copywriting")}
         className="hidden md:flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
@@ -667,13 +700,13 @@ export const CopywritingGeneratorPage = ({
         <span className="text-sm">返回文案工具</span>
       </button>
 
-      {/* 页面标题 */}
-      <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
-        <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center">
-          <img src={iconSrc} alt={title} className="w-12 h-12 md:w-14 md:h-14 object-contain" />
+      {/* 桌面端：页面标题 */}
+      <div className="hidden md:flex items-center gap-4 mb-8">
+        <div className="w-14 h-14 rounded-2xl flex items-center justify-center">
+          <img src={iconSrc} alt={title} className="w-14 h-14 object-contain" />
         </div>
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-foreground">{title}</h1>
+          <h1 className="text-2xl font-bold text-foreground">{title}</h1>
           <p className="text-muted-foreground text-sm">{subtitle}</p>
         </div>
       </div>
@@ -769,7 +802,7 @@ export const CopywritingGeneratorPage = ({
                                       type="button"
                                       onClick={() => toggleQuestionOption(message.id, question.id, option.id)}
                                       className={cn(
-                                        "w-full text-left rounded-xl border px-3 py-2 text-sm transition-colors",
+                                        "w-full text-left rounded-xl border px-3 py-2 text-sm transition-colors min-h-[44px]",
                                         isSelected
                                           ? "border-orange-500 bg-orange-50 text-orange-700"
                                           : "border-border/70 bg-background/60 text-foreground hover:bg-secondary/40"
@@ -871,9 +904,9 @@ export const CopywritingGeneratorPage = ({
       <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5 shadow-lg">
         {/* 附件预览 */}
         {attachedFiles.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-3">
+          <div className="flex overflow-x-auto gap-2 mb-3 pb-1 -mx-1 px-1 scrollbar-hide">
             {attachedFiles.map((file, index) => (
-              <div key={index} className="relative group flex items-center gap-1.5 bg-secondary/50 rounded-lg px-2.5 py-1.5 text-xs">
+              <div key={index} className="relative group flex items-center gap-1.5 bg-secondary/50 rounded-lg px-2.5 py-1.5 text-xs flex-shrink-0">
                 {file.type === 'image' ? (
                   <img src={file.preview} alt="" className="w-8 h-8 rounded object-cover" />
                 ) : (
@@ -892,6 +925,9 @@ export const CopywritingGeneratorPage = ({
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           onKeyDown={handleKeyDown}
+          onFocus={() => {
+            setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 300);
+          }}
           placeholder={placeholderText}
           rows={4}
           enterKeyHint="send"
