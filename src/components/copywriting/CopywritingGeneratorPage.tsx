@@ -413,8 +413,8 @@ export const CopywritingGeneratorPage = ({
     const shouldUseAttachedFiles = manualPrompt === undefined;
     const filesForSend = shouldUseAttachedFiles ? attachedFiles : [];
     if ((!promptText && filesForSend.length === 0) || isGenerating) return;
-    // 每轮探索扣1积分，生成阶段扣20积分
-    const phaseCost = currentPhase === 'generate' ? 20 : 1;
+    // 每轮探索扣5积分，生成阶段扣40积分
+    const phaseCost = currentPhase === 'generate' ? 40 : 5;
     if (!checkCredits(featureCode, phaseCost)) return;
 
     // 构建发送内容：文本文件内容追加到 prompt

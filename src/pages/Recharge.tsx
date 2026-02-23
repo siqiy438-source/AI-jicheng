@@ -176,7 +176,7 @@ const Recharge = () => {
             const usages = [
               { label: "标准绘图", value: `×${Math.floor(tier.pointsTotal / 50)}` },
               { label: "Pro绘图", value: `×${Math.floor(tier.pointsTotal / 100)}` },
-              { label: "文字工具", value: `按 token（${TEXT_TOKEN_MULTIPLIER}x）` },
+              { label: "文案工具", value: "探索5 / 生成40" },
               { label: "图像工具", value: "固定积分" },
             ];
 
@@ -379,12 +379,12 @@ const Recharge = () => {
           <div>
             <div className="flex items-center gap-1.5 mb-2">
               <FileText className="w-3.5 h-3.5 text-primary" />
-              <span className="text-xs font-semibold text-foreground">文字类工具（文案 / PPT / 报告 / 专业搭配师 / 面料说明 / 陈列分析）</span>
+              <span className="text-xs font-semibold text-foreground">文字类工具（文案固定积分；PPT / 报告 / 专业搭配师 / 面料说明 / 陈列分析按 token）</span>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
               <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-secondary/40">
                 <span className="text-xs text-muted-foreground">AI 文案</span>
-                <span className="text-xs font-bold text-foreground">按 token（{TEXT_TOKEN_MULTIPLIER}x）</span>
+                <span className="text-xs font-bold text-foreground">探索 5 / 生成 40</span>
               </div>
               <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-secondary/40">
                 <span className="text-xs text-muted-foreground">PPT 大纲</span>

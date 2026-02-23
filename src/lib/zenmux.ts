@@ -19,6 +19,90 @@ export interface StreamCallbacks {
   onError?: (error: Error) => void;
 }
 
+function extractContentFromPayload(payload: unknown): string {
+  if (!payload || typeof payload !== 'object') return '';
+  const data = payload as Record<string, any>;
+  const firstChoice = Array.isArray(data.choices) ? data.choices[0] : null;
+  const deltaContent = firstChoice?.delta?.content;
+  if (typeof deltaContent === 'string') return deltaContent;
+
+  const messageContent = firstChoice?.message?.content;
+  if (typeof messageContent === 'string') return messageContent;
+  if (Array.isArray(messageContent)) {
+    return messageContent
+      .map((part) => {
+        if (typeof part === 'string') return part;
+        if (part && typeof part === 'object' && typeof part.text === 'string') return part.text;
+        return '';
+      })
+      .join('');
+  }
+
+  if (typeof data.content === 'string') return data.content;
+  return '';
+}
+
+async function readSseText(response: Response, callbacks: StreamCallbacks): Promise<string> {
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error('无法读取响应流');
+
+  const decoder = new TextDecoder();
+  let fullText = '';
+  let buffer = '';
+  let doneReceived = false;
+
+  const handleDataLine = (line: string) => {
+    if (!line.startsWith('data:')) return;
+    const data = line.slice(5).trimStart();
+    if (!data) return;
+    if (data === '[DONE]') {
+      doneReceived = true;
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(data);
+      const token = extractContentFromPayload(parsed);
+      if (token) {
+        fullText += token;
+        callbacks.onToken?.(token);
+      }
+    } catch {
+      // 忽略非 JSON 或被分片打断的无效行
+    }
+  };
+
+  const flushBufferLines = (flushTail: boolean) => {
+    while (true) {
+      const lineBreakIndex = buffer.indexOf('\n');
+      if (lineBreakIndex === -1) break;
+
+      let line = buffer.slice(0, lineBreakIndex);
+      buffer = buffer.slice(lineBreakIndex + 1);
+      if (line.endsWith('\r')) line = line.slice(0, -1);
+      if (line.trim()) handleDataLine(line);
+      if (doneReceived) return;
+    }
+
+    if (flushTail && buffer.trim()) {
+      handleDataLine(buffer.replace(/\r$/, ''));
+      buffer = '';
+    }
+  };
+
+  while (!doneReceived) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    flushBufferLines(false);
+  }
+
+  buffer += decoder.decode();
+  flushBufferLines(true);
+
+  return fullText;
+}
+
 // Supabase Edge Function URL
 const getEdgeFunctionUrl = () => {
   return `${supabaseUrl}/functions/v1/ai-chat`;
@@ -55,18 +139,20 @@ export async function chatStream(
       headers['Authorization'] = `Bearer ${token}`;
     }
 
+    const payload = {
+      prompt,
+      agentId,
+      history,
+      stream: true,
+      feature_code: featureCode,
+      phase,
+      images,
+    };
+
     const response = await fetch(getEdgeFunctionUrl(), {
       method: 'POST',
       headers,
-      body: JSON.stringify({
-        prompt,
-        agentId,
-        history,
-        stream: true,
-        feature_code: featureCode,
-        phase,
-        images,
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -78,41 +164,20 @@ export async function chatStream(
           const retryResponse = await fetch(getEdgeFunctionUrl(), {
             method: 'POST',
             headers,
-            body: JSON.stringify({
-              prompt,
-              agentId,
-              history,
-              stream: true,
-              feature_code: featureCode,
-              phase,
-              images,
-            }),
+            body: JSON.stringify(payload),
           });
           if (retryResponse.ok) {
-            const retryReader = retryResponse.body?.getReader();
-            if (!retryReader) throw new Error('无法读取响应流');
-            // 继续处理重试的流式响应
-            const retryDecoder = new TextDecoder();
-            let retryBuffer = '';
-            while (true) {
-              const { done, value } = await retryReader.read();
-              if (done) break;
-              retryBuffer += retryDecoder.decode(value, { stream: true });
-              const lines = retryBuffer.split('\n');
-              retryBuffer = lines.pop() || '';
-              for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                  const data = line.slice(6).trim();
-                  if (data === '[DONE]') { callbacks.onComplete?.(); return; }
-                  try {
-                    const parsed = JSON.parse(data);
-                    const content = parsed.choices?.[0]?.delta?.content;
-                    if (content) callbacks.onToken?.(content);
-                  } catch { /* skip */ }
-                }
-              }
+            const contentType = retryResponse.headers.get('content-type') || '';
+            if (contentType.includes('application/json')) {
+              const data = await retryResponse.json();
+              const fullText = extractContentFromPayload(data);
+              if (fullText) callbacks.onToken?.(fullText);
+              callbacks.onComplete?.(fullText);
+              return;
             }
-            callbacks.onComplete?.();
+
+            const fullText = await readSseText(retryResponse, callbacks);
+            callbacks.onComplete?.(fullText);
             return;
           }
         }
@@ -121,40 +186,16 @@ export async function chatStream(
       throw new Error(errorData.error || `请求失败: ${response.status}`);
     }
 
-    const reader = response.body?.getReader();
-    if (!reader) {
-      throw new Error('无法读取响应流');
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      const data = await response.json();
+      const fullText = extractContentFromPayload(data);
+      if (fullText) callbacks.onToken?.(fullText);
+      callbacks.onComplete?.(fullText);
+      return;
     }
 
-    const decoder = new TextDecoder();
-    let fullText = '';
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      const chunk = decoder.decode(value, { stream: true });
-      const lines = chunk.split('\n').filter(line => line.trim());
-
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6);
-          if (data === '[DONE]') continue;
-
-          try {
-            const parsed = JSON.parse(data);
-            const token = parsed.choices?.[0]?.delta?.content;
-            if (token) {
-              fullText += token;
-              callbacks.onToken?.(token);
-            }
-          } catch {
-            // 忽略解析错误
-          }
-        }
-      }
-    }
-
+    const fullText = await readSseText(response, callbacks);
     callbacks.onComplete?.(fullText);
   } catch (error) {
     callbacks.onError?.(error instanceof Error ? error : new Error(String(error)));
