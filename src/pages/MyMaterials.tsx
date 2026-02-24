@@ -851,7 +851,7 @@ const MyMaterials = () => {
 
       {/* 新建/编辑知识库条目 Dialog */}
       {showKbDialog && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4 pb-[calc(var(--mobile-nav-height)+env(safe-area-inset-bottom,0px))] sm:pb-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowKbDialog(false)} />
           <div className="relative bg-background rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md p-5 shadow-xl">
             <h2 className="text-base font-semibold mb-4">{editingKbItem ? '编辑条目' : '新建条目'}</h2>
@@ -909,7 +909,7 @@ const MyMaterials = () => {
 
       {/* AI 智能导入 Dialog */}
       {showAiImport && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4 pb-[calc(var(--mobile-nav-height)+env(safe-area-inset-bottom,0px))] sm:pb-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => !aiAnalyzing && !aiSaving && setShowAiImport(false)} />
           <div className="relative bg-background rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg shadow-xl flex flex-col max-h-[90vh]">
             <div className="px-5 pt-5 pb-3 border-b shrink-0">
