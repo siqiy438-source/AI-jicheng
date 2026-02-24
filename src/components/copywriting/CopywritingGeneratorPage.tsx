@@ -27,6 +27,8 @@ import { saveTextWork } from "@/lib/repositories/works";
 import { useCreditCheck } from "@/hooks/use-credit-check";
 import { InsufficientBalanceDialog } from "@/components/InsufficientBalanceDialog";
 import { toast } from "sonner";
+import { KnowledgeBasePopover } from "@/components/copywriting/KnowledgeBasePopover";
+import { getCategoryLabel, type KnowledgeBaseItem } from "@/lib/repositories/knowledge-base";
 
 interface Message {
   id: string;
@@ -413,6 +415,13 @@ export const CopywritingGeneratorPage = ({
 
   const removeFile = (index: number) => {
     setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleInsertKnowledge = (items: KnowledgeBaseItem[]) => {
+    const text = items
+      .map(i => `【知识库：${getCategoryLabel(i.category)} - ${i.title}】\n${i.content}`)
+      .join('\n\n');
+    setPrompt(prev => prev ? `${prev}\n\n${text}` : text);
   };
 
   const copyContent = (id: string, content: string) => {
@@ -954,6 +963,7 @@ export const CopywritingGeneratorPage = ({
             >
               <Paperclip className="w-5 h-5" />
             </button>
+            <KnowledgeBasePopover onInsert={handleInsertKnowledge} disabled={isGenerating} />
           </div>
           <button
             onClick={() => void handleSend()}

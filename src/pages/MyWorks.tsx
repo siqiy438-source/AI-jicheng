@@ -451,14 +451,27 @@ const MyWorks = () => {
 
   return (
     <PageLayout maxWidth="6xl" className="py-4 md:py-8">
-      {/* 返回按钮 */}
+      {/* 返回按钮 - 仅桌面端 */}
       <button
         onClick={() => navigate("/")}
-        className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4 md:mb-6 transition-colors touch-target"
+        className="hidden md:flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4 md:mb-6 transition-colors touch-target"
       >
         <ArrowLeft className="w-4 h-4" />
         <span className="text-sm">返回首页</span>
       </button>
+
+      {/* 移动端页面切换 Tab */}
+      <div className="flex md:hidden gap-1 p-1 bg-secondary/50 rounded-xl mb-4 w-fit">
+        <button className="px-4 py-2 rounded-lg text-sm font-medium bg-white shadow-sm text-foreground">
+          我的作品
+        </button>
+        <button
+          onClick={() => navigate("/my-materials")}
+          className="px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+        >
+          我的素材
+        </button>
+      </div>
 
       {/* 页面标题 */}
       <div className="flex items-center justify-between mb-6 md:mb-8">
