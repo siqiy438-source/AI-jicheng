@@ -194,8 +194,8 @@ The model fills 80-90% of the frame. Vertical 9:16 aspect ratio.
 
 MODEL & POSE:
 - Chinese woman, elegant and relaxed
-- Body turned 15-45 degrees (3/4 angle), never facing camera straight on
-- Shoulders slightly relaxed and forward, natural posture
+- Body facing the camera DIRECTLY (straight-on angle), shoulders square to the lens
+- Shoulders slightly relaxed, natural posture
 - One hand doing a gentle, natural gesture: lightly holding the coat lapel, gripping a bag handle, or adjusting the shirt hem. Fingers relaxed and slightly curved, never stiff.
 - The other hand resting naturally at her side
 
@@ -222,7 +222,7 @@ LIGHTING: Soft diffused light, no hard shadows. Slightly directional from upper 
 
 BACKGROUND: Clean white or light grey wall. Zero props, zero decoration. Pure canvas.
 
-NO: eyes, nose, full face, stiff fingers, deformed hands, over-smoothed skin, plastic-looking fabrics, bright saturated colors, cluttered background, straight-on camera angle, full body shot
+NO: eyes, nose, full face, stiff fingers, deformed hands, over-smoothed skin, plastic-looking fabrics, bright saturated colors, cluttered background, full body shot
 
 User uploaded clothing items: {user_prompt}`;
 
@@ -236,8 +236,8 @@ Think of this as a FABRIC DETAIL SHOT on a living body, not a portrait. The view
 Vertical 9:16 aspect ratio.
 
 MODEL & POSE:
-- Chinese woman, body turned 30-45 degrees (strong 3/4 angle or near-profile)
-- The strong side angle creates depth, showing how layers overlap and drape in 3D
+- Chinese woman, body facing the camera DIRECTLY (straight-on angle), shoulders square to the lens
+- Natural, relaxed posture — not stiff or posed
 - One hand doing a natural gesture close to the body: gripping a bag handle at waist level, holding the coat lapel, or adjusting a sleeve cuff
 - Fingers relaxed, slightly curved
 - Candid moment feeling
