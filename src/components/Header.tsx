@@ -1,4 +1,4 @@
-import { Bell, BookOpen, User, LogOut, Sparkles, Coins, Shield } from "lucide-react";
+import { Bell, BookOpen, User, LogOut, Sparkles, Coins, Shield, QrCode, Gift, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCredits } from "@/contexts/CreditsContext";
@@ -13,17 +13,22 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { formatCredits } from "@/lib/credits";
+import { useState } from "react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 export const Header = () => {
   const { user, loading, signOut } = useAuth();
   const { balance, loading: creditsLoading } = useCredits();
   const isMobile = useIsMobile();
   const { isAdmin } = useAdmin();
-  
+  const [wechatOpen, setWechatOpen] = useState(false);
+
   // 通知状态（未来从后端获取）
   const hasUnreadNotifications = false; // 当前无未读通知
 
   return (
+    <>
     <header className={cn(
       "min-h-14 md:min-h-16 flex items-center justify-between",
       "px-safe",
@@ -186,6 +191,14 @@ export const Header = () => {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
+                onClick={() => setWechatOpen(true)}
+                className="cursor-pointer text-primary focus:text-primary"
+              >
+                <QrCode className="w-4 h-4 mr-2" />
+                添加创始人微信
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
                 onClick={() => signOut()}
                 className="text-destructive focus:text-destructive cursor-pointer"
               >
@@ -209,5 +222,46 @@ export const Header = () => {
         )}
       </div>
     </header>
+
+      {/* 创始人微信弹窗 */}
+      <Dialog open={wechatOpen} onOpenChange={setWechatOpen}>
+        <DialogContent className="sm:max-w-[360px] p-0 overflow-hidden gap-0 border-0">
+          <div className="relative bg-gradient-to-br from-primary/90 to-violet-600 px-6 pt-8 pb-6 text-white">
+            <button
+              onClick={() => setWechatOpen(false)}
+              className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+            >
+              <X className="w-3.5 h-3.5 text-white" />
+            </button>
+            <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+            <div className="relative flex flex-col items-center gap-2 text-center">
+              <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center mb-1">
+                <Gift className="w-6 h-6 text-white" />
+              </div>
+              <h2 className="text-lg font-bold tracking-tight">添加创始人微信</h2>
+              <p className="text-sm text-white/80 leading-relaxed">
+                备注「灵犀」，新用户可获赠
+                <span className="inline-flex items-center gap-0.5 mx-1 px-2 py-0.5 rounded-full bg-white/20 text-white font-bold text-sm">
+                  300 积分
+                </span>
+              </p>
+            </div>
+          </div>
+          <div className="bg-card px-6 py-5 flex flex-col items-center gap-3">
+            <img
+              src="/wechat-qr.jpg"
+              alt="创始人微信二维码"
+              className="w-44 h-44 object-contain rounded-2xl border-2 border-primary/20 bg-white p-1"
+            />
+            <p className="text-xs text-muted-foreground text-center">
+              扫码或长按识别二维码
+            </p>
+            <Button onClick={() => setWechatOpen(false)} className="w-full rounded-xl h-11">
+              关闭
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };

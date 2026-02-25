@@ -9,6 +9,7 @@ import { CreditsProvider } from "@/contexts/CreditsContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminRoute } from "@/components/AdminRoute";
 import { AppShellSkeleton } from "@/components/AppShellSkeleton";
+import { WechatBonusDialog } from "@/components/WechatBonusDialog";
 
 const Index = lazy(() => import("./pages/Index"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -52,6 +53,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <CreditsProvider>
+          <WechatBonusDialog />
           <Suspense fallback={<AppShellSkeleton />}>
             <Routes>
               <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
