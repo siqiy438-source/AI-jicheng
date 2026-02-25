@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { CreditCostHint } from "@/components/CreditCostHint";
 import {
   ArrowLeft,
   ChevronDown,
@@ -228,7 +229,7 @@ export const FashionGeneratorPage = ({
       <div onClick={closeAllMenus}>
         <button
           onClick={() => navigate("/clothing")}
-          className="hidden md:flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-3 md:mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>返回服装</span>
@@ -533,6 +534,11 @@ export const FashionGeneratorPage = ({
             </div>
 
             <div className="flex items-center gap-1.5 w-full md:w-auto">
+              {featureCodePrefix && (
+                <CreditCostHint
+                  featureCode={lineOptions.find(o => o.id === selectedLine)?.line === 'premium' ? `${featureCodePrefix}_premium` : `${featureCodePrefix}_standard`}
+                />
+              )}
               <button
                 onClick={handleGenerate}
                 disabled={!canGenerate}

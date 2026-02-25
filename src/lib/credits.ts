@@ -39,9 +39,9 @@ export const FEATURE_PRICES: Record<string, FeaturePriceConfig> = {
   ai_ppt_slide: { name: 'PPT页面描述', cost: 5, billing: 'fixed' },
   ai_ppt_image_standard: { name: 'PPT图片生成', cost: 50, billing: 'fixed' },
   ai_report_page: { name: '报告生成', cost: 40, billing: 'fixed' },
-  ai_outfit_recommend: { name: '专业搭配师', cost: 0, billing: 'token' },
+  ai_outfit_recommend: { name: '专业搭配师', cost: 30, billing: 'fixed' },
   ai_outfit_visual_standard: { name: '搭配师模特图', cost: 50, billing: 'fixed' },
-  ai_fabric_analysis: { name: '面料说明生成器', cost: 0, billing: 'token' },
+  ai_fabric_analysis: { name: '面料说明生成器', cost: 30, billing: 'fixed' },
 }
 
 export function parseCreditsValue(value: unknown): number | null {

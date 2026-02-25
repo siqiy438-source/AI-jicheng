@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { CreditCostHint } from "@/components/CreditCostHint";
 import {
   ArrowLeft,
   Download,
@@ -267,7 +268,7 @@ const FashionDetailFocus = () => {
     <PageLayout className="pt-6 pb-2 md:py-8">
       <button
         onClick={() => navigate("/clothing")}
-        className="hidden md:flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
+        className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-3 md:mb-6 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         <span>返回服装</span>
@@ -334,6 +335,8 @@ const FashionDetailFocus = () => {
             {isGenerating && mainFrame ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Zap className="w-4 h-4 mr-1.5" />}
             {nextSlot ? "继续生成细节图" : "已完成"}
           </Button>
+
+          <CreditCostHint featureCode="ai_detail_standard" />
 
           <Button onClick={handleDownloadCurrent} disabled={!activeFrame} variant="outline" className="rounded-full">
             <Download className="w-4 h-4 mr-1.5" />

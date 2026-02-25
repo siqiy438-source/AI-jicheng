@@ -358,7 +358,7 @@ const MyMaterials = () => {
       {/* 返回按钮 - 仅桌面端显示 */}
       <button
         onClick={() => navigate("/")}
-        className="hidden md:flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
+        className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-3 md:mb-6 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         <span>返回首页</span>

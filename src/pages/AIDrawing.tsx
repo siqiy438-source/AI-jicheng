@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { CreditCostHint } from "@/components/CreditCostHint";
 import { PageLayout } from "@/components/PageLayout";
 import { GeneratingLoader } from "@/components/GeneratingLoader";
 import {
@@ -480,10 +481,10 @@ const AIDrawing = () => {
   return (
     <PageLayout className="pt-6 pb-2 md:py-8">
       <div onClick={closeAllMenus}>
-        {/* 返回按钮 - 仅桌面端显示 */}
+        {/* 返回按钮 */}
         <button
           onClick={() => navigate("/")}
-          className="hidden md:flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-3 md:mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>返回首页</span>
@@ -813,6 +814,9 @@ const AIDrawing = () => {
 
             {/* 右侧按钮 */}
             <div className="flex items-center gap-1.5">
+              <CreditCostHint
+                featureCode={lineOptions.find(l => l.id === selectedLine)?.line === 'premium' ? 'ai_image_premium' : 'ai_image_standard'}
+              />
               {/* 一键优化 */}
               <button
                 onClick={optimizePrompt}

@@ -2,6 +2,7 @@ import { type ChangeEvent, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageLayout } from "@/components/PageLayout";
 import { GeneratingLoader } from "@/components/GeneratingLoader";
+import { CreditCostHint } from "@/components/CreditCostHint";
 import {
   Zap,
   Loader2,
@@ -735,7 +736,7 @@ ${outlineText || "暂无要点，请基于标题延展"}
         </div>
 
         {/* Generate button */}
-        <div className="flex justify-center mb-10">
+        <div className="flex flex-col items-center gap-2 mb-10">
           <button
             onClick={handleStartGenerate}
             disabled={!inputContent.trim() || isGeneratingOutline}
@@ -753,6 +754,7 @@ ${outlineText || "暂无要点，请基于标题延展"}
             )}
             {isGeneratingOutline ? "生成中..." : "开始生成"}
           </button>
+          <CreditCostHint featureCode="ai_ppt_outline" />
         </div>
 
         {/* Recent projects placeholder */}

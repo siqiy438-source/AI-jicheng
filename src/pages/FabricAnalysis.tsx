@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { GeneratingLoader } from "@/components/GeneratingLoader";
+import { CreditCostHint } from "@/components/CreditCostHint";
 import {
   ArrowLeft,
   X,
@@ -55,7 +56,7 @@ const FabricAnalysis = () => {
 
   const handleGenerate = async () => {
     if (!image) return;
-    const hasCredits = await checkCredits("ai_fabric_analysis");
+    const hasCredits = checkCredits("ai_fabric_analysis");
     if (!hasCredits) return;
 
     setPhase("analyzing");
@@ -164,14 +165,17 @@ const FabricAnalysis = () => {
             )}
           </div>
 
-          <Button
-            onClick={handleGenerate}
-            disabled={!image}
-            className="w-full h-11 md:h-12 text-sm md:text-base font-semibold gap-2"
-          >
-            <Sparkles className="w-5 h-5" />
-            生成面料说明（按 token 计费）
-          </Button>
+          <div className="flex flex-col items-center gap-1.5">
+            <Button
+              onClick={handleGenerate}
+              disabled={!image}
+              className="w-full h-11 md:h-12 text-sm md:text-base font-semibold gap-2"
+            >
+              <Sparkles className="w-5 h-5" />
+              生成面料说明
+            </Button>
+            <CreditCostHint featureCode="ai_fabric_analysis" />
+          </div>
         </div>
       )}
 

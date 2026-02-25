@@ -449,12 +449,14 @@ const MyWorks = () => {
     return matchesSearch && matchesType;
   });
 
+  // List 模式虚拟滚动（使用 content-visibility 优化）
+
   return (
     <PageLayout maxWidth="6xl" className="py-4 md:py-8">
       {/* 返回按钮 - 仅桌面端 */}
       <button
         onClick={() => navigate("/")}
-        className="hidden md:flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4 md:mb-6 transition-colors touch-target"
+        className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-3 md:mb-6 transition-colors touch-target"
       >
         <ArrowLeft className="w-4 h-4" />
         <span className="text-sm">返回首页</span>
@@ -583,6 +585,7 @@ const MyWorks = () => {
             {filteredWorks.map((work) => (
               <div
                 key={work.id}
+                style={{ contentVisibility: 'auto', containIntrinsicSize: '0 300px' }}
                 className={cn(
                   "glass-card rounded-xl overflow-hidden group hover:shadow-lg transition-all cursor-pointer active:scale-[0.98]",
                   selectedWork === work.id && "ring-2 ring-primary/30"
@@ -709,6 +712,7 @@ const MyWorks = () => {
             {filteredWorks.map((work) => (
               <div
                 key={work.id}
+                style={{ contentVisibility: 'auto', containIntrinsicSize: '0 80px' }}
                 className="glass-card rounded-xl p-3 md:p-4 flex items-center gap-3 md:gap-4 hover:shadow-md transition-all cursor-pointer group active:scale-[0.99]"
                 onClick={() => handlePreview(work)}
               >

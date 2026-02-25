@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { GeneratingLoader } from "@/components/GeneratingLoader";
+import { CreditCostHint } from "@/components/CreditCostHint";
 import {
   ArrowLeft,
   X,
@@ -255,7 +256,7 @@ const AIDisplay = () => {
         {/* 返回按钮 - 仅桌面端 */}
         <button
           onClick={() => navigate("/clothing")}
-          className="hidden md:flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-3 md:mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>返回服装</span>
@@ -439,19 +440,24 @@ const AIDisplay = () => {
                 </div>
 
                 {/* 开始分析按钮 */}
-                <button
-                  onClick={handleStartAnalysis}
-                  disabled={!canStartAnalysis}
-                  className={cn(
-                    "flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 touch-target",
-                    canStartAnalysis
-                      ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25"
-                      : "bg-secondary/50 text-muted-foreground/50 cursor-not-allowed"
-                  )}
-                >
-                  <Send className="w-4 h-4" />
-                  <span>开始分析</span>
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleStartAnalysis}
+                    disabled={!canStartAnalysis}
+                    className={cn(
+                      "flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 touch-target",
+                      canStartAnalysis
+                        ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25"
+                        : "bg-secondary/50 text-muted-foreground/50 cursor-not-allowed"
+                    )}
+                  >
+                    <Send className="w-4 h-4" />
+                    <span>开始分析</span>
+                  </button>
+                  <CreditCostHint
+                    featureCode={lineOptions.find(o => o.id === selectedLine)?.line === 'premium' ? 'ai_display_premium' : 'ai_display_standard'}
+                  />
+                </div>
               </div>
             </div>
           </>
@@ -662,6 +668,9 @@ const AIDisplay = () => {
                 <ImageIcon className="w-4 h-4" />
                 生成参考效果图
               </button>
+              <CreditCostHint
+                featureCode={lineOptions.find(o => o.id === selectedLine)?.line === 'premium' ? 'ai_display_premium' : 'ai_display_standard'}
+              />
             </div>
           </div>
         )}

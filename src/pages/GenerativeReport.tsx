@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { CreditCostHint } from "@/components/CreditCostHint";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -686,9 +687,6 @@ const GenerativeReport = () => {
               key={option.depth}
               onClick={() => {
                 setReportDepth(option.depth);
-                if (images.length > 0 && phase === "review") {
-                  runAnalysis();
-                }
               }}
               disabled={phase === "analyzing" || phase === "exporting" || Boolean(isGeneratingSlideId)}
               className={cn(
@@ -960,6 +958,7 @@ const GenerativeReport = () => {
                           </>
                         )}
                       </Button>
+                      <CreditCostHint featureCode="ai_report_page" />
 
                       <Button
                         variant="outline"

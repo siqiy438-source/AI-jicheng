@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { GeneratingLoader } from "@/components/GeneratingLoader";
+import { CreditCostHint } from "@/components/CreditCostHint";
 import {
   ArrowLeft,
   X,
@@ -80,7 +81,7 @@ const OutfitRecommend = () => {
 
   const handleGenerate = async () => {
     if (!image) return;
-    const hasCredits = await checkCredits("ai_outfit_recommend");
+    const hasCredits = checkCredits("ai_outfit_recommend");
     if (!hasCredits) return;
 
     setPhase("analyzing");
@@ -201,7 +202,7 @@ const OutfitRecommend = () => {
       {/* 返回按钮 */}
       <button
         onClick={() => navigate("/clothing")}
-        className="hidden md:flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
+        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-3 md:mb-6"
       >
         <ArrowLeft className="w-4 h-4" /> 返回服装工具
       </button>
@@ -248,14 +249,17 @@ const OutfitRecommend = () => {
           </div>
 
           {/* 生成按钮 */}
-          <Button
-            onClick={handleGenerate}
-            disabled={!image}
-            className="w-full h-12 text-base font-semibold gap-2"
-          >
-            <Sparkles className="w-5 h-5" />
-            生成穿搭方案（按 token 计费）
-          </Button>
+          <div className="flex flex-col items-center gap-1.5">
+            <Button
+              onClick={handleGenerate}
+              disabled={!image}
+              className="w-full h-12 text-base font-semibold gap-2"
+            >
+              <Sparkles className="w-5 h-5" />
+              生成穿搭方案
+            </Button>
+            <CreditCostHint featureCode="ai_outfit_recommend" />
+          </div>
         </div>
       )}
 

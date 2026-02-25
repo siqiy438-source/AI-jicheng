@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { PageLayout } from "@/components/PageLayout";
 import { GeneratingLoader } from "@/components/GeneratingLoader";
 import { Button } from "@/components/ui/button";
+import { CreditCostHint } from "@/components/CreditCostHint";
 import { cn } from "@/lib/utils";
 import { compressImage, mergeImagesToGrid, downloadGeneratedImage } from "@/lib/image-utils";
 import { generateImage } from "@/lib/ai-image";
@@ -218,7 +219,7 @@ cropped garments, partial view, flat lay, low quality, blurry, distorted fabric,
     <PageLayout className="py-2 md:py-8">
       <button
         onClick={() => navigate("/clothing")}
-        className="hidden md:flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
+        className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-3 md:mb-6 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         <span>返回服装</span>
@@ -325,19 +326,24 @@ cropped garments, partial view, flat lay, low quality, blurry, distorted fabric,
           className="w-full bg-secondary/30 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-1 focus:ring-primary/30 mb-3"
         />
 
-        <button
-          onClick={handleGenerate}
-          disabled={!canGenerate}
-          className={cn(
-            "w-full md:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
-            canGenerate
-              ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25"
-              : "bg-secondary/50 text-muted-foreground/50 cursor-not-allowed"
-          )}
-        >
-          {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-          <span>{isGenerating ? "生成中..." : "生成挂搭图"}</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleGenerate}
+            disabled={!canGenerate}
+            className={cn(
+              "w-full md:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
+              canGenerate
+                ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25"
+                : "bg-secondary/50 text-muted-foreground/50 cursor-not-allowed"
+            )}
+          >
+            {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+            <span>{isGenerating ? "生成中..." : "生成挂搭图"}</span>
+          </button>
+          <CreditCostHint
+            featureCode={lineOptions.find(o => o.id === selectedLine)?.line === 'premium' ? 'ai_outfit_premium' : 'ai_outfit_standard'}
+          />
+        </div>
       </div>
 
       {(isGenerating || generatedImage) && (

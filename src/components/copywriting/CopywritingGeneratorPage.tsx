@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { CreditCostHint } from "@/components/CreditCostHint";
 import {
   ArrowLeft,
   Loader2,
@@ -977,9 +978,12 @@ export const CopywritingGeneratorPage = ({
           >
             {isGenerating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
           </button>
+          <CreditCostHint
+            label={currentPhase === 'generate' ? '40 积分' : '5 积分'}
+            className="ml-1"
+          />
         </div>
       </div>
-
       {/* 空状态提示 */}
       {messages.length === 0 && !isGenerating && (
         <div className="text-center py-12 md:py-16">

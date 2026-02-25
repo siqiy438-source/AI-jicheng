@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from "react";
+import { CreditCostHint } from "@/components/CreditCostHint";
 import { PageLayout } from "@/components/PageLayout";
 import { GeneratingLoader } from "@/components/GeneratingLoader";
 import {
@@ -277,7 +278,7 @@ const AICopywriting = () => {
       {/* 返回按钮 - 仅桌面端显示，移动端使用底部导航 */}
       <button
         onClick={() => navigate("/")}
-        className="hidden md:flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
+        className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-3 md:mb-6 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         <span className="text-sm">返回首页</span>
@@ -530,6 +531,7 @@ const AICopywriting = () => {
             </button>
 
             {/* 发送按钮 */}
+            <CreditCostHint featureCode="ai_copywriting" />
             <button
               onClick={handleSend}
               disabled={(!prompt.trim() && uploadedFiles.length === 0) || isGenerating}
