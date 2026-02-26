@@ -21,7 +21,13 @@ const Thumb = ({ src, alt, fill = true }: { src: string; alt: string; fill?: boo
   const [preview, setPreview] = useState<string | null>(null);
   return (
     <>
-      <img src={src} alt={alt} loading="lazy" decoding="async" className={fill ? "w-full h-full object-cover cursor-pointer" : "w-full h-auto rounded-xl cursor-pointer"} onClick={() => setPreview(src)} />
+      {fill ? (
+        <img src={src} alt={alt} loading="lazy" decoding="async" className="w-full h-full object-cover cursor-pointer" onClick={() => setPreview(src)} />
+      ) : (
+        <div className="aspect-[3/4] bg-secondary/20 rounded-xl overflow-hidden">
+          <img src={src} alt={alt} loading="lazy" decoding="async" className="w-full h-full object-cover cursor-pointer" onClick={() => setPreview(src)} />
+        </div>
+      )}
       {preview && <ImagePreview src={preview} onClose={() => setPreview(null)} />}
     </>
   );

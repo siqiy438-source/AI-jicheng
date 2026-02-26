@@ -54,9 +54,9 @@ export const showcaseCategories: ShowcaseCategory[] = [
         title: "AI 一键挂搭图",
         description: "上传内搭与单品，自动补全完整挂搭效果图",
         beforeImages: [
-          "/showcase/hangoutfit-before-1.png",
-          "/showcase/hangoutfit-before-2.png",
-          "/showcase/hangoutfit-before-3.png",
+          "/showcase/hangoutfit-before-1.jpg",
+          "/showcase/hangoutfit-before-2.jpg",
+          "/showcase/hangoutfit-before-3.jpg",
         ],
         afterImages: ["/showcase/hangoutfit-after.jpg"],
         toolRoute: "/ai-hangoutfit",

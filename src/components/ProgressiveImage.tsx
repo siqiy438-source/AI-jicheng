@@ -31,8 +31,8 @@ export const ProgressiveImage = ({
         decoding="async"
         onLoad={onLoad}
         className={cn(
-          "transition-all duration-500",
-          loaded ? "opacity-100 blur-0 scale-100" : "opacity-0 blur-sm scale-105",
+          "transition-opacity duration-300",
+          loaded ? "opacity-100" : "opacity-0",
           className,
         )}
       />
