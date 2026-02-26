@@ -113,6 +113,7 @@ const FabricAnalysis = () => {
         <button
           onClick={() => navigate("/clothing")}
           className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-muted/50 transition-colors -ml-1"
+          aria-label="返回"
         >
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
@@ -141,7 +142,7 @@ const FabricAnalysis = () => {
       {phase === "upload" && (
         <div className="space-y-4 opacity-0 animate-fade-in">
           <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5">
-            <h3 className="text-sm font-semibold text-foreground mb-3">上传水洗标或面料照片</h3>
+            <h2 className="text-sm font-semibold text-foreground mb-3">上传水洗标或面料照片</h2>
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
             {!image ? (
               <button
@@ -154,10 +155,11 @@ const FabricAnalysis = () => {
               </button>
             ) : (
               <div className="relative inline-block">
-                <img src={image} alt="面料" className="w-32 h-32 md:w-40 md:h-40 object-cover rounded-xl" />
+                <img src={image} alt="上传的面料或水洗标图片" className="w-32 h-32 md:w-40 md:h-40 object-cover rounded-xl" />
                 <button
                   onClick={() => setImage(null)}
                   className="absolute -top-2 -right-2 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center"
+                  aria-label="删除图片"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -189,11 +191,11 @@ const FabricAnalysis = () => {
 
           {/* 面料识别 */}
           <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5">
-            <h3 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
               <Shirt className="w-4 h-4" /> 面料识别
-            </h3>
+            </h2>
             <div className="flex gap-3 md:gap-4">
-              {image && <img src={image} alt="面料" className="w-16 h-16 md:w-24 md:h-24 object-cover rounded-lg flex-shrink-0" />}
+              {image && <img src={image} alt="上传的面料或水洗标图片" className="w-16 h-16 md:w-24 md:h-24 object-cover rounded-lg flex-shrink-0" />}
               <div className="space-y-1 md:space-y-1.5 text-xs md:text-sm min-w-0">
                 <p><span className="text-primary font-medium mr-2">成分</span><span className="text-foreground font-medium">{result.fabricIdentification.composition}</span></p>
                 <p><span className="text-primary font-medium mr-2">类型</span><span className="text-foreground">{result.fabricIdentification.fabricType}</span></p>
@@ -206,9 +208,9 @@ const FabricAnalysis = () => {
           {/* 面料对比 */}
           {result.fabricComparison.length > 0 && (
             <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5">
-              <h3 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
                 <BarChart3 className="w-4 h-4" /> 面料对比
-              </h3>
+              </h2>
               <div className="space-y-3">
                 {result.fabricComparison.map((comp, i) => (
                   <div key={i} className="p-3 rounded-lg bg-muted/30">
@@ -240,9 +242,9 @@ const FabricAnalysis = () => {
           {/* 洗涤保养（合并洗涤建议+保养提示） */}
           <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5">
             <div className="flex items-center gap-2 mb-3">
-              <h3 className="text-sm font-semibold text-primary flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-primary flex items-center gap-2">
                 <Droplets className="w-4 h-4" /> 洗涤保养
-              </h3>
+              </h2>
               <CopyButton text={`洗涤：${result.careInstructions.washing}\n晾晒：${result.careInstructions.drying}\n熨烫：${result.careInstructions.ironing}\n收纳：${result.careInstructions.storage}\n\n注意事项：\n${result.careInstructions.warnings.join('\n')}\n\n保养提示：\n${result.maintenanceTips.join('\n')}`} section="care" />
             </div>
             <div className="space-y-2.5 text-sm">
@@ -278,9 +280,9 @@ const FabricAnalysis = () => {
           {/* 导购话术 */}
           <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5">
             <div className="flex items-center gap-2 mb-3">
-              <h3 className="text-sm font-semibold text-primary flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-primary flex items-center gap-2">
                 <Sparkles className="w-4 h-4" /> 导购话术
-              </h3>
+              </h2>
               <CopyButton text={`${result.marketingDescription.headline}\n\n【为什么值这个价】\n${result.marketingDescription.whyExpensive}\n\n【和其他衣服的区别】\n${result.marketingDescription.whatsDifferent}\n\n卖点：\n${result.marketingDescription.sellingPoints.join('\n')}\n\n适合季节：${result.marketingDescription.suitableSeasons}\n适合场景：${result.marketingDescription.suitableScenes.join('、')}`} section="marketing" />
             </div>
             <div className="space-y-2.5 md:space-y-3">
@@ -315,9 +317,9 @@ const FabricAnalysis = () => {
           {/* 商品详情页文案 */}
           <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5">
             <div className="flex items-center gap-2 mb-3">
-              <h3 className="text-sm font-semibold text-primary flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-primary flex items-center gap-2">
                 <FileText className="w-4 h-4" /> 商品详情页文案
-              </h3>
+              </h2>
               <CopyButton text={result.productDetailCopy} section="detail" />
             </div>
             <p className="text-xs md:text-sm text-foreground leading-relaxed whitespace-pre-line">{result.productDetailCopy}</p>

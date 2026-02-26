@@ -10,10 +10,10 @@ interface ShowcaseCardProps {
 
 const ImagePreview = ({ src, onClose }: { src: string; onClose: () => void }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={onClose}>
-    <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors z-10">
+    <button onClick={onClose} aria-label="关闭预览" className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors z-10">
       <X className="w-5 h-5" />
     </button>
-    <img src={src} alt="预览" className="max-w-full max-h-full object-contain rounded-lg" onClick={(e) => e.stopPropagation()} />
+    <img src={src} alt="作品预览大图" className="max-w-full max-h-full object-contain rounded-lg" onClick={(e) => e.stopPropagation()} />
   </div>
 );
 
@@ -39,7 +39,7 @@ const BeforeAfter = ({ item }: { item: ShowcaseItem }) => (
       <div className="text-[10px] text-muted-foreground mb-1.5">上传</div>
       <div className="grid grid-cols-2 gap-1.5" style={item.beforeImages.length === 3 ? { gridTemplateColumns: "repeat(3, 1fr)" } : undefined}>
         {item.beforeImages.map((img, i) => (
-          <Thumb key={i} src={img} alt="上传图" fill={false} />
+          <Thumb key={i} src={img} alt={`上传原图 ${i + 1}`} fill={false} />
         ))}
       </div>
     </div>
@@ -50,7 +50,7 @@ const BeforeAfter = ({ item }: { item: ShowcaseItem }) => (
       <div className="text-[10px] text-primary font-medium mb-1.5">效果</div>
       <div className="grid grid-cols-2 gap-1.5" style={item.afterImages.length === 1 ? { gridTemplateColumns: "1fr" } : undefined}>
         {item.afterImages.map((img, i) => (
-          <Thumb key={i} src={img} alt="效果图" fill={false} />
+          <Thumb key={i} src={img} alt={`AI生成效果图 ${i + 1}`} fill={false} />
         ))}
       </div>
     </div>

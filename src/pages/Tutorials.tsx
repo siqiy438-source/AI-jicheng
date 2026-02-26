@@ -22,6 +22,7 @@ const ImageLightbox = ({
     <button
       onClick={onClose}
       className="absolute top-4 right-4 p-2.5 rounded-full bg-white/15 text-white hover:bg-white/25 transition-colors z-10 mt-safe"
+      aria-label="关闭"
     >
       <X className="w-6 h-6" />
     </button>

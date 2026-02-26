@@ -12,7 +12,6 @@ export const WechatBonusDialog = () => {
     if (!user) return;
     const key = `wechat_popup_seen_${user.id}`;
     if (!localStorage.getItem(key)) {
-      // 延迟 800ms 再弹出，避免页面刚加载就弹
       const t = setTimeout(() => setOpen(true), 800);
       return () => clearTimeout(t);
     }
@@ -25,20 +24,23 @@ export const WechatBonusDialog = () => {
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose(); }}>
-      <DialogContent className="sm:max-w-[360px] p-0 overflow-hidden gap-0 border-0">
-        {/* 顶部渐变装饰区 */}
-        <div className="relative bg-gradient-to-br from-primary/90 to-violet-600 px-6 pt-8 pb-6 text-white">
+      <DialogContent
+        className="sm:max-w-[360px] p-0 overflow-hidden gap-0 border-0 [&>button:last-child]:hidden"
+      >
+        {/* 顶部渐变装饰区 — 淡金色 */}
+        <div className="relative bg-gradient-to-br from-amber-600/90 to-yellow-700/80 px-6 pt-8 pb-6 text-white">
           {/* 关闭按钮 */}
           <button
             onClick={handleClose}
             className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+            aria-label="关闭"
           >
             <X className="w-3.5 h-3.5 text-white" />
           </button>
 
           {/* 装饰光晕 */}
-          <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/10 blur-2xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full bg-violet-400/20 blur-xl pointer-events-none" />
+          <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-yellow-300/15 blur-2xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full bg-amber-300/15 blur-xl pointer-events-none" />
 
           {/* 标题区 */}
           <div className="relative flex flex-col items-center gap-2 text-center">
@@ -59,11 +61,11 @@ export const WechatBonusDialog = () => {
         {/* 二维码区 */}
         <div className="bg-card px-6 py-5 flex flex-col items-center gap-3">
           <div className="relative">
-            <div className="absolute inset-0 rounded-2xl bg-primary/10 blur-md" />
+            <div className="absolute inset-0 rounded-2xl bg-amber-500/10 blur-md" />
             <img
               src="/wechat-qr.jpg"
               alt="创始人微信二维码"
-              className="relative w-44 h-44 object-contain rounded-2xl border-2 border-primary/20 bg-white p-1"
+              className="relative w-48 rounded-2xl border-2 border-amber-500/20 bg-white p-1"
             />
           </div>
 
@@ -71,7 +73,7 @@ export const WechatBonusDialog = () => {
             扫码或长按识别二维码 · 仅限新用户一次
           </p>
 
-          <Button onClick={handleClose} className="w-full mt-1 rounded-xl h-11">
+          <Button onClick={handleClose} className="w-full mt-1 rounded-xl h-11 bg-amber-600 hover:bg-amber-700 text-white">
             已添加微信，等待积分到账
           </Button>
 

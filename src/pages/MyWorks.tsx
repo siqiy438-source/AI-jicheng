@@ -138,10 +138,10 @@ const CopywritingDetailDialog = ({ work, open, onClose }: { work: WorkListItem |
             <p className="text-xs text-muted-foreground">{work.createdAt} · {work.tool}</p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <button onClick={handleCopy} className="p-2 rounded-lg hover:bg-secondary transition-colors" title="复制文案">
+            <button onClick={handleCopy} className="p-2 rounded-lg hover:bg-secondary transition-colors" title="复制文案" aria-label="复制文案">
               {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4 text-muted-foreground" />}
             </button>
-            <button onClick={onClose} className="p-2 rounded-lg hover:bg-secondary transition-colors">
+            <button onClick={onClose} className="p-2 rounded-lg hover:bg-secondary transition-colors" aria-label="关闭">
               <X className="w-4 h-4 text-muted-foreground" />
             </button>
           </div>
@@ -189,10 +189,10 @@ const OutfitDetailDialog = ({ work, open, onClose }: { work: WorkListItem | null
             <p className="text-xs text-muted-foreground">{work.createdAt} · {work.tool}</p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <button onClick={handleCopyAll} className="p-2 rounded-lg hover:bg-secondary transition-colors" title="复制全部文案">
+            <button onClick={handleCopyAll} className="p-2 rounded-lg hover:bg-secondary transition-colors" title="复制全部文案" aria-label="复制全部文案">
               {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4 text-muted-foreground" />}
             </button>
-            <button onClick={onClose} className="p-2 rounded-lg hover:bg-secondary transition-colors">
+            <button onClick={onClose} className="p-2 rounded-lg hover:bg-secondary transition-colors" aria-label="关闭">
               <X className="w-4 h-4 text-muted-foreground" />
             </button>
           </div>

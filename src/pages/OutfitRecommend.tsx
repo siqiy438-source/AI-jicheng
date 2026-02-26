@@ -225,7 +225,7 @@ const OutfitRecommend = () => {
         <div className="space-y-4 opacity-0 animate-fade-in">
           {/* 图片上传 */}
           <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5">
-            <h3 className="text-sm font-semibold text-foreground mb-3">上传单品图片</h3>
+            <h2 className="text-sm font-semibold text-foreground mb-3">上传单品图片</h2>
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
             {!image ? (
               <button
@@ -237,10 +237,11 @@ const OutfitRecommend = () => {
               </button>
             ) : (
               <div className="relative inline-block">
-                <img src={image} alt="单品" className="w-32 h-32 md:w-40 md:h-40 object-cover rounded-xl" />
+                <img src={image} alt="上传的服装单品图片" className="w-32 h-32 md:w-40 md:h-40 object-cover rounded-xl" />
                 <button
                   onClick={() => setImage(null)}
                   className="absolute -top-2 -right-2 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center"
+                  aria-label="删除图片"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -275,11 +276,11 @@ const OutfitRecommend = () => {
 
           {/* 单品分析卡片 */}
           <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5">
-            <h3 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
               <Shirt className="w-4 h-4" /> 单品分析
-            </h3>
+            </h2>
             <div className="flex gap-4">
-              {image && <img src={image} alt="单品" className="w-20 h-20 md:w-24 md:h-24 object-cover rounded-lg flex-shrink-0" />}
+              {image && <img src={image} alt="上传的服装单品图片" className="w-20 h-20 md:w-24 md:h-24 object-cover rounded-lg flex-shrink-0" />}
               <div className="space-y-1.5 text-sm">
                 <p><span className="text-primary font-medium mr-2">类型</span><span className="text-foreground font-medium">{result.inputAnalysis.itemType}</span></p>
                 <p><span className="text-primary font-medium mr-2">颜色</span><span className="text-foreground">{result.inputAnalysis.color}</span></p>
@@ -298,9 +299,9 @@ const OutfitRecommend = () => {
           {/* 商品档案 */}
           {result.productProfile && (
             <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5">
-              <h3 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
                 <Tag className="w-4 h-4" /> 商品档案
-              </h3>
+              </h2>
               <div className="space-y-2.5 text-sm">
                 <p><span className="text-muted-foreground mr-2">风格标签</span><span className="text-foreground">{result.productProfile.styleTags}</span></p>
                 <p><span className="text-muted-foreground mr-2">陈列区域</span><span className="text-foreground">{result.productProfile.displayArea}</span></p>
@@ -320,9 +321,9 @@ const OutfitRecommend = () => {
 
           {/* 模特图生成 */}
           <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5">
-            <h3 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
               <Sparkles className="w-4 h-4" /> 专业搭配可视化
-            </h3>
+            </h2>
             <p className="text-xs text-muted-foreground mb-3">
               先选风格标签，再点击立即生成。系统会强制结合你首次上传的单品图，确保款式一致性。
             </p>
@@ -368,7 +369,7 @@ const OutfitRecommend = () => {
           {result.combinations.slice(0, 2).map((combo, idx) => (
             <div key={idx} className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5">
               <div className="mb-3">
-                <h3 className="text-base font-semibold text-foreground">{combo.name}</h3>
+                <h2 className="text-base font-semibold text-foreground">{combo.name}</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">{combo.theme}</p>
                 {combo.targetBody && (
                   <span className="inline-block mt-1.5 text-[11px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">{combo.targetBody}</span>
@@ -436,9 +437,9 @@ const OutfitRecommend = () => {
           {/* 客诉应对 */}
           {result.objectionHandling && (
             <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5">
-              <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
                 <ShieldAlert className="w-4 h-4 text-primary" /> 客诉应对话术
-              </h3>
+              </h2>
               <div className="space-y-2.5">
                 {[
                   { label: "客人说「显胖」", text: result.objectionHandling.looksFat },
@@ -457,9 +458,9 @@ const OutfitRecommend = () => {
           {/* 陈列指导 */}
           {result.displayGuide && (
             <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5">
-              <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
                 <LayoutGrid className="w-4 h-4 text-primary" /> 陈列指导
-              </h3>
+              </h2>
               <div className="space-y-2 text-sm">
                 <p><span className="text-muted-foreground mr-2">分区建议</span><span className="text-foreground">{result.displayGuide.zone}</span></p>
                 <p><span className="text-muted-foreground mr-2">VP展示</span><span className="text-foreground">{result.displayGuide.vpDisplay}</span></p>
@@ -472,9 +473,9 @@ const OutfitRecommend = () => {
           {/* 通用建议 */}
           {result.generalTips.length > 0 && (
             <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-5">
-              <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
                 <Lightbulb className="w-4 h-4 text-amber-500" /> 通用搭配建议
-              </h3>
+              </h2>
               <ul className="space-y-1.5">
                 {result.generalTips.map((tip, i) => (
                   <li key={i} className="text-sm text-muted-foreground pl-5 relative before:content-['•'] before:absolute before:left-1.5 before:text-primary">{tip}</li>

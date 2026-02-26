@@ -94,7 +94,7 @@ export const Header = () => {
         {/* 通知按钮 */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="p-2.5 rounded-xl bg-secondary/40 active:bg-secondary/70 transition-colors relative touch-target focus:outline-none">
+            <button className="p-2.5 rounded-xl bg-secondary/40 active:bg-secondary/70 transition-colors relative touch-target focus:outline-none" aria-label="通知">
               <Bell className="w-5 h-5 text-muted-foreground" />
               {/* 只在有未读通知时显示红点 */}
               {hasUnreadNotifications && (
@@ -225,15 +225,16 @@ export const Header = () => {
 
       {/* 创始人微信弹窗 */}
       <Dialog open={wechatOpen} onOpenChange={setWechatOpen}>
-        <DialogContent className="sm:max-w-[360px] p-0 overflow-hidden gap-0 border-0">
-          <div className="relative bg-gradient-to-br from-primary/90 to-violet-600 px-6 pt-8 pb-6 text-white">
+        <DialogContent className="sm:max-w-[360px] p-0 overflow-hidden gap-0 border-0 [&>button:last-child]:hidden">
+          <div className="relative bg-gradient-to-br from-amber-600/90 to-yellow-700/80 px-6 pt-8 pb-6 text-white">
             <button
               onClick={() => setWechatOpen(false)}
               className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+              aria-label="关闭"
             >
               <X className="w-3.5 h-3.5 text-white" />
             </button>
-            <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+            <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-yellow-300/15 blur-2xl pointer-events-none" />
             <div className="relative flex flex-col items-center gap-2 text-center">
               <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center mb-1">
                 <Gift className="w-6 h-6 text-white" />
@@ -251,12 +252,12 @@ export const Header = () => {
             <img
               src="/wechat-qr.jpg"
               alt="创始人微信二维码"
-              className="w-44 h-44 object-contain rounded-2xl border-2 border-primary/20 bg-white p-1"
+              className="w-48 rounded-2xl border-2 border-amber-500/20 bg-white p-1"
             />
             <p className="text-xs text-muted-foreground text-center">
               扫码或长按识别二维码
             </p>
-            <Button onClick={() => setWechatOpen(false)} className="w-full rounded-xl h-11">
+            <Button onClick={() => setWechatOpen(false)} className="w-full rounded-xl h-11 bg-amber-600 hover:bg-amber-700 text-white">
               关闭
             </Button>
           </div>

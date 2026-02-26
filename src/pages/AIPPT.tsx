@@ -771,10 +771,10 @@ ${outlineText || "暂无要点，请基于标题延展"}
       {/* Top navbar */}
       <div className="flex items-center justify-between px-3 md:px-4 py-2 md:py-2.5 bg-white border-b border-border shrink-0 relative z-20 gap-2">
         <div className="flex items-center gap-1.5 md:gap-2 min-w-0">
-          <button onClick={() => navigate("/")} className="p-1.5 md:p-2 rounded-lg hover:bg-secondary transition-colors shrink-0" title="主页">
+          <button onClick={() => navigate("/")} className="p-1.5 md:p-2 rounded-lg hover:bg-secondary transition-colors shrink-0" title="主页" aria-label="主页">
             <Home className="w-4 h-4 text-muted-foreground" />
           </button>
-          <button onClick={() => setCurrentStep(1)} className="p-1.5 md:p-2 rounded-lg hover:bg-secondary transition-colors shrink-0" title="返回">
+          <button onClick={() => setCurrentStep(1)} className="p-1.5 md:p-2 rounded-lg hover:bg-secondary transition-colors shrink-0" title="返回" aria-label="返回">
             <ArrowLeft className="w-4 h-4 text-muted-foreground" />
           </button>
           <div className="w-px h-5 bg-border mx-0.5 md:mx-1 shrink-0" />

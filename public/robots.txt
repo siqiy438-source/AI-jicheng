@@ -12,3 +12,8 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /payment-result
+Disallow: /settings
+
+Sitemap: https://ai.yuansiqiai.com/sitemap.xml
