@@ -25,6 +25,7 @@ import { formatCredits, FEATURE_PRICES } from "@/lib/credits";
 interface UserRow {
   id: string;
   email: string;
+  nickname: string | null;
   credits: number;
   role: string;
   plan_tier: string | null;
@@ -231,7 +232,7 @@ export const UsersTab = () => {
 
       <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input placeholder="搜索邮箱..." value={searchInput}
+        <Input placeholder="搜索邮箱或昵称..." value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)} className="pl-9" />
       </div>
 
@@ -254,7 +255,10 @@ export const UsersTab = () => {
               <TableRow><TableCell colSpan={6} className="text-center py-12 text-muted-foreground">暂无用户</TableCell></TableRow>
             ) : users.map((u) => (
               <TableRow key={u.id} className={u.banned ? "opacity-60" : ""}>
-                <TableCell className="font-medium max-w-[200px] truncate">{u.email}</TableCell>
+                <TableCell className="max-w-[200px]">
+                  <div className="font-medium truncate">{u.nickname || u.email.split("@")[0]}</div>
+                  <div className="text-xs text-muted-foreground truncate">{u.email}</div>
+                </TableCell>
                 <TableCell className="text-right tabular-nums">{formatCredits(u.credits)}</TableCell>
                 <TableCell className="hidden md:table-cell">
                   <Badge variant={u.role === "admin" ? "default" : "secondary"}>
@@ -474,7 +478,10 @@ export const UsersTab = () => {
         <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>用户详情</DialogTitle>
-            <DialogDescription>{targetUser?.email}</DialogDescription>
+            <DialogDescription>
+              {targetUser?.nickname && <span className="font-medium text-foreground">{targetUser.nickname} · </span>}
+              {targetUser?.email}
+            </DialogDescription>
           </DialogHeader>
           {detailLoading ? (
             <div className="py-12 text-center text-muted-foreground">加载中...</div>
@@ -513,6 +520,20 @@ export const UsersTab = () => {
                       </div>
                       );
                     })}
+                  </div>
+                </div>
+              )}
+
+              {detail.usage_summary && detail.usage_summary.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium mb-2">功能使用统计</h4>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {detail.usage_summary.map((u: { event_type: string; count: number; last_used: string }) => (
+                      <div key={u.event_type} className="flex items-center justify-between text-sm rounded-lg border px-3 py-2">
+                        <span className="truncate text-muted-foreground">{FEATURE_PRICES[u.event_type]?.name || u.event_type}</span>
+                        <span className="font-medium tabular-nums ml-2">{u.count}次</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}

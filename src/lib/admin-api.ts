@@ -10,16 +10,24 @@ export async function callAdminUsers(params: AdminUserAction): Promise<{ success
   if (!token) throw new Error('未登录')
 
   const doFetch = async (t: string) => {
-    const res = await fetch(`${supabaseUrl}/functions/v1/admin-users`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${t}`,
-        'apikey': supabaseAnonKey,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(params),
-    })
-    return res.json()
+    try {
+      const res = await fetch(`${supabaseUrl}/functions/v1/admin-users`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${t}`,
+          'apikey': supabaseAnonKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(params),
+      })
+      if (!res.ok) {
+        const text = await res.text()
+        try { return JSON.parse(text) } catch { return { success: false, error: `请求失败 (${res.status})` } }
+      }
+      return res.json()
+    } catch (e) {
+      return { success: false, error: e instanceof Error ? `网络错误: ${e.message}` : '网络请求失败' }
+    }
   }
 
   let result = await doFetch(token)
