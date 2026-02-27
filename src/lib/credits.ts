@@ -42,6 +42,7 @@ export const FEATURE_PRICES: Record<string, FeaturePriceConfig> = {
   ai_outfit_recommend: { name: '专业搭配师', cost: 30, billing: 'fixed' },
   ai_outfit_visual_standard: { name: '搭配师模特图', cost: 50, billing: 'fixed' },
   ai_fabric_analysis: { name: '面料说明生成器', cost: 30, billing: 'fixed' },
+  ai_pixel_art: { name: '像素块生成', cost: 50, billing: 'fixed' },
 }
 
 export function parseCreditsValue(value: unknown): number | null {

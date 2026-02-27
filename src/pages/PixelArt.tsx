@@ -11,6 +11,7 @@ import { generateImage } from "@/lib/ai-image";
 import { compressImage } from "@/lib/image-utils";
 import { useCreditCheck } from "@/hooks/use-credit-check";
 import { InsufficientBalanceDialog } from "@/components/InsufficientBalanceDialog";
+import { saveWork } from "@/lib/repositories/works";
 
 const GRID_OPTIONS = [
   { label: "20×20", value: 20, desc: "颗粒粗" },
@@ -25,7 +26,7 @@ type Step = "idle" | "ai-generating" | "mapping" | "done";
 const PixelArt = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { checkCredits, showInsufficientDialog, refreshBalance } = useCreditCheck();
+  const { checkCredits, showInsufficientDialog, requiredAmount, featureName, currentBalance, goToRecharge, dismissDialog, refreshBalance } = useCreditCheck();
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
@@ -111,6 +112,22 @@ const PixelArt = () => {
       await new Promise(resolve => setTimeout(resolve, 50));
       if (canvasRef.current) {
         renderPixelGrid(canvasRef.current, pixelResult, gridSize);
+      }
+
+      // 保存到历史记录
+      try {
+        const dataUrl = canvasRef.current?.toDataURL("image/png") ?? null;
+        if (dataUrl) {
+          await saveWork({
+            title: `像素块 ${pixelResult.gridWidth}×${pixelResult.gridHeight} · ${pixelResult.usedColors.length} 色`,
+            type: "pixel-art",
+            tool: "像素块生成",
+            thumbnailDataUrl: dataUrl,
+            content: { gridSize, gridWidth: pixelResult.gridWidth, gridHeight: pixelResult.gridHeight, colorCount: pixelResult.usedColors.length },
+          });
+        }
+      } catch (saveErr) {
+        console.warn("[PixelArt] 保存历史记录失败:", saveErr);
       }
 
       refreshBalance();
@@ -370,7 +387,11 @@ const PixelArt = () => {
 
       <InsufficientBalanceDialog
         open={showInsufficientDialog}
-        onOpenChange={() => {}}
+        onOpenChange={dismissDialog}
+        balance={currentBalance}
+        required={requiredAmount}
+        featureName={featureName}
+        onRecharge={goToRecharge}
       />
     </PageLayout>
   );
