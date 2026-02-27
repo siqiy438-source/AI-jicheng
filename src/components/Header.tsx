@@ -282,20 +282,12 @@ export const Header = () => {
         {detailEntry && (
           <DialogContent className={cn(
             "p-0 overflow-hidden gap-0 border-0 [&>button:last-child]:hidden",
-            // 手机端：底部抽屉
-            "fixed bottom-0 left-0 right-0 top-auto translate-x-0 translate-y-0 w-full max-w-full rounded-t-2xl rounded-b-none max-h-[85vh]",
-            // 桌面端：居中弹窗
-            "sm:bottom-auto sm:left-[50%] sm:top-[50%] sm:translate-x-[-50%] sm:translate-y-[-50%] sm:max-w-[420px] sm:rounded-2xl sm:max-h-none",
-            // 动画覆盖
-            "data-[state=open]:slide-in-from-bottom data-[state=closed]:slide-out-to-bottom",
-            "sm:data-[state=open]:slide-in-from-bottom-0 sm:data-[state=open]:slide-in-from-left-1/2 sm:data-[state=open]:slide-in-from-top-[48%]",
-            "sm:data-[state=closed]:slide-out-to-bottom-0 sm:data-[state=closed]:slide-out-to-left-1/2 sm:data-[state=closed]:slide-out-to-top-[48%]"
+            // 手机端：悬浮居中卡片
+            "fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] w-[calc(100vw-2.5rem)] max-w-[420px] rounded-2xl max-h-[80vh]",
+            // 桌面端微调
+            "sm:max-w-[420px] sm:max-h-none"
           )}>
-            {/* 手机端拖拽指示条 */}
-            <div className="sm:hidden flex justify-center pt-2 pb-0">
-              <div className="w-8 h-1 rounded-full bg-muted-foreground/20" />
-            </div>
-            <div className="overflow-y-auto max-h-[calc(85vh-12px)] sm:max-h-none">
+            <div className="overflow-y-auto max-h-[80vh] sm:max-h-none">
               <ChangelogDetail entry={detailEntry} onClose={() => setDetailEntry(null)} />
             </div>
           </DialogContent>
@@ -396,10 +388,10 @@ function ChangelogDetail({ entry, onClose }: { entry: ChangelogEntry; onClose: (
         {/* 关闭按钮 */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 sm:top-3.5 sm:right-3.5 w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all duration-200 hover:scale-105 backdrop-blur-sm"
+          className="absolute top-3 right-3 sm:top-3.5 sm:right-3.5 w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition-all duration-200 hover:scale-105 backdrop-blur-sm"
           aria-label="关闭"
         >
-          <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/80" />
+          <X className="w-4 h-4 sm:w-4 sm:h-4 text-white" strokeWidth={2.5} />
         </button>
         {/* 内容 */}
         <div className="relative">
