@@ -36,9 +36,7 @@ const PixelArt = () => {
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  // 每张图片对应固定的 requestId，防止点多次/超时重试被重复扣费
   const requestIdRef = useRef<string>(crypto.randomUUID());
-  // 防止并发请求（双击等边缘情况）
   const isRequestingRef = useRef(false);
 
   const isProcessing = step === "ai-generating" || step === "mapping";
@@ -62,7 +60,6 @@ const PixelArt = () => {
     setImagePreviewUrl(URL.createObjectURL(file));
     setResult(null);
     setStep("idle");
-    // 换图片时重置 requestId，确保新图片有独立的幂等键
     requestIdRef.current = crypto.randomUUID();
   }, [imagePreviewUrl, toast]);
 
@@ -78,7 +75,7 @@ const PixelArt = () => {
       toast({ title: "请先上传图片", variant: "destructive" });
       return;
     }
-    if (isRequestingRef.current) return; // 防并发
+    if (isRequestingRef.current) return;
     if (!checkCredits("ai_pixel_art")) return;
 
     isRequestingRef.current = true;
@@ -86,7 +83,6 @@ const PixelArt = () => {
     setStep("ai-generating");
 
     try {
-      // 1. 压缩图片后送给 AI 做像素艺术化
       const compressed = await compressImage(imageFile, { maxSize: 1024, quality: 0.85 });
 
       const aiResult = await generateImage({
@@ -102,7 +98,6 @@ const PixelArt = () => {
         throw new Error(aiResult.error || "AI 生成失败");
       }
 
-      // 2. 拿到 AI 图片后做 MARD 色号映射
       setStep("mapping");
       const aiImageSrc = aiResult.imageUrl || aiResult.imageBase64;
       if (!aiImageSrc) throw new Error("AI 未返回图片");
@@ -132,7 +127,6 @@ const PixelArt = () => {
     }
   }, [imageFile, gridSize, checkCredits, refreshBalance, toast]);
 
-  // 切换格数时重新渲染（不重新调 AI）
   useEffect(() => {
     if (result && canvasRef.current) {
       renderPixelGrid(canvasRef.current, result, gridSize);
@@ -208,7 +202,10 @@ const PixelArt = () => {
                   <ImagePlus className="w-7 h-7 text-primary" />
                 </div>
                 <div>
-                  <p className="font-medium text-foreground mb-1">点击上传或拖拽图片</p>
+                  <p className="font-medium text-foreground mb-1">
+                    <span className="md:hidden">点击上传图片</span>
+                    <span className="hidden md:inline">点击上传或拖拽图片</span>
+                  </p>
                   <p className="text-sm text-muted-foreground">支持 JPG、PNG、WEBP 等格式</p>
                 </div>
               </div>
@@ -266,15 +263,15 @@ const PixelArt = () => {
             </Button>
 
             {isProcessing && (
-              <div className="text-xs text-muted-foreground text-center space-y-1">
-                <div className="flex items-center justify-center gap-2">
+              <div className="text-xs text-muted-foreground text-center">
+                <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
                   <div className={cn(
-                    "w-2 h-2 rounded-full",
+                    "w-2 h-2 rounded-full flex-shrink-0",
                     step === "ai-generating" ? "bg-primary animate-pulse" : "bg-muted"
                   )} />
                   <span className={step === "ai-generating" ? "text-foreground" : ""}>① AI 像素艺术化</span>
                   <div className={cn(
-                    "w-2 h-2 rounded-full",
+                    "w-2 h-2 rounded-full flex-shrink-0",
                     step === "mapping" ? "bg-primary animate-pulse" : "bg-muted"
                   )} />
                   <span className={step === "mapping" ? "text-foreground" : ""}>② MARD 色号映射</span>
@@ -286,19 +283,22 @@ const PixelArt = () => {
           {/* 结果 canvas */}
           {result && (
             <div className="glass-card rounded-xl p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-foreground">
-                  结果预览
-                  <span className="ml-2 text-xs text-muted-foreground font-normal">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground">结果预览</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     {result.gridWidth}×{result.gridHeight} 格 · {result.usedColors.length} 种色号
-                  </span>
-                </p>
-                <Button size="sm" variant="outline" onClick={handleDownload}>
+                  </p>
+                </div>
+                <Button size="sm" variant="outline" onClick={handleDownload} className="flex-shrink-0">
                   <Download className="w-4 h-4 mr-1.5" />
                   下载
                 </Button>
               </div>
-              <div className="overflow-auto rounded-lg border border-border bg-muted/30">
+              <div
+                className="overflow-auto rounded-lg border border-border bg-muted/30"
+                style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
+              >
                 <canvas
                   ref={canvasRef}
                   className="block max-w-full"
@@ -306,7 +306,7 @@ const PixelArt = () => {
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                切换格数可立即重新渲染 · 下载高清 PNG 可打印作为拼豆/十字绣底稿
+                切换格数可立即重新渲染 · 下载高清 PNG 可打印为拼豆/十字绣底稿
               </p>
             </div>
           )}
@@ -314,7 +314,7 @@ const PixelArt = () => {
 
         {/* 右侧色号图例 */}
         <div className={cn(
-          "glass-card rounded-xl p-4 h-fit sticky top-4",
+          "glass-card rounded-xl p-4 h-fit lg:sticky lg:top-4",
           !result && "opacity-40 pointer-events-none"
         )}>
           <p className="text-sm font-semibold text-foreground mb-3">
@@ -327,29 +327,30 @@ const PixelArt = () => {
           </p>
 
           {!result ? (
-            <div className="space-y-2">
+            <div className="grid grid-cols-2 lg:grid-cols-1 gap-x-3 gap-y-2">
               {[...Array(10)].map((_, i) => (
                 <div key={i} className="flex items-center gap-2 animate-pulse">
-                  <div className="w-5 h-5 rounded-sm bg-muted flex-shrink-0" />
-                  <div className="h-3 bg-muted rounded w-10" />
-                  <div className="h-2 bg-muted rounded flex-1" />
+                  <div className="w-4 h-4 lg:w-5 lg:h-5 rounded-sm bg-muted flex-shrink-0" />
                   <div className="h-3 bg-muted rounded w-8" />
+                  <div className="h-2 bg-muted rounded flex-1 hidden lg:block" />
+                  <div className="h-3 bg-muted rounded w-6 lg:w-8" />
                 </div>
               ))}
-              <p className="text-xs text-muted-foreground text-center mt-4">生成后显示</p>
+              <p className="col-span-2 lg:col-span-1 text-xs text-muted-foreground text-center mt-2">生成后显示</p>
             </div>
           ) : (
-            <div className="space-y-1 max-h-[70vh] overflow-y-auto pr-1">
+            <div className="grid grid-cols-2 lg:grid-cols-1 gap-x-3 gap-y-0.5 lg:gap-y-1 max-h-[45vh] lg:max-h-[70vh] overflow-y-auto pr-1">
               {result.usedColors.map(({ color, count }: ColorUsage) => (
-                <div key={color.code} className="flex items-center gap-2 py-0.5">
+                <div key={color.code} className="flex items-center gap-1.5 py-0.5 lg:gap-2">
                   <div
-                    className="w-5 h-5 rounded-sm border border-border/50 flex-shrink-0 shadow-sm"
+                    className="w-4 h-4 lg:w-5 lg:h-5 rounded-sm border border-border/50 flex-shrink-0 shadow-sm"
                     style={{ backgroundColor: rgbToHex(color.rgb) }}
                   />
-                  <span className="text-xs font-mono font-semibold text-foreground w-8 flex-shrink-0">
+                  <span className="text-xs font-mono font-semibold text-foreground w-7 flex-shrink-0 lg:w-8">
                     {color.code}
                   </span>
-                  <div className="flex-1 bg-muted rounded-full h-1.5 overflow-hidden">
+                  {/* 进度条：仅桌面端显示 */}
+                  <div className="hidden lg:block flex-1 bg-muted rounded-full h-1.5 overflow-hidden">
                     <div
                       className="h-full bg-primary/50 rounded-full"
                       style={{
@@ -357,7 +358,7 @@ const PixelArt = () => {
                       }}
                     />
                   </div>
-                  <span className="text-xs text-muted-foreground w-10 text-right flex-shrink-0">
+                  <span className="text-xs text-muted-foreground flex-shrink-0 lg:w-10 lg:text-right ml-auto lg:ml-0">
                     {count}格
                   </span>
                 </div>
