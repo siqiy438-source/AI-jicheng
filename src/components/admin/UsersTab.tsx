@@ -20,7 +20,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { formatCredits } from "@/lib/credits";
+import { formatCredits, FEATURE_PRICES } from "@/lib/credits";
 
 interface UserRow {
   id: string;
@@ -47,6 +47,24 @@ interface UserDetail {
 }
 
 const PAGE_SIZE = 20;
+
+const TX_TYPE_LABELS: Record<string, string> = {
+  add: "积分增加", deduct: "积分扣减", purchase: "用户充值",
+  refund: "退款", register: "注册赠送",
+};
+
+function translateTx(type: string, description: string): string {
+  // 先尝试从 description 中提取 feature code（格式如 "ai_fashion_standard#xxx"）
+  const featureKey = description?.split("#")[0];
+  if (featureKey && FEATURE_PRICES[featureKey]) {
+    return FEATURE_PRICES[featureKey].name;
+  }
+  // 再尝试 type 映射
+  if (TX_TYPE_LABELS[type]) return TX_TYPE_LABELS[type];
+  // description 本身可能已经是中文
+  if (description && /[\u4e00-\u9fa5]/.test(description)) return description;
+  return description || type;
+}
 
 export const UsersTab = () => {
   const { toast } = useToast();
@@ -480,17 +498,21 @@ export const UsersTab = () => {
                 <div>
                   <h4 className="text-sm font-medium mb-2">最近积分记录</h4>
                   <div className="space-y-1.5">
-                    {detail.recent_transactions.map((t: { id: string; type: string; amount: number; description: string; created_at: string }) => (
+                    {detail.recent_transactions.map((t: { id: string; type: string; amount: number; description: string; created_at: string }) => {
+                      const isDeduct = t.type === "deduct";
+                      const displayAmount = isDeduct ? -Math.abs(t.amount) : Math.abs(t.amount);
+                      return (
                       <div key={t.id} className="flex items-center justify-between text-sm rounded-lg border px-3 py-2">
                         <div className="flex items-center gap-2">
-                          <Badge variant={t.amount > 0 ? "default" : "secondary"} className="text-xs">
-                            {t.amount > 0 ? "+" : ""}{t.amount}
+                          <Badge variant={isDeduct ? "secondary" : "default"} className="text-xs">
+                            {displayAmount > 0 ? "+" : ""}{displayAmount}
                           </Badge>
-                          <span className="truncate max-w-[160px] text-muted-foreground">{t.description || t.type}</span>
+                          <span className="truncate max-w-[160px] text-muted-foreground">{translateTx(t.type, t.description)}</span>
                         </div>
                         <span className="text-muted-foreground text-xs">{new Date(t.created_at).toLocaleDateString("zh-CN")}</span>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
