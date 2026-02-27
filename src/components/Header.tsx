@@ -1,4 +1,4 @@
-import { Bell, BookOpen, User, LogOut, Sparkles, Coins, Shield, QrCode, Gift, X, Rocket, Wrench, Zap } from "lucide-react";
+import { Bell, BookOpen, User, LogOut, Sparkles, Coins, Shield, QrCode, Gift, X, Rocket, Wrench, Zap, ChevronRight, CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCredits } from "@/contexts/CreditsContext";
@@ -25,6 +25,7 @@ export const Header = () => {
   const isMobile = useIsMobile();
   const { isAdmin } = useAdmin();
   const [wechatOpen, setWechatOpen] = useState(false);
+  const [detailEntry, setDetailEntry] = useState<ChangelogEntry | null>(null);
   const { entries: changelogEntries, unreadCount, lastReadId, markAllRead } = useChangelog();
   const [, forceUpdate] = useState(0);
 
@@ -127,7 +128,7 @@ export const Header = () => {
               ) : (
                 <div className="divide-y divide-border">
                   {changelogEntries.map((entry) => (
-                    <ChangelogItem key={entry.id} entry={entry} isUnread={entry.id > lastReadId} />
+                    <ChangelogItem key={entry.id} entry={entry} isUnread={entry.id > lastReadId} onSelect={() => setDetailEntry(entry)} />
                   ))}
                 </div>
               )}
@@ -254,21 +255,36 @@ export const Header = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* 更新详情弹窗 */}
+      <Dialog open={!!detailEntry} onOpenChange={(open) => !open && setDetailEntry(null)}>
+        {detailEntry && (
+          <DialogContent className="sm:max-w-[440px] p-0 overflow-hidden gap-0 border-0 [&>button:last-child]:hidden">
+            <ChangelogDetail entry={detailEntry} onClose={() => setDetailEntry(null)} />
+          </DialogContent>
+        )}
+      </Dialog>
     </>
   );
 };
 
 const typeConfig = {
-  feature: { icon: Rocket, color: "text-green-600", bg: "bg-green-500/10", label: "新功能" },
-  fix: { icon: Wrench, color: "text-orange-600", bg: "bg-orange-500/10", label: "修复" },
-  improve: { icon: Zap, color: "text-blue-600", bg: "bg-blue-500/10", label: "优化" },
+  feature: { icon: Rocket, color: "text-green-600", bg: "bg-green-500/10", label: "新功能", gradient: "from-green-600/90 to-emerald-700/80" },
+  fix: { icon: Wrench, color: "text-orange-600", bg: "bg-orange-500/10", label: "修复", gradient: "from-orange-600/90 to-amber-700/80" },
+  improve: { icon: Zap, color: "text-blue-600", bg: "bg-blue-500/10", label: "优化", gradient: "from-blue-600/90 to-indigo-700/80" },
 } as const;
 
-function ChangelogItem({ entry, isUnread }: { entry: ChangelogEntry; isUnread: boolean }) {
+function ChangelogItem({ entry, isUnread, onSelect }: { entry: ChangelogEntry; isUnread: boolean; onSelect: () => void }) {
   const config = typeConfig[entry.type];
   const Icon = config.icon;
   return (
-    <div className={cn("px-4 py-3 transition-colors", isUnread && "bg-primary/5")}>
+    <button
+      onClick={onSelect}
+      className={cn(
+        "w-full text-left px-4 py-3 transition-colors hover:bg-accent/50 active:bg-accent/70 cursor-pointer",
+        isUnread && "bg-primary/5"
+      )}
+    >
       <div className="flex gap-3">
         <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5", config.bg)}>
           <Icon className={cn("w-4 h-4", config.color)} aria-hidden="true" />
@@ -278,13 +294,59 @@ function ChangelogItem({ entry, isUnread }: { entry: ChangelogEntry; isUnread: b
             <p className="text-sm font-medium text-foreground truncate">{entry.title}</p>
             {isUnread && <span className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0" />}
           </div>
-          <p className="text-xs text-muted-foreground line-clamp-2 mb-1.5">{entry.description}</p>
-          <div className="flex items-center gap-2">
-            <span className={cn("text-xs font-medium px-1.5 py-0.5 rounded", config.bg, config.color)}>{config.label}</span>
-            <span className="text-xs text-muted-foreground/60">{entry.date}</span>
+          <p className="text-xs text-muted-foreground line-clamp-1 mb-1.5">{entry.description}</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className={cn("text-xs font-medium px-1.5 py-0.5 rounded", config.bg, config.color)}>{config.label}</span>
+              <span className="text-xs text-muted-foreground/60">{entry.date}</span>
+            </div>
+            <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40" aria-hidden="true" />
           </div>
         </div>
       </div>
-    </div>
+    </button>
+  );
+}
+
+function ChangelogDetail({ entry, onClose }: { entry: ChangelogEntry; onClose: () => void }) {
+  const config = typeConfig[entry.type];
+  const Icon = config.icon;
+  return (
+    <>
+      <div className={cn("relative px-6 pt-8 pb-6 text-white bg-gradient-to-br", config.gradient)}>
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+          aria-label="关闭"
+        >
+          <X className="w-3.5 h-3.5 text-white" />
+        </button>
+        <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+        <div className="relative flex flex-col items-center gap-2 text-center">
+          <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center mb-1">
+            <Icon className="w-6 h-6 text-white" />
+          </div>
+          <h2 className="text-lg font-bold tracking-tight">{entry.title}</h2>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-white/70 bg-white/15 px-2.5 py-0.5 rounded-full">{config.label}</span>
+            <span className="text-sm text-white/70">{entry.date}</span>
+          </div>
+        </div>
+      </div>
+      <div className="bg-card px-6 py-5">
+        <p className="text-sm text-muted-foreground mb-4">{entry.description}</p>
+        <div className="space-y-2.5">
+          {entry.details.map((item, i) => (
+            <div key={i} className="flex gap-2.5">
+              <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" aria-hidden="true" />
+              <p className="text-sm text-foreground leading-relaxed">{item}</p>
+            </div>
+          ))}
+        </div>
+        <Button onClick={onClose} className="w-full rounded-xl h-11 mt-5">
+          知道了
+        </Button>
+      </div>
+    </>
   );
 }
