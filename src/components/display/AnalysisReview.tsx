@@ -142,7 +142,7 @@ function ColorAnalysisContent({ analysis }: { analysis: VMAnalysisResult }) {
                 style={{ backgroundColor: c.hex }}
               />
               <span className="text-xs text-foreground">{c.name}</span>
-              <span className="text-[10px] text-muted-foreground">{c.hex}</span>
+              <span className="text-xs text-muted-foreground">{c.hex}</span>
             </div>
           ))}
         </div>
@@ -163,7 +163,7 @@ function ColorAnalysisContent({ analysis }: { analysis: VMAnalysisResult }) {
             <span className="text-xs font-medium text-foreground">
               推荐背景：{colorAnalysis.backgroundRecommendation.color}
             </span>
-            <p className="text-[10px] text-muted-foreground mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               {colorAnalysis.backgroundRecommendation.reasoning}
             </p>
           </div>
@@ -216,15 +216,15 @@ function CompositionContent({ analysis }: { analysis: VMAnalysisResult }) {
       <div className="grid grid-cols-3 gap-2">
         <div className="bg-secondary/30 rounded-lg p-2 text-center">
           <span className="text-lg font-semibold text-foreground">{compositionPlan.totalPieces}</span>
-          <p className="text-[10px] text-muted-foreground">总件数</p>
+          <p className="text-xs text-muted-foreground">总件数</p>
         </div>
         <div className="bg-secondary/30 rounded-lg p-2 text-center">
           <span className="text-lg font-semibold text-foreground">{compositionPlan.soloHangers}</span>
-          <p className="text-[10px] text-muted-foreground">单挂</p>
+          <p className="text-xs text-muted-foreground">单挂</p>
         </div>
         <div className="bg-secondary/30 rounded-lg p-2 text-center">
           <span className="text-lg font-semibold text-foreground">{compositionPlan.layeredHangers}</span>
-          <p className="text-[10px] text-muted-foreground">叠挂</p>
+          <p className="text-xs text-muted-foreground">叠挂</p>
         </div>
       </div>
       <div>

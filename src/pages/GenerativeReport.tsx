@@ -730,7 +730,7 @@ const GenerativeReport = () => {
                   )}
                 >
                   <p className="text-sm font-medium text-foreground">{item.label}</p>
-                  <p className="text-[11px] text-muted-foreground">角色：{item.role}</p>
+                  <p className="text-xs text-muted-foreground">角色：{item.role}</p>
                 </button>
               ))}
             </div>
@@ -763,7 +763,7 @@ const GenerativeReport = () => {
               onChange={(event) => setHospitalName(event.target.value)}
               placeholder="例如：某某医院"
             />
-            <p className="text-[11px] text-muted-foreground mt-1">会显示在 PPT 首页，并参与图解页生成语境。</p>
+            <p className="text-xs text-muted-foreground mt-1">会显示在 PPT 首页，并参与图解页生成语境。</p>
           </div>
         </div>
 
@@ -805,7 +805,7 @@ const GenerativeReport = () => {
               placeholder="例如：这组图片主要想告诉家属，当前发生了什么、我们做了什么、接下来怎么配合。"
               className="min-h-[84px]"
             />
-            <p className="text-[11px] text-muted-foreground mt-1">这段会作为全局上下文，能让 AI 分析更贴近你要讲的重点。</p>
+            <p className="text-xs text-muted-foreground mt-1">这段会作为全局上下文，能让 AI 分析更贴近你要讲的重点。</p>
           </div>
 
           {images.length > 0 ? (
@@ -814,7 +814,7 @@ const GenerativeReport = () => {
                 {images.map((image) => (
                   <div key={image.image_id} className="rounded-xl overflow-hidden border border-border bg-background">
                     <img src={image.url} alt={image.label} loading="lazy" decoding="async" className="w-full h-24 object-cover" />
-                    <div className="px-2 py-1.5 text-[11px] text-muted-foreground">{image.label}</div>
+                    <div className="px-2 py-1.5 text-xs text-muted-foreground">{image.label}</div>
                   </div>
                 ))}
               </div>

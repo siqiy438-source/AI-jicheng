@@ -239,7 +239,7 @@ const OutfitDetailDialog = ({ work, open, onClose }: { work: WorkListItem | null
             <div key={idx} className="rounded-xl bg-muted/30 p-3.5">
               <h3 className="text-base font-semibold text-foreground">{combo.name}</h3>
               <p className="text-xs text-muted-foreground mt-0.5">{combo.theme}</p>
-              {combo.targetBody && <span className="inline-block mt-1.5 text-[11px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">{combo.targetBody}</span>}
+              {combo.targetBody && <span className="inline-block mt-1.5 text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">{combo.targetBody}</span>}
               <div className="space-y-2 mt-3">
                 {combo.items.map((item, i) => (
                   <div key={i} className="p-2.5 rounded-lg bg-background/60">
@@ -602,12 +602,12 @@ const MyWorks = () => {
                         <div className="space-y-1 min-w-0">
                           <p className="text-xs font-medium text-primary truncate">{r?.inputAnalysis?.itemType} · {r?.inputAnalysis?.style}</p>
                           {combo && <p className="text-xs font-semibold text-foreground truncate">{combo.name}</p>}
-                          {combo && <p className="text-[11px] text-muted-foreground line-clamp-2">{combo.overallLook}</p>}
+                          {combo && <p className="text-xs text-muted-foreground line-clamp-2">{combo.overallLook}</p>}
                         </div>
                         {combo && combo.items.length > 0 && (
                           <div className="flex flex-wrap gap-1 mt-1">
                             {combo.items.slice(0, 3).map((item, i) => (
-                              <span key={i} className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full truncate max-w-[80px]">{item.category}</span>
+                              <span key={i} className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full truncate max-w-[80px]">{item.category}</span>
                             ))}
                           </div>
                         )}

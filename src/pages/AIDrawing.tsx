@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { toast } from 'sonner';
 import { CreditCostHint } from "@/components/CreditCostHint";
 import { PageLayout } from "@/components/PageLayout";
 import { GeneratingLoader } from "@/components/GeneratingLoader";
@@ -436,7 +437,7 @@ const AIDrawing = () => {
       }
     } catch (error) {
       console.error('生成失败:', error);
-      alert(`生成失败: ${error instanceof Error ? error.message : '未知错误'}`);
+      toast.error('生成失败', { description: error instanceof Error ? error.message : '未知错误' });
     } finally {
       setIsGenerating(false);
     }
@@ -474,7 +475,7 @@ const AIDrawing = () => {
   const handleMaterialUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      alert(`已选择 ${files.length} 个文件，将上传到素材库`);
+      toast.info(`已选择 ${files.length} 个文件，将上传到素材库`);
     }
   };
 
@@ -705,7 +706,7 @@ const AIDrawing = () => {
                   <Zap className="w-3.5 h-3.5" />
                   <span>{lineOptions.find(l => l.id === selectedLine)?.name}</span>
                   {lineOptions.find(l => l.id === selectedLine)?.badge && (
-                    <span className="px-1 py-0.5 text-[9px] md:text-[10px] leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded">
+                    <span className="px-1 py-0.5 text-[10px] md:text-xs leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded">
                       {lineOptions.find(l => l.id === selectedLine)?.badge}
                     </span>
                   )}
@@ -727,7 +728,7 @@ const AIDrawing = () => {
                       >
                         <span>{line.name}</span>
                         {line.badge && (
-                          <span className="px-1 py-0.5 text-[9px] leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded">
+                          <span className="px-1 py-0.5 text-[10px] leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded">
                             {line.badge}
                           </span>
                         )}

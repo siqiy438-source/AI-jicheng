@@ -16,6 +16,22 @@ export class ErrorBoundary extends React.Component<
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error("ErrorBoundary caught:", error, info.componentStack);
+
+    // 结构化错误上报（生产环境）
+    if (import.meta.env.PROD) {
+      try {
+        const payload = JSON.stringify({
+          message: error.message,
+          stack: error.stack?.slice(0, 1000),
+          componentStack: info.componentStack?.slice(0, 500),
+          url: window.location.href,
+          timestamp: Date.now(),
+        });
+        navigator.sendBeacon?.('/api/error-report', payload);
+      } catch {
+        // 上报失败不影响用户体验
+      }
+    }
   }
 
   render() {

@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { toast } from 'sonner';
 import { PageLayout } from "@/components/PageLayout";
 import { GeneratingLoader } from "@/components/GeneratingLoader";
 import { CreditCostHint } from "@/components/CreditCostHint";
@@ -150,7 +151,7 @@ const AIDisplay = () => {
       setPhase("review");
     } catch (error) {
       console.error("分析失败:", error);
-      alert(`分析失败: ${error instanceof Error ? error.message : "未知错误"}`);
+      toast.error('分析失败', { description: error instanceof Error ? error.message : "未知错误" });
       setPhase("upload");
     }
   };
@@ -222,7 +223,7 @@ const AIDisplay = () => {
       }
     } catch (error) {
       console.error("参考图生成失败:", error);
-      alert(`生成失败: ${error instanceof Error ? error.message : "未知错误"}`);
+      toast.error('生成失败', { description: error instanceof Error ? error.message : "未知错误" });
       setPhase("review");
     } finally {
       setGenerationStep("");
@@ -310,7 +311,7 @@ const AIDisplay = () => {
                           alt={`衣服 ${index + 1}`}
                           className="h-14 w-14 md:h-16 md:w-16 object-cover rounded-lg border border-border"
                         />
-                        <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[9px] text-center py-0.5 rounded-b-lg">
+                        <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] text-center py-0.5 rounded-b-lg">
                           #{index + 1}
                         </span>
                         <button
@@ -380,7 +381,7 @@ const AIDisplay = () => {
                     >
                       <Icon className={cn("w-5 h-5", isActive && "text-primary")} />
                       <span className="text-xs font-medium">{opt.name}</span>
-                      <span className="text-[10px] text-muted-foreground leading-tight">{opt.desc}</span>
+                      <span className="text-xs text-muted-foreground leading-tight">{opt.desc}</span>
                     </button>
                   );
                 })}
@@ -407,7 +408,7 @@ const AIDisplay = () => {
                     <Zap className="w-3.5 h-3.5" />
                     <span>{lineOptions.find(l => l.id === selectedLine)?.name}</span>
                     {lineOptions.find(l => l.id === selectedLine)?.badge && (
-                      <span className="px-1 py-0.5 text-[9px] md:text-[10px] leading-none font-medium bg-primary text-primary-foreground rounded">
+                      <span className="px-1 py-0.5 text-[10px] md:text-xs leading-none font-medium bg-primary text-primary-foreground rounded">
                         {lineOptions.find(l => l.id === selectedLine)?.badge}
                       </span>
                     )}
@@ -429,7 +430,7 @@ const AIDisplay = () => {
                         >
                           <span>{line.name}</span>
                           {line.badge && (
-                            <span className="px-1 py-0.5 text-[9px] leading-none font-medium bg-primary text-primary-foreground rounded">
+                            <span className="px-1 py-0.5 text-[10px] leading-none font-medium bg-primary text-primary-foreground rounded">
                               {line.badge}
                             </span>
                           )}
@@ -493,9 +494,9 @@ const AIDisplay = () => {
                     )}
                   />
                   {i < identifyProgress.current && (
-                    <span className="absolute top-1 right-1 w-4 h-4 bg-primary text-white rounded-full text-[10px] flex items-center justify-center">✓</span>
+                    <span className="absolute top-1 right-1 w-4 h-4 bg-primary text-white rounded-full text-xs flex items-center justify-center">✓</span>
                   )}
-                  <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[9px] text-center py-0.5 rounded-b-lg">
+                  <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] text-center py-0.5 rounded-b-lg">
                     {i + 1}
                   </span>
                 </div>
@@ -538,12 +539,12 @@ const AIDisplay = () => {
                 <div className="flex items-center gap-2 mb-3">
                   <ShirtIcon className="w-4 h-4 text-primary" />
                   <span className="text-sm font-semibold text-foreground">AI 识别的衣服</span>
-                  <span className="text-[10px] text-muted-foreground">共 {analysis.displayGuide.garmentList.length} 件</span>
+                  <span className="text-xs text-muted-foreground">共 {analysis.displayGuide.garmentList.length} 件</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {analysis.displayGuide.garmentList.map((item, i) => (
                     <span key={i} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-secondary/50 rounded-lg text-foreground">
-                      <span className="w-4 h-4 rounded-full bg-muted-foreground/15 text-muted-foreground text-[10px] font-medium flex items-center justify-center flex-shrink-0">
+                      <span className="w-4 h-4 rounded-full bg-muted-foreground/15 text-muted-foreground text-xs font-medium flex items-center justify-center flex-shrink-0">
                         {i + 1}
                       </span>
                       {item}
@@ -632,7 +633,7 @@ const AIDisplay = () => {
                 <div className="flex items-center gap-2">
                   <ScanEye className="w-4 h-4 text-muted-foreground" />
                   <span className="text-sm font-medium text-foreground">专家分析详情</span>
-                  <span className="text-[10px] text-muted-foreground">色彩 · 风格 · 构图 · 灯光</span>
+                  <span className="text-xs text-muted-foreground">色彩 · 风格 · 构图 · 灯光</span>
                 </div>
                 {showExpertDetail ? (
                   <ChevronUp className="w-4 h-4 text-muted-foreground" />
@@ -714,7 +715,7 @@ const AIDisplay = () => {
                 className="max-h-[300px] md:max-h-[500px] w-full mx-auto rounded-lg object-contain"
               />
             </div>
-            <p className="text-[10px] text-muted-foreground mt-3 text-center">
+            <p className="text-xs text-muted-foreground mt-3 text-center">
               * 效果图仅供参考，请以陈列指南中的文字指导为准进行实际陈列
             </p>
           </div>

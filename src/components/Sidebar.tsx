@@ -166,7 +166,7 @@ export const Sidebar = () => {
               <span className="font-semibold text-foreground text-[15px] leading-tight">
                 灵犀
               </span>
-              <span className="text-[11px] text-muted-foreground/60 tracking-wide">
+              <span className="text-xs text-muted-foreground/60 tracking-wide">
                 CREATIVE STUDIO
               </span>
             </div>

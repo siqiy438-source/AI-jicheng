@@ -372,7 +372,7 @@ const OutfitRecommend = () => {
                 <h2 className="text-base font-semibold text-foreground">{combo.name}</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">{combo.theme}</p>
                 {combo.targetBody && (
-                  <span className="inline-block mt-1.5 text-[11px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">{combo.targetBody}</span>
+                  <span className="inline-block mt-1.5 text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">{combo.targetBody}</span>
                 )}
               </div>
 

@@ -17,7 +17,7 @@ export const GeneratingLoader = ({
 
   if (size === "compact") {
     return (
-      <div className="flex items-center gap-2.5 text-muted-foreground">
+      <div className="flex items-center gap-2.5 text-muted-foreground" role="status" aria-live="polite">
         <div className="relative w-5 h-5 flex-shrink-0">
           <span className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
           <span className="relative block w-5 h-5 rounded-full bg-gradient-to-br from-primary to-primary/70" />
@@ -28,7 +28,7 @@ export const GeneratingLoader = ({
   }
 
   return (
-    <div className="flex flex-col items-center justify-center py-8 md:py-16">
+    <div className="flex flex-col items-center justify-center py-8 md:py-16" role="status" aria-live="polite">
       {/* Logo 呼吸动画 */}
       <div className="relative mb-5 md:mb-6">
         {/* 外圈光晕 */}

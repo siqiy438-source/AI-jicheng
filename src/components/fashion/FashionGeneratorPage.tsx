@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { toast } from 'sonner';
 import { useNavigate } from "react-router-dom";
 import { CreditCostHint } from "@/components/CreditCostHint";
 import {
@@ -209,7 +210,7 @@ export const FashionGeneratorPage = ({
         console.error("自动保存服装作品失败", error);
       });
     } catch (error) {
-      alert(`生成失败: ${error instanceof Error ? error.message : "未知错误"}`);
+      toast.error('生成失败', { description: error instanceof Error ? error.message : "未知错误" });
     } finally {
       setIsGenerating(false);
     }
@@ -366,7 +367,7 @@ export const FashionGeneratorPage = ({
                           <div className="flex items-center gap-1.5">
                             <p className={cn("text-sm font-medium", selectedStyleId === style.id ? "text-orange-700" : "text-foreground")}>{style.name}</p>
                             {style.badge && (
-                              <span className="px-1.5 py-0.5 text-[10px] leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded whitespace-nowrap">
+                              <span className="px-1.5 py-0.5 text-xs leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded whitespace-nowrap">
                                 {style.badge}
                               </span>
                             )}
@@ -378,7 +379,7 @@ export const FashionGeneratorPage = ({
                   </div>
                 )}
               </div>
-              <p className="mt-1 text-[11px] text-muted-foreground">点击切换生成模式</p>
+              <p className="mt-1 text-xs text-muted-foreground">点击切换生成模式</p>
             </div>
           )}
 
@@ -499,7 +500,7 @@ export const FashionGeneratorPage = ({
                   <Zap className="w-3.5 h-3.5" />
                   <span>{lineOptions.find((lineOption) => lineOption.id === selectedLine)?.name}</span>
                   {lineOptions.find((lineOption) => lineOption.id === selectedLine)?.badge && (
-                    <span className="px-1 py-0.5 text-[9px] md:text-[10px] leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded">
+                    <span className="px-1 py-0.5 text-[10px] md:text-xs leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded">
                       {lineOptions.find((lineOption) => lineOption.id === selectedLine)?.badge}
                     </span>
                   )}
@@ -521,7 +522,7 @@ export const FashionGeneratorPage = ({
                       >
                         <span>{lineOption.name}</span>
                         {lineOption.badge && (
-                          <span className="px-1 py-0.5 text-[9px] leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded">
+                          <span className="px-1 py-0.5 text-[10px] leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded">
                             {lineOption.badge}
                           </span>
                         )}

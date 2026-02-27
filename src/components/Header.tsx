@@ -44,7 +44,7 @@ export const Header = () => {
             {/* Logo 图标 - 直接铺满 */}
             <img 
               src="/logo.webp" 
-              alt="灵犀 Logo" 
+              alt="灵犀 AI创作平台 Logo"
               loading="eager"
               decoding="async"
               className="w-8 h-8 object-cover flex-shrink-0"

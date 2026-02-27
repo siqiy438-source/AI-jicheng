@@ -38,6 +38,7 @@ export default function Auth() {
     isRecoveryMode(location.search, location.hash) ? 'reset' : 'tabs'
   )
   const [loading, setLoading] = useState(false)
+  const [errors, setErrors] = useState<{ newPassword?: string; confirmPassword?: string }>({})
   const { signIn, signUp, resetPasswordForEmail, updatePassword } = useAuth()
 
   useEffect(() => {
@@ -86,14 +87,18 @@ export default function Auth() {
     e.preventDefault()
 
     if (newPassword.length < 6) {
+      setErrors({ newPassword: '密码至少 6 位' })
       toast.error('密码至少 6 位')
       return
     }
 
     if (newPassword !== confirmPassword) {
+      setErrors({ confirmPassword: '两次输入的密码不一致' })
       toast.error('两次输入的密码不一致')
       return
     }
+
+    setErrors({})
 
     setLoading(true)
 
@@ -133,7 +138,7 @@ export default function Auth() {
         {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-8">
           <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-            <Sparkles className="w-6 h-6 text-primary-foreground" />
+            <Sparkles className="w-6 h-6 text-primary-foreground" aria-hidden="true" />
           </div>
           <span className="text-2xl font-bold">AI 创作平台</span>
         </div>
@@ -159,6 +164,7 @@ export default function Auth() {
                       <Input
                         id="signin-email"
                         type="email"
+                        autoComplete="email"
                         placeholder="your@email.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -182,6 +188,7 @@ export default function Auth() {
                       <Input
                         id="signin-password"
                         type="password"
+                        autoComplete="current-password"
                         placeholder="••••••••"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -193,7 +200,7 @@ export default function Auth() {
                     <Button type="submit" className="w-full" disabled={loading}>
                       {loading ? (
                         <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
                           登录中...
                         </>
                       ) : (
@@ -215,6 +222,7 @@ export default function Auth() {
                       <Input
                         id="signup-email"
                         type="email"
+                        autoComplete="email"
                         placeholder="your@email.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -226,6 +234,7 @@ export default function Auth() {
                       <Input
                         id="signup-password"
                         type="password"
+                        autoComplete="new-password"
                         placeholder="至少6位字符"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -238,7 +247,7 @@ export default function Auth() {
                     <Button type="submit" className="w-full" disabled={loading}>
                       {loading ? (
                         <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
                           注册中...
                         </>
                       ) : (
@@ -265,6 +274,7 @@ export default function Auth() {
                   <Input
                     id="forgot-email"
                     type="email"
+                    autoComplete="email"
                     placeholder="your@email.com"
                     value={forgotEmail}
                     onChange={(e) => setForgotEmail(e.target.value)}
@@ -279,7 +289,7 @@ export default function Auth() {
                 <Button type="submit" className="flex-1" disabled={loading}>
                   {loading ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
                       发送中...
                     </>
                   ) : (
@@ -304,31 +314,39 @@ export default function Auth() {
                   <Input
                     id="new-password"
                     type="password"
+                    autoComplete="new-password"
                     placeholder="至少6位字符"
                     value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
+                    onChange={(e) => { setNewPassword(e.target.value); setErrors((p) => ({ ...p, newPassword: undefined })); }}
                     minLength={6}
                     required
+                    aria-invalid={!!errors.newPassword}
+                    aria-describedby={errors.newPassword ? 'new-password-error' : undefined}
                   />
+                  {errors.newPassword && <p id="new-password-error" className="text-xs text-destructive" role="alert">{errors.newPassword}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="confirm-password">确认新密码</Label>
                   <Input
                     id="confirm-password"
                     type="password"
+                    autoComplete="new-password"
                     placeholder="再次输入新密码"
                     value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    onChange={(e) => { setConfirmPassword(e.target.value); setErrors((p) => ({ ...p, confirmPassword: undefined })); }}
                     minLength={6}
                     required
+                    aria-invalid={!!errors.confirmPassword}
+                    aria-describedby={errors.confirmPassword ? 'confirm-password-error' : undefined}
                   />
+                  {errors.confirmPassword && <p id="confirm-password-error" className="text-xs text-destructive" role="alert">{errors.confirmPassword}</p>}
                 </div>
               </CardContent>
               <CardFooter>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
                       保存中...
                     </>
                   ) : (

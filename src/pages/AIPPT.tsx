@@ -824,7 +824,7 @@ ${outlineText || "暂无要点，请基于标题延展"}
             )}
           >
             <span className={cn(
-              "w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-medium",
+              "w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-medium",
               slide.description ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
             )}>
               {index + 1}
@@ -854,7 +854,7 @@ ${outlineText || "暂无要点，请基于标题延展"}
                   <GripVertical className="w-3.5 h-3.5 text-muted-foreground/40 shrink-0 cursor-grab" />
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className={cn(
-                      "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-medium shrink-0",
+                      "w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium shrink-0",
                       slide.description
                         ? "bg-green-100 text-green-700"
                         : "bg-orange-100 text-orange-700"
@@ -863,7 +863,7 @@ ${outlineText || "暂无要点，请基于标题延展"}
                     </span>
                     <div className="min-w-0">
                       <p className="text-xs font-medium truncate">{slide.title}</p>
-                      <p className="text-[10px] text-muted-foreground">{slide.outlinePoints.length} 个要点</p>
+                      <p className="text-xs text-muted-foreground">{slide.outlinePoints.length} 个要点</p>
                     </div>
                   </div>
                 </button>
@@ -982,7 +982,7 @@ ${outlineText || "暂无要点，请基于标题延展"}
                   placeholder="输入优化要求..."
                   className="flex-1 text-sm bg-transparent border-none focus:outline-none"
                 />
-                <span className="text-[10px] text-muted-foreground shrink-0 hidden md:inline">Ctrl+Enter 提交 · Esc 取消</span>
+                <span className="text-xs text-muted-foreground shrink-0 hidden md:inline">Ctrl+Enter 提交 · Esc 取消</span>
               </div>
             </div>
           ) : (
@@ -1137,7 +1137,7 @@ ${outlineText || "暂无要点，请基于标题延展"}
             )}
           >
             <span className={cn(
-              "w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-medium",
+              "w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-medium",
               slide.generatedImage ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
             )}>
               {index + 1}
@@ -1169,15 +1169,15 @@ ${outlineText || "暂无要点，请基于标题延展"}
                   ) : (
                     <div className="flex flex-col items-center gap-1 text-muted-foreground/40">
                       <Presentation className="w-6 h-6" />
-                      <span className="text-[10px]">未生成</span>
+                      <span className="text-xs">未生成</span>
                     </div>
                   )}
-                  <span className="absolute top-1 left-1 text-[10px] bg-black/50 text-white px-1.5 py-0.5 rounded">
+                  <span className="absolute top-1 left-1 text-xs bg-black/50 text-white px-1.5 py-0.5 rounded">
                     {index + 1}
                   </span>
                 </div>
                 <div className="px-2 py-1.5 bg-white">
-                  <p className="text-[11px] font-medium truncate text-left">{slide.title}</p>
+                  <p className="text-xs font-medium truncate text-left">{slide.title}</p>
                 </div>
               </button>
             ))}

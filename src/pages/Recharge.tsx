@@ -203,7 +203,7 @@ const Recharge = () => {
                 {tier.badge && (
                   <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 z-10">
                     <span className={cn(
-                      "px-2.5 py-0.5 text-[10px] font-bold rounded-full shadow-sm whitespace-nowrap",
+                      "px-2.5 py-0.5 text-xs font-bold rounded-full shadow-sm whitespace-nowrap",
                       tier.badge === "最划算"
                         ? "bg-gradient-to-r from-primary to-amber-500 text-white"
                         : "bg-primary/90 text-white"
@@ -236,12 +236,12 @@ const Recharge = () => {
 
                 {/* Points */}
                 <div className="text-sm font-bold text-primary">
-                  {tier.pointsBase} <span className="text-[10px] font-normal text-muted-foreground">积分</span>
+                  {tier.pointsBase} <span className="text-xs font-normal text-muted-foreground">积分</span>
                 </div>
                 {tier.pointsBonus > 0 && (
                   <div className="flex items-center gap-1 mt-0.5">
                     <Gift className="w-3 h-3 text-emerald-500 flex-shrink-0" />
-                    <span className="text-[11px] font-semibold text-emerald-600">+{tier.pointsBonus} 赠送</span>
+                    <span className="text-xs font-semibold text-emerald-600">+{tier.pointsBonus} 赠送</span>
                   </div>
                 )}
 
@@ -286,7 +286,7 @@ const Recharge = () => {
             </div>
             <div className="text-left">
               <p className={cn("text-sm font-medium", payMethod === "alipay" ? "text-[#1677FF]" : "text-foreground")}>支付宝</p>
-              <p className="text-[10px] text-muted-foreground">Alipay</p>
+              <p className="text-xs text-muted-foreground">Alipay</p>
             </div>
             {payMethod === "alipay" && (
               <div className="ml-auto w-5 h-5 rounded-full bg-[#1677FF] flex items-center justify-center">
@@ -308,7 +308,7 @@ const Recharge = () => {
             </div>
             <div className="text-left">
               <p className={cn("text-sm font-medium", payMethod === "wxpay" ? "text-[#07C160]" : "text-foreground")}>微信支付</p>
-              <p className="text-[10px] text-muted-foreground">WeChat Pay</p>
+              <p className="text-xs text-muted-foreground">WeChat Pay</p>
             </div>
             {payMethod === "wxpay" && (
               <div className="ml-auto w-5 h-5 rounded-full bg-[#07C160] flex items-center justify-center">
@@ -368,7 +368,7 @@ const Recharge = () => {
             <div className="flex items-center gap-1.5 mb-2">
               <ImageIcon className="w-3.5 h-3.5 text-primary" />
               <span className="text-xs font-semibold text-foreground">图片生成</span>
-              <span className="text-[10px] text-muted-foreground">（绘图 / 陈列 / 挂搭 / 模特 / 细节特写 / 平铺摆拍）</span>
+              <span className="text-xs text-muted-foreground">（绘图 / 陈列 / 挂搭 / 模特 / 细节特写 / 平铺摆拍）</span>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-secondary/40">
@@ -469,7 +469,7 @@ const Recharge = () => {
                           </p>
                           <p className="text-xs text-primary font-medium">{order.credits_total} 积分</p>
                         </div>
-                        <Badge variant="outline" className={cn("text-[10px] font-medium", st.color)}>
+                        <Badge variant="outline" className={cn("text-xs font-medium", st.color)}>
                           {st.label}
                         </Badge>
                       </div>
@@ -524,7 +524,7 @@ const Recharge = () => {
                           <p className="text-xs text-muted-foreground">余额 {formatCredits(tx.balance_after)}</p>
                         </div>
                         <Badge variant="outline" className={cn(
-                          "text-[10px] font-medium",
+                          "text-xs font-medium",
                           isDeduct
                             ? "bg-red-500/10 text-red-500 border-red-200"
                             : isRefund

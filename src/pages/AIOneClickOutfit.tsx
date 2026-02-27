@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { toast } from 'sonner';
 import { useNavigate } from "react-router-dom";
 import { PageLayout } from "@/components/PageLayout";
 import { GeneratingLoader } from "@/components/GeneratingLoader";
@@ -197,7 +198,7 @@ cropped garments, partial view, flat lay, low quality, blurry, distorted fabric,
       });
     } catch (error) {
       console.error("一键挂搭图生成失败:", error);
-      alert(`生成失败：${error instanceof Error ? error.message : "未知错误"}`);
+      toast.error('生成失败', { description: error instanceof Error ? error.message : "未知错误" });
     } finally {
       setIsGenerating(false);
       setGenerationStep("");

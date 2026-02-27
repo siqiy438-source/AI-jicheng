@@ -41,6 +41,7 @@ export const PageLayout = ({
       <div className="flex-1 flex flex-col overflow-hidden relative z-10">
         {showHeader && <Header />}
         <main
+          id="main-content"
           className={cn(
             "flex-1 overflow-y-auto overscroll-y-contain scrollbar-thin",
             // 移动端底部留出导航栏空间

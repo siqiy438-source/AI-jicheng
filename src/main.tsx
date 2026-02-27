@@ -22,9 +22,21 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
           if (newWorker) {
             newWorker.addEventListener('statechange', () => {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                if (confirm('发现新版本，是否立即更新？')) {
-                  window.location.reload();
-                }
+                const banner = document.createElement('div');
+                banner.setAttribute('role', 'alert');
+                banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;display:flex;align-items:center;justify-content:center;gap:12px;padding:12px 16px;background:#D97706;color:#fff;font-size:14px;font-family:system-ui,sans-serif';
+                banner.textContent = '发现新版本';
+                const btn = document.createElement('button');
+                btn.textContent = '立即更新';
+                btn.style.cssText = 'padding:4px 16px;border-radius:6px;border:1px solid rgba(255,255,255,0.4);background:transparent;color:#fff;cursor:pointer;font-size:14px';
+                btn.onclick = () => window.location.reload();
+                const dismiss = document.createElement('button');
+                dismiss.textContent = '稍后';
+                dismiss.style.cssText = 'padding:4px 12px;border:none;background:transparent;color:rgba(255,255,255,0.8);cursor:pointer;font-size:14px';
+                dismiss.onclick = () => banner.remove();
+                banner.appendChild(btn);
+                banner.appendChild(dismiss);
+                document.body.prepend(banner);
               }
             });
           }

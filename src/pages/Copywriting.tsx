@@ -79,7 +79,7 @@ const Copywriting = () => {
               style={{ animationDelay: `${160 + index * 80}ms` }}
             >
               {tool.badge && (
-                <span className="absolute top-2 right-2 text-[10px] px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700 font-medium">
+                <span className="absolute top-2 right-2 text-xs px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700 font-medium">
                   {tool.badge}
                 </span>
               )}
