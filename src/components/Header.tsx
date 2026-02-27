@@ -1,9 +1,11 @@
-import { Bell, BookOpen, User, LogOut, Sparkles, Coins, Shield, QrCode, Gift, X } from "lucide-react";
+import { Bell, BookOpen, User, LogOut, Sparkles, Coins, Shield, QrCode, Gift, X, Rocket, Wrench, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCredits } from "@/contexts/CreditsContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAdmin } from "@/hooks/use-admin";
+import { useChangelog } from "@/hooks/use-changelog";
+import type { ChangelogEntry } from "@/data/changelog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,9 +25,8 @@ export const Header = () => {
   const isMobile = useIsMobile();
   const { isAdmin } = useAdmin();
   const [wechatOpen, setWechatOpen] = useState(false);
-
-  // 通知状态（未来从后端获取）
-  const hasUnreadNotifications = false; // 当前无未读通知
+  const { entries: changelogEntries, unreadCount, lastReadId, markAllRead } = useChangelog();
+  const [, forceUpdate] = useState(0);
 
   return (
     <>
@@ -91,55 +92,45 @@ export const Header = () => {
           </Link>
         )}
 
-        {/* 通知按钮 */}
-        <DropdownMenu>
+        {/* 通知按钮 - 更新日志 */}
+        <DropdownMenu onOpenChange={(open) => {
+          if (open && unreadCount > 0) {
+            markAllRead();
+            forceUpdate((n) => n + 1);
+          }
+        }}>
           <DropdownMenuTrigger asChild>
-            <button className="p-2.5 rounded-xl bg-secondary/40 active:bg-secondary/70 transition-colors relative touch-target focus:outline-none" aria-label="通知">
+            <button className="p-2.5 rounded-xl bg-secondary/40 active:bg-secondary/70 transition-colors relative touch-target focus:outline-none" aria-label="更新通知">
               <Bell className="w-5 h-5 text-muted-foreground" />
-              {/* 只在有未读通知时显示红点 */}
-              {hasUnreadNotifications && (
+              {unreadCount > 0 && (
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full" />
               )}
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-[calc(100vw-1rem)] max-w-80">
+          <DropdownMenuContent align="end" className="w-[calc(100vw-1rem)] max-w-80 p-0">
             <div className="px-4 py-3 border-b border-border">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-sm">通知</h3>
-                <span className="text-xs text-muted-foreground">全部标为已读</span>
+                <h3 className="font-semibold text-sm">更新日志</h3>
+                {unreadCount > 0 && (
+                  <span className="text-xs text-primary font-medium">{unreadCount} 条新更新</span>
+                )}
               </div>
             </div>
             <div className="max-h-[400px] overflow-y-auto">
-              {/* 暂无通知 - 品牌化空状态 */}
-              <div className="px-4 py-8 text-center">
-                <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
-                  <Bell className="w-7 h-7 text-primary/40" />
-                </div>
-                <p className="text-sm text-muted-foreground mb-1">暂无新通知</p>
-                <p className="text-xs text-muted-foreground/60">
-                  有新的更新时会在这里显示
-                </p>
-              </div>
-              
-              {/* 通知列表示例（未来使用） */}
-              {/* <div className="divide-y divide-border">
-                <div className="px-4 py-3 hover:bg-accent/50 transition-colors cursor-pointer">
-                  <div className="flex gap-3">
-                    <div className="w-2 h-2 bg-primary rounded-full mt-1.5 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground mb-1">
-                        新功能上线
-                      </p>
-                      <p className="text-xs text-muted-foreground mb-2">
-                        AI PPT 现已支持自定义模板，快来体验吧！
-                      </p>
-                      <p className="text-xs text-muted-foreground/60">
-                        2小时前
-                      </p>
-                    </div>
+              {changelogEntries.length === 0 ? (
+                <div className="px-4 py-8 text-center">
+                  <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
+                    <Bell className="w-7 h-7 text-primary/40" aria-hidden="true" />
                   </div>
+                  <p className="text-sm text-muted-foreground">暂无更新</p>
                 </div>
-              </div> */}
+              ) : (
+                <div className="divide-y divide-border">
+                  {changelogEntries.map((entry) => (
+                    <ChangelogItem key={entry.id} entry={entry} isUnread={entry.id > lastReadId} />
+                  ))}
+                </div>
+              )}
             </div>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -266,3 +257,34 @@ export const Header = () => {
     </>
   );
 };
+
+const typeConfig = {
+  feature: { icon: Rocket, color: "text-green-600", bg: "bg-green-500/10", label: "新功能" },
+  fix: { icon: Wrench, color: "text-orange-600", bg: "bg-orange-500/10", label: "修复" },
+  improve: { icon: Zap, color: "text-blue-600", bg: "bg-blue-500/10", label: "优化" },
+} as const;
+
+function ChangelogItem({ entry, isUnread }: { entry: ChangelogEntry; isUnread: boolean }) {
+  const config = typeConfig[entry.type];
+  const Icon = config.icon;
+  return (
+    <div className={cn("px-4 py-3 transition-colors", isUnread && "bg-primary/5")}>
+      <div className="flex gap-3">
+        <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5", config.bg)}>
+          <Icon className={cn("w-4 h-4", config.color)} aria-hidden="true" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            <p className="text-sm font-medium text-foreground truncate">{entry.title}</p>
+            {isUnread && <span className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0" />}
+          </div>
+          <p className="text-xs text-muted-foreground line-clamp-2 mb-1.5">{entry.description}</p>
+          <div className="flex items-center gap-2">
+            <span className={cn("text-xs font-medium px-1.5 py-0.5 rounded", config.bg, config.color)}>{config.label}</span>
+            <span className="text-xs text-muted-foreground/60">{entry.date}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
