@@ -37,5 +37,8 @@ export const getProviderConfig = (line: ImageLine): ProviderConfig => {
   };
 };
 
+/** 像素块生成专用模型 */
+export const PIXEL_ART_MODEL = "gemini-3.1-flash-image-preview";
+
 export const buildGenerateContentUrl = (config: ProviderConfig) =>
   `${config.baseUrl}/${config.pathPrefix}/models/${config.model}:generateContent`;

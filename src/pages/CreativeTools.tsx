@@ -3,13 +3,16 @@ import { useNavigate } from "react-router-dom";
 import {
   Sparkles,
   Palette,
+  Grid2x2,
+  type LucideIcon,
 } from "lucide-react";
 
 interface ToolItem {
   title: string;
   description: string;
-  iconSrc: string;
   to: string;
+  iconSrc?: string;
+  Icon?: LucideIcon;
 }
 
 const tools: ToolItem[] = [
@@ -30,6 +33,12 @@ const tools: ToolItem[] = [
     description: "上传图片自动分析，并一键生成可编辑 PPT 报告。",
     iconSrc: "/icons/generative-report-vintage.png",
     to: "/generative-report",
+  },
+  {
+    title: "像素块生成",
+    description: "上传图片生成 MARD 色号像素图，适合拼豆和十字绣配色参考。",
+    Icon: Grid2x2,
+    to: "/pixel-art",
   },
 ];
 
@@ -60,8 +69,12 @@ const CreativeTools = () => {
               className="glass-card p-3 md:p-5 rounded-xl md:rounded-2xl hover:shadow-lg transition-shadow duration-200 group relative overflow-hidden text-left active:scale-[0.98] opacity-0 animate-fade-in"
               style={{ animationDelay: `${160 + index * 80}ms` }}
             >
-              <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center mb-2.5 md:mb-4 transition-transform group-hover:scale-110">
-                <img src={tool.iconSrc} alt={tool.title} loading="lazy" decoding="async" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center mb-2.5 md:mb-4 transition-transform group-hover:scale-110 bg-primary/10">
+                {tool.iconSrc ? (
+                  <img src={tool.iconSrc} alt={tool.title} loading="lazy" decoding="async" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
+                ) : tool.Icon ? (
+                  <tool.Icon className="w-6 h-6 md:w-7 md:h-7 text-primary" />
+                ) : null}
               </div>
               <h3 className="font-semibold text-foreground mb-1 md:mb-2 text-sm md:text-base leading-tight">{tool.title}</h3>
               <p className="text-[11px] md:text-xs font-medium text-primary/85 mb-1">功能介绍</p>

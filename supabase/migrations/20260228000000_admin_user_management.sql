@@ -3,6 +3,11 @@
 -- 管理员用户管理：角色修改、用户详情、禁用状态
 -- =============================================================
 
+-- 0. 补充 profiles 表缺失的字段
+alter table public.profiles
+  add column if not exists nickname text,
+  add column if not exists avatar_url text;
+
 -- 1. 管理员 RPC：修改用户角色
 create or replace function public.admin_update_user_role(
   p_target_user_id uuid,
@@ -59,7 +64,7 @@ begin
 
   select row_to_json(p)::jsonb into v_profile
   from (
-    select id, email, credits, role, plan_tier,
+    select id, email, nickname, avatar_url, credits, role, plan_tier,
            subscription_status, created_at, updated_at
     from profiles where id = p_user_id
   ) p;
@@ -127,19 +132,23 @@ begin
 
   select count(*) into v_total
   from profiles
-  where (p_search is null or email ilike '%' || p_search || '%');
+  where (p_search is null
+    or email ilike '%' || p_search || '%'
+    or nickname ilike '%' || p_search || '%');
 
   select coalesce(jsonb_agg(row_to_json(t)::jsonb), '[]'::jsonb)
   into v_rows
   from (
     select
-      p.id, p.email, p.credits, p.role, p.plan_tier,
+      p.id, p.email, p.nickname, p.avatar_url, p.credits, p.role, p.plan_tier,
       p.subscription_status, p.created_at, p.updated_at,
       coalesce(au.banned_until is not null
         and (au.banned_until = 'infinity'::timestamptz or au.banned_until > now()), false) as banned
     from profiles p
     left join auth.users au on au.id = p.id
-    where (p_search is null or p.email ilike '%' || p_search || '%')
+    where (p_search is null
+      or p.email ilike '%' || p_search || '%'
+      or p.nickname ilike '%' || p_search || '%')
     order by p.created_at desc
     limit p_page_size offset v_offset
   ) t;

@@ -42,6 +42,7 @@ const Admin = lazy(() => import("./pages/Admin"));
 const Tutorials = lazy(() => import("./pages/Tutorials"));
 const OutfitRecommend = lazy(() => import("./pages/OutfitRecommend"));
 const FabricAnalysis = lazy(() => import("./pages/FabricAnalysis"));
+const PixelArt = lazy(() => import("./pages/PixelArt"));
 
 const queryClient = new QueryClient();
 
@@ -79,6 +80,7 @@ const App = () => (
               <Route path="/fabric-analysis" element={<ProtectedRoute><FabricAnalysis /></ProtectedRoute>} />
               <Route path="/creative-tools" element={<ProtectedRoute><CreativeTools /></ProtectedRoute>} />
               <Route path="/generative-report" element={<ProtectedRoute><GenerativeReport /></ProtectedRoute>} />
+              <Route path="/pixel-art" element={<ProtectedRoute><PixelArt /></ProtectedRoute>} />
               <Route path="/my-works" element={<ProtectedRoute><MyWorks /></ProtectedRoute>} />
               <Route path="/my-materials" element={<ProtectedRoute><MyMaterials /></ProtectedRoute>} />
               <Route path="/more-features" element={<ProtectedRoute><MoreFeatures /></ProtectedRoute>} />

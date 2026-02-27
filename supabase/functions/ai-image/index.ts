@@ -5,7 +5,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
-import { buildGenerateContentUrl, getImageProvider, getProviderConfig, isHDResolution, isPremiumHD, getHDModel, getHDApiUrl } from "./provider.ts"
+import { buildGenerateContentUrl, getImageProvider, getProviderConfig, isHDResolution, isPremiumHD, getHDModel, getHDApiUrl, PIXEL_ART_MODEL } from "./provider.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -113,6 +113,7 @@ serve(async (req) => {
       ai_flatlay_standard: 50, ai_flatlay_premium: 100,
       ai_outfit_visual_standard: 50,
       ai_ppt_image_standard: 50,
+      ai_pixel_art: 50,
     }
 
     const authHeader = req.headers.get('Authorization')
@@ -158,16 +159,21 @@ serve(async (req) => {
       }
     }
 
+    const isPixelArt = feature_code === 'ai_pixel_art'
     const resolvedLine = getImageProvider(line)
     // 优质线路固定走 2K HD
     const resolvedResolution = resolvedLine === "premium" ? "2k" : (resolution || "default")
     const providerConfig = getProviderConfig(resolvedLine)
+    // 像素块生成使用专用模型
+    if (isPixelArt) {
+      providerConfig.model = PIXEL_ART_MODEL
+    }
     const providerApiKey = Deno.env.get(providerConfig.apiKeyEnv)
     const providerName = "BLTCY"
 
     // 调试日志：确认线路和模型选择
     const actualModel = isHDResolution(resolvedResolution) ? getHDModel(resolvedResolution) : providerConfig.model
-    console.log(`[ai-image] 请求参数 → line=${line}, resolution=${resolution}`)
+    console.log(`[ai-image] 请求参数 → line=${line}, resolution=${resolution}, feature=${feature_code}`)
     console.log(`[ai-image] 解析结果 → resolvedLine=${resolvedLine}, resolvedResolution=${resolvedResolution}, HD=${isHDResolution(resolvedResolution)}, model=${actualModel}`)
 
     if (!providerApiKey) {
@@ -215,6 +221,20 @@ serve(async (req) => {
       }
     } else if (style) {
       fullPrompt = `${style} style: ${prompt}`
+    }
+
+    // 像素块生成：使用专属 prompt，跳过通用平铺摄影指令
+    if (isPixelArt && images && Array.isArray(images) && images.length > 0) {
+      fullPrompt = `Convert this image into a bold pixel art style with large, distinct color blocks.
+Requirements:
+- Create a clean, simplified pixel art version with clear, vivid color regions
+- Use bold, saturated colors with sharp boundaries between regions (no gradients)
+- The result should look like it was made with colored beads or cross-stitch thread
+- Keep the main subject clearly recognizable but highly simplified
+- Make each color region large enough to be counted and reproduced by hand
+- No text, no watermarks, no decorative elements
+- Square output preferred`
+      hasStylePrompt = true
     }
 
     // 如果有上传图片但没有专用风格提示词，添加通用背景匹配指令（英文）
