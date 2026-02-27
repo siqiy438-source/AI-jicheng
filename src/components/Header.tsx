@@ -111,39 +111,47 @@ export const Header = () => {
               )}
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" sideOffset={8} className="w-[calc(100vw-1rem)] max-w-[340px] p-0 rounded-2xl border-border/60 shadow-elevated overflow-hidden">
-            {/* 头部 */}
-            <div className="px-5 pt-4 pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-foreground text-sm">更新动态</h3>
-                  {unreadCount > 0 && (
-                    <span className="text-xs text-primary-foreground bg-primary px-2 py-0.5 rounded-full font-medium">{unreadCount} 条新</span>
-                  )}
+          <DropdownMenuContent align="end" sideOffset={8} className="w-[calc(100vw-1rem)] max-w-[360px] p-0 rounded-2xl shadow-floating overflow-hidden border-border/50">
+            {/* 头部渐变条 */}
+            <div className="relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/8 via-primary/4 to-transparent pointer-events-none" />
+              <div className="relative px-5 pt-4 pb-3 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Sparkles className="w-3.5 h-3.5 text-primary" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground text-sm leading-none mb-0.5">更新动态</h3>
+                    <p className="text-xs text-muted-foreground leading-none">了解灵犀的最新变化</p>
+                  </div>
                 </div>
-                <span className="text-xs text-muted-foreground">v1.0.0</span>
+                {unreadCount > 0 && (
+                  <span className="text-xs text-primary-foreground bg-primary px-2 py-0.5 rounded-full font-medium shadow-sm">{unreadCount} 条新</span>
+                )}
               </div>
             </div>
-            <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+            <div className="h-px bg-gradient-to-r from-primary/20 via-border to-transparent" />
             {/* 列表 */}
-            <div className="max-h-[380px] overflow-y-auto py-1.5">
+            <div className="max-h-[400px] overflow-y-auto p-2">
               {changelogEntries.length === 0 ? (
-                <div className="px-5 py-10 text-center">
-                  <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-secondary flex items-center justify-center">
-                    <Sparkles className="w-5 h-5 text-muted-foreground/40" aria-hidden="true" />
+                <div className="px-4 py-10 text-center">
+                  <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-primary/5 to-accent/5 flex items-center justify-center">
+                    <Bell className="w-6 h-6 text-muted-foreground/30" aria-hidden="true" />
                   </div>
                   <p className="text-sm text-muted-foreground">暂无更新动态</p>
+                  <p className="text-xs text-muted-foreground/50 mt-1">有新版本时会在这里通知你</p>
                 </div>
               ) : (
-                changelogEntries.map((entry, i) => (
-                  <ChangelogItem
-                    key={entry.id}
-                    entry={entry}
-                    isUnread={entry.id > lastReadId}
-                    isLast={i === changelogEntries.length - 1}
-                    onSelect={() => setDetailEntry(entry)}
-                  />
-                ))
+                <div className="space-y-1.5">
+                  {changelogEntries.map((entry) => (
+                    <ChangelogItem
+                      key={entry.id}
+                      entry={entry}
+                      isUnread={entry.id > lastReadId}
+                      onSelect={() => setDetailEntry(entry)}
+                    />
+                  ))}
+                </div>
               )}
             </div>
           </DropdownMenuContent>
@@ -284,41 +292,72 @@ export const Header = () => {
 /* ── 更新日志子组件 ── */
 
 const typeConfig = {
-  feature: { icon: Rocket, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-500/10", dot: "bg-emerald-500", label: "新功能" },
-  fix: { icon: Wrench, color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-500/10", dot: "bg-amber-500", label: "修复" },
-  improve: { icon: Zap, color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-500/10", dot: "bg-blue-500", label: "优化" },
+  feature: {
+    icon: Rocket,
+    color: "text-emerald-600 dark:text-emerald-400",
+    bg: "bg-emerald-500/10",
+    border: "border-emerald-500/20",
+    glow: "shadow-[inset_0_0_0_1px_rgba(16,185,129,0.1)]",
+    label: "新功能",
+  },
+  fix: {
+    icon: Wrench,
+    color: "text-amber-600 dark:text-amber-400",
+    bg: "bg-amber-500/10",
+    border: "border-amber-500/20",
+    glow: "shadow-[inset_0_0_0_1px_rgba(245,158,11,0.1)]",
+    label: "修复",
+  },
+  improve: {
+    icon: Zap,
+    color: "text-blue-600 dark:text-blue-400",
+    bg: "bg-blue-500/10",
+    border: "border-blue-500/20",
+    glow: "shadow-[inset_0_0_0_1px_rgba(59,130,246,0.1)]",
+    label: "优化",
+  },
 } as const;
 
-function ChangelogItem({ entry, isUnread, isLast, onSelect }: {
-  entry: ChangelogEntry; isUnread: boolean; isLast: boolean; onSelect: () => void;
+function ChangelogItem({ entry, isUnread, onSelect }: {
+  entry: ChangelogEntry; isUnread: boolean; onSelect: () => void;
 }) {
   const config = typeConfig[entry.type];
   const Icon = config.icon;
   return (
     <button
       onClick={onSelect}
-      className="w-full text-left group px-5 py-2.5 transition-colors hover:bg-accent/40 active:bg-accent/60 cursor-pointer"
+      className={cn(
+        "w-full text-left group rounded-xl p-3 transition-all duration-200",
+        "hover:bg-accent/50 active:scale-[0.98]",
+        isUnread
+          ? cn("bg-primary/[0.03] border border-primary/10", config.glow)
+          : "border border-transparent"
+      )}
     >
-      <div className="flex gap-3.5">
-        {/* 时间线 */}
-        <div className="flex flex-col items-center pt-1">
-          <div className={cn(
-            "w-2 h-2 rounded-full flex-shrink-0 ring-2 ring-background transition-all",
-            isUnread ? cn(config.dot, "ring-primary/20") : "bg-muted-foreground/25"
-          )} />
-          {!isLast && <div className="w-px flex-1 bg-border mt-1.5" />}
+      <div className="flex gap-3 items-start">
+        {/* 图标 */}
+        <div className={cn(
+          "w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover:scale-110",
+          config.bg
+        )}>
+          <Icon className={cn("w-4 h-4", config.color)} aria-hidden="true" />
         </div>
         {/* 内容 */}
-        <div className="flex-1 min-w-0 pb-3">
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className={cn("text-xs font-medium px-1.5 py-px rounded-md", config.bg, config.color)}>{config.label}</span>
-            <span className="text-xs text-muted-foreground/50">{entry.date}</span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 mb-1">
+            <p className="text-[13px] font-semibold text-foreground truncate group-hover:text-primary transition-colors">{entry.title}</p>
             {isUnread && (
-              <span className="ml-auto text-xs text-primary font-medium">NEW</span>
+              <span className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
             )}
           </div>
-          <p className="text-sm font-medium text-foreground mb-0.5 group-hover:text-primary transition-colors">{entry.title}</p>
-          <p className="text-xs text-muted-foreground line-clamp-1">{entry.description}</p>
+          <p className="text-xs text-muted-foreground line-clamp-1 mb-2">{entry.description}</p>
+          <div className="flex items-center gap-2">
+            <span className={cn(
+              "text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-md",
+              config.bg, config.color
+            )}>{config.label}</span>
+            <span className="text-[10px] text-muted-foreground/40">{entry.date}</span>
+          </div>
         </div>
       </div>
     </button>
@@ -330,41 +369,56 @@ function ChangelogDetail({ entry, onClose }: { entry: ChangelogEntry; onClose: (
   const Icon = config.icon;
   return (
     <>
-      {/* 头部 - 统一使用品牌主色 */}
-      <div className="relative px-6 pt-7 pb-5 bg-gradient-to-br from-primary to-primary/80 text-white overflow-hidden">
+      {/* 沉浸式头部 */}
+      <div className="relative px-6 pt-8 pb-6 overflow-hidden">
+        {/* 背景层 */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/90 to-primary/70" />
+        {/* 装饰 */}
+        <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-white/[0.07] blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-12 -left-12 w-36 h-36 rounded-full bg-white/[0.04] blur-2xl pointer-events-none" />
+        <div className="absolute top-4 left-6 w-20 h-20 rounded-full bg-white/[0.03] blur-xl pointer-events-none" />
+        {/* 关闭按钮 */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors"
+          className="absolute top-3.5 right-3.5 w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all duration-200 hover:scale-105 backdrop-blur-sm"
           aria-label="关闭"
         >
-          <X className="w-3.5 h-3.5 text-white" />
+          <X className="w-4 h-4 text-white/80" />
         </button>
-        {/* 装饰光斑 */}
-        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/8 blur-2xl pointer-events-none" />
-        <div className="absolute -bottom-8 -left-8 w-32 h-32 rounded-full bg-white/5 blur-2xl pointer-events-none" />
+        {/* 内容 */}
         <div className="relative">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-xs font-medium bg-white/20 text-white px-2 py-0.5 rounded-md">{config.label}</span>
-            <span className="text-xs text-white/60">{entry.date}</span>
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 rounded-lg bg-white/15 backdrop-blur-sm flex items-center justify-center">
+              <Icon className="w-4 h-4 text-white" aria-hidden="true" />
+            </div>
+            <span className="text-xs font-semibold bg-white/15 backdrop-blur-sm text-white/90 px-2.5 py-1 rounded-lg">{config.label}</span>
+            <span className="text-xs text-white/50 ml-auto">{entry.date}</span>
           </div>
-          <h2 className="text-lg font-bold tracking-tight leading-snug">{entry.title}</h2>
-          <p className="text-sm text-white/70 mt-1.5 leading-relaxed">{entry.description}</p>
+          <h2 className="text-xl font-bold text-white tracking-tight leading-snug mb-2">{entry.title}</h2>
+          <p className="text-sm text-white/65 leading-relaxed">{entry.description}</p>
         </div>
       </div>
       {/* 详情列表 */}
       <div className="px-6 py-5 bg-card">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">更新内容</p>
-        <div className="space-y-2">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="h-px flex-1 bg-gradient-to-r from-border to-transparent" />
+          <span className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-widest">更新内容</span>
+          <div className="h-px flex-1 bg-gradient-to-l from-border to-transparent" />
+        </div>
+        <div className="space-y-1">
           {entry.details.map((item, i) => (
-            <div key={i} className="flex gap-3 items-start group/item">
-              <div className="w-5 h-5 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0 mt-px">
-                <Check className="w-3 h-3 text-primary" aria-hidden="true" />
+            <div
+              key={i}
+              className="flex gap-3 items-start p-2 rounded-lg hover:bg-secondary/50 transition-colors group/item"
+            >
+              <div className="w-5 h-5 rounded-md bg-primary/8 flex items-center justify-center flex-shrink-0 mt-0.5 group-hover/item:bg-primary/15 transition-colors">
+                <Check className="w-3 h-3 text-primary/70 group-hover/item:text-primary transition-colors" aria-hidden="true" />
               </div>
-              <p className="text-sm text-foreground/80 leading-relaxed">{item}</p>
+              <p className="text-sm text-foreground/75 leading-relaxed group-hover/item:text-foreground transition-colors">{item}</p>
             </div>
           ))}
         </div>
-        <Button onClick={onClose} className="w-full rounded-xl h-10 mt-5 text-sm">
+        <Button onClick={onClose} className="w-full rounded-xl h-10 mt-5 text-sm shadow-sm">
           知道了
         </Button>
       </div>
