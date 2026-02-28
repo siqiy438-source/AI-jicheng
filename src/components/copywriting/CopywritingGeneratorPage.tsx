@@ -797,11 +797,11 @@ export const CopywritingGeneratorPage = ({
                     questionMapByMessage[message.id]?.length > 0 && (
                       <div className="mt-4 pt-4 border-t border-border/50 space-y-4">
                         <div className="text-xs text-muted-foreground">点击选择（支持多选）</div>
-                        {questionMapByMessage[message.id].map((question) => {
+                        {questionMapByMessage[message.id].map((question, questionIndex) => {
                           const selectedInQuestion =
                             selectedOptionsByMessage[message.id]?.[question.id] ?? [];
                           return (
-                            <div key={question.id} className="space-y-2">
+                            <div key={question.id} className={cn("space-y-2", questionIndex > 0 && "pt-3 border-t border-border/30")}>
                               <p className="text-sm font-semibold text-foreground">{question.id} | {question.title}</p>
                               <div className="space-y-2">
                                 {question.options.map((option) => {
@@ -851,19 +851,18 @@ export const CopywritingGeneratorPage = ({
                     (!questionMapByMessage[message.id] || questionMapByMessage[message.id].length === 0) &&
                     hasConfirmationPrompt(message.content) && (
                       <div className="mt-4 pt-4 border-t border-border/50">
-                        <div className="text-xs text-muted-foreground mb-2">点击选择</div>
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            type="button"
-                            onClick={() => void handleSend("确认，无需调整，开始生成")}
-                            className="px-3 py-1.5 rounded-lg text-sm bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors"
-                          >
-                            确认并开始生成
-                          </button>
+                        <button
+                          type="button"
+                          onClick={() => void handleSend("确认，无需调整，开始生成")}
+                          className="w-full py-3 rounded-xl text-sm font-medium bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 transition-colors"
+                        >
+                          开始生成文案（40 积分）
+                        </button>
+                        <div className="flex justify-center mt-2">
                           <button
                             type="button"
                             onClick={() => void handleSend("需要调整，我要修改选项")}
-                            className="px-3 py-1.5 rounded-lg text-sm bg-secondary/60 text-foreground border border-border hover:bg-secondary transition-colors"
+                            className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
                           >
                             需要调整
                           </button>
