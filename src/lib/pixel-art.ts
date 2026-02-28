@@ -74,8 +74,52 @@ export function processImage(imageEl: HTMLImageElement, gridSize: number): Pixel
   }
 
   // 按使用频次降序排列
-  const usedColors = Array.from(colorCountMap.values())
+  let usedColors = Array.from(colorCountMap.values())
     .sort((a, b) => b.count - a.count);
+
+  // ── 合并相似颜色：RGB 距离很近的色号自动归并到使用量更大的那个 ──
+  const MERGE_DIST_SQ = 2500; // 阈值：约每通道差 ~28 以内合并
+
+  const mergeMap = new Map<string, MardColor>(); // 被合并色 → 目标色
+  const alive = new Set(usedColors.map(u => u.color.code));
+
+  // 从最少用的开始，尝试合并到更常用且最近的颜色
+  for (let i = usedColors.length - 1; i >= 1; i--) {
+    const minor = usedColors[i];
+    if (!alive.has(minor.color.code)) continue;
+
+    let bestIdx = -1;
+    let bestDist = Infinity;
+    for (let j = 0; j < i; j++) {
+      if (!alive.has(usedColors[j].color.code)) continue;
+      const mj = usedColors[j].color;
+      const dr = minor.color.rgb[0] - mj.rgb[0];
+      const dg = minor.color.rgb[1] - mj.rgb[1];
+      const db = minor.color.rgb[2] - mj.rgb[2];
+      const dist = dr * dr + dg * dg + db * db;
+      if (dist < bestDist) { bestDist = dist; bestIdx = j; }
+    }
+
+    if (bestIdx >= 0 && bestDist < MERGE_DIST_SQ) {
+      mergeMap.set(minor.color.code, usedColors[bestIdx].color);
+      alive.delete(minor.color.code);
+    }
+  }
+
+  // 如果有合并，重新映射网格并统计
+  if (mergeMap.size > 0) {
+    const newCountMap = new Map<string, { color: MardColor; count: number }>();
+    for (const row of grid) {
+      for (const cell of row) {
+        const replacement = mergeMap.get(cell.mardColor.code);
+        if (replacement) cell.mardColor = replacement;
+        const ex = newCountMap.get(cell.mardColor.code);
+        if (ex) ex.count++;
+        else newCountMap.set(cell.mardColor.code, { color: cell.mardColor, count: 1 });
+      }
+    }
+    usedColors = Array.from(newCountMap.values()).sort((a, b) => b.count - a.count);
+  }
 
   return { grid, usedColors, gridWidth: gridW, gridHeight: gridH };
 }
