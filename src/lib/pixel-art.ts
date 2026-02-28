@@ -81,7 +81,7 @@ export function processImage(imageEl: HTMLImageElement, gridSize: number): Pixel
 }
 
 /**
- * 将 PixelArtResult 渲染到指定 canvas 元素上
+ * 将 PixelArtResult 渲染到指定 canvas 元素上（含底部颜色图例）
  * @param canvas 目标 canvas
  * @param result processImage 返回的结果
  * @param gridSize 格数选择（决定每格像素大小）
@@ -92,42 +92,130 @@ export function renderPixelGrid(
   gridSize: number
 ): void {
   const { cellPx, fontSize } = CELL_SIZES[gridSize] ?? { cellPx: 22, fontSize: 7 };
-  const { grid, gridWidth, gridHeight } = result;
+  const { grid, gridWidth, gridHeight, usedColors } = result;
 
-  canvas.width = gridWidth * cellPx;
-  canvas.height = gridHeight * cellPx;
+  const gridPixelW = gridWidth * cellPx;
+  const gridPixelH = gridHeight * cellPx;
+
+  // ── 图例布局预计算 ──
+  const legendSwatchSize = 16;
+  const legendFontSize = 12;
+  const legendItemGapX = 18;
+  const legendRowHeight = 26;
+  const legendPadX = 14;
+  const legendPadY = 12;
+  const legendTopGap = 10;
+
+  // 测量每个图例项宽度
+  const offscreen = document.createElement('canvas');
+  const offCtx = offscreen.getContext('2d')!;
+  offCtx.font = `bold ${legendFontSize}px sans-serif`;
+
+  const legendItems = usedColors.map(({ color, count }) => {
+    const label = `${color.code} (${count})`;
+    const textW = offCtx.measureText(label).width;
+    return { color, count, label, itemW: legendSwatchSize + 6 + textW };
+  });
+
+  // 确保画布宽度至少能放下图例
+  const canvasW = Math.max(gridPixelW, 320);
+  const maxRowW = canvasW - legendPadX * 2;
+
+  // 计算需要几行
+  let legendRows = 1;
+  let curW = 0;
+  for (const item of legendItems) {
+    if (curW > 0 && curW + item.itemW > maxRowW) {
+      legendRows++;
+      curW = item.itemW + legendItemGapX;
+    } else {
+      curW += item.itemW + legendItemGapX;
+    }
+  }
+
+  const legendH = legendPadY * 2 + legendRows * legendRowHeight;
+  const totalH = gridPixelH + legendTopGap + legendH;
+
+  // ── 设置画布尺寸 ──
+  canvas.width = canvasW;
+  canvas.height = totalH;
 
   const ctx = canvas.getContext('2d')!;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // 如果画布比网格宽，网格居中绘制
+  const gridOffsetX = Math.round((canvasW - gridPixelW) / 2);
+
+  // ── 绘制像素网格 ──
   for (let row = 0; row < gridHeight; row++) {
     for (let col = 0; col < gridWidth; col++) {
       const cell = grid[row][col];
-      const x = col * cellPx;
+      const x = gridOffsetX + col * cellPx;
       const y = row * cellPx;
 
-      // 填充 MARD 颜色
       ctx.fillStyle = rgbToHex(cell.mardColor.rgb);
       ctx.fillRect(x, y, cellPx, cellPx);
 
-      // 绘制分隔线（1px 半透明白线）
       ctx.strokeStyle = 'rgba(255,255,255,0.25)';
       ctx.lineWidth = 0.5;
       ctx.strokeRect(x + 0.25, y + 0.25, cellPx - 0.5, cellPx - 0.5);
 
-      // 绘制色号文字
       const textColor = isDark(cell.mardColor.rgb) ? '#ffffff' : '#000000';
       ctx.fillStyle = textColor;
       ctx.font = `bold ${fontSize}px monospace`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
-      // 阴影增强可读性
       ctx.shadowColor = isDark(cell.mardColor.rgb) ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.6)';
       ctx.shadowBlur = 2;
       ctx.fillText(cell.mardColor.code, x + cellPx / 2, y + cellPx / 2);
       ctx.shadowBlur = 0;
     }
+  }
+
+  // ── 绘制底部颜色图例 ──
+  const legendY = gridPixelH + legendTopGap;
+
+  // 图例背景
+  ctx.fillStyle = '#f5f5f5';
+  ctx.fillRect(0, legendY, canvasW, legendH);
+
+  // 顶部分隔线
+  ctx.strokeStyle = '#ddd';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, legendY + 0.5);
+  ctx.lineTo(canvasW, legendY + 0.5);
+  ctx.stroke();
+
+  // 逐项绘制
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.shadowBlur = 0;
+
+  let drawX = legendPadX;
+  let drawY = legendY + legendPadY + legendRowHeight / 2;
+
+  for (const item of legendItems) {
+    // 换行判断
+    if (drawX > legendPadX && drawX + item.itemW > maxRowW + legendPadX) {
+      drawX = legendPadX;
+      drawY += legendRowHeight;
+    }
+
+    // 色块
+    ctx.fillStyle = rgbToHex(item.color.rgb);
+    ctx.fillRect(drawX, drawY - legendSwatchSize / 2, legendSwatchSize, legendSwatchSize);
+    ctx.strokeStyle = '#ccc';
+    ctx.lineWidth = 0.5;
+    ctx.strokeRect(drawX, drawY - legendSwatchSize / 2, legendSwatchSize, legendSwatchSize);
+
+    // 文字
+    ctx.fillStyle = '#333';
+    ctx.font = `bold ${legendFontSize}px sans-serif`;
+    ctx.fillText(item.label, drawX + legendSwatchSize + 6, drawY + 1);
+
+    drawX += item.itemW + legendItemGapX;
   }
 }
 
