@@ -225,12 +225,14 @@ serve(async (req) => {
 
     // 像素块生成：使用专属 prompt，跳过通用平铺摄影指令
     if (isPixelArt && images && Array.isArray(images) && images.length > 0) {
-      fullPrompt = `Convert this image into a bold pixel art style with large, distinct color blocks.
+      fullPrompt = `Convert this image into a cute, flat pixel art style like Miffy or Sanrio characters — large solid color blocks, minimal total colors.
 Requirements:
-- Create a clean, simplified pixel art version with clear, vivid color regions
-- Use bold, saturated colors with sharp boundaries between regions (no gradients)
+- FACE / SKIN: use at most 2-3 flat colors total (one main skin tone, one for eyes/features, optionally one for blush). Absolutely NO gradients, shadows, highlights, or color variations on skin areas
+- Every color region must be large, solid, and perfectly uniform — no dithering, no anti-aliasing, no subtle shading
+- Use bold, saturated colors with sharp pixel-perfect boundaries between regions
+- Keep the main subject clearly recognizable but highly simplified and stylized into a cartoon look
+- Minimize total distinct colors (ideally ≤ 15 across the entire image)
 - The result should look like it was made with colored beads or cross-stitch thread
-- Keep the main subject clearly recognizable but highly simplified
 - Make each color region large enough to be counted and reproduced by hand
 - No text, no watermarks, no decorative elements
 - Square output preferred`
