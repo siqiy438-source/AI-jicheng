@@ -538,8 +538,31 @@ serve(async (req) => {
     const { action, feature_code } = body
     savedFeatureCode = feature_code
 
-    if (!action) {
-      throw new Error('缺少 action 参数，支持: generate_outline, generate_description, batch_generate_descriptions')
+    const actionFeatureMap: Record<string, string> = {
+      generate_outline: 'ai_ppt_outline',
+      generate_description: 'ai_ppt_slide',
+      batch_generate_descriptions: 'ai_ppt_slide',
+    }
+    const expectedFeatureCode = actionFeatureMap[action]
+
+    if (!action || !expectedFeatureCode) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: '缺少或非法 action，支持: generate_outline, generate_description, batch_generate_descriptions',
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    if (!feature_code || feature_code !== expectedFeatureCode) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: `feature_code 与 action 不匹配，${action} 需要 ${expectedFeatureCode}`,
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
 
     console.log(`[ai-ppt] Received action: ${action}`)
@@ -572,25 +595,29 @@ serve(async (req) => {
       ai_ppt_outline: 10,
       ai_ppt_slide: 5,
     }
-    const fixedCost = FIXED_COSTS[feature_code || ''] || 0
-    if (fixedCost > 0) {
-      const { data: deductResult, error: deductError } = await supabaseAdmin.rpc('deduct_credits', {
-        p_user_id: userId,
-        p_amount: fixedCost.toFixed(2),
-        p_description: feature_code || 'ai_ppt',
+    const fixedCost = FIXED_COSTS[feature_code]
+    if (!fixedCost || fixedCost <= 0) {
+      return new Response(JSON.stringify({ success: false, error: 'feature_code 无效或未配置计费' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
-      if (deductError || !deductResult?.success) {
-        const currentBalance = Number(deductResult?.balance || 0).toFixed(2)
-        const errMsg = deductResult?.error === 'INSUFFICIENT_BALANCE'
-          ? `积分不足，需要 ${fixedCost.toFixed(2)} 积分，当前余额 ${currentBalance}`
-          : '积分扣减失败'
-        return new Response(JSON.stringify({ success: false, error: errMsg }), {
-          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        })
-      }
-      creditCost = fixedCost
-      console.log(`[ai-ppt] Deducted ${fixedCost.toFixed(2)} credits for ${feature_code}`)
     }
+
+    const { data: deductResult, error: deductError } = await supabaseAdmin.rpc('deduct_credits', {
+      p_user_id: userId,
+      p_amount: fixedCost.toFixed(2),
+      p_description: feature_code,
+    })
+    if (deductError || !deductResult?.success) {
+      const currentBalance = Number(deductResult?.balance || 0).toFixed(2)
+      const errMsg = deductResult?.error === 'INSUFFICIENT_BALANCE'
+        ? `积分不足，需要 ${fixedCost.toFixed(2)} 积分，当前余额 ${currentBalance}`
+        : '积分扣减失败'
+      return new Response(JSON.stringify({ success: false, error: errMsg }), {
+        status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+    creditCost = fixedCost
+    console.log(`[ai-ppt] Deducted ${fixedCost.toFixed(2)} credits for ${feature_code}`)
 
     let actionResult: ActionExecutionResult
 

@@ -23,7 +23,7 @@ export interface ImageGenerationParams {
   resolution?: "default" | "2k" | "4k";
   hasFrameworkPrompt?: boolean;
   conversationHistory?: ConversationMessage[];
-  featureCode?: string;
+  featureCode: string;
   requestId?: string;
 }
 

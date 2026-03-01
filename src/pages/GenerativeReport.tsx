@@ -559,6 +559,7 @@ const GenerativeReport = () => {
             aspectRatio: "4:3",
             line: "standard",
             resolution: "2k",
+            featureCode: 'ai_report_page',
           });
 
           if (!coverResult.success) {
@@ -584,6 +585,7 @@ const GenerativeReport = () => {
             aspectRatio: "4:3",
             line: "standard",
             resolution: "2k",
+            featureCode: 'ai_report_page',
           });
 
           if (!closingResult.success) {

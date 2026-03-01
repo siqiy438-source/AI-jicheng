@@ -12,6 +12,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+const MAX_REMOTE_IMAGE_BYTES = 10 * 1024 * 1024
+
 /** 将 base64 图片上传到 Supabase Storage，返回签名 URL（失败返回 null） */
 async function uploadImageToStorage(
   supabaseUrl: string,
@@ -48,12 +50,82 @@ async function uploadImageToStorage(
   }
 }
 
-/** 如果 image 是 http(s) URL 则下载并转为 data URL，否则原样返回 */
-async function resolveImageToDataUrl(image: string): Promise<string> {
+function isPrivateOrLocalHostname(hostname: string): boolean {
+  const host = hostname.toLowerCase()
+  if (host === 'localhost' || host === '::1' || host === '[::1]') return true
+  if (host.endsWith('.local')) return true
+
+  const ipv4Match = host.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/)
+  if (!ipv4Match) return false
+
+  const octets = ipv4Match.slice(1).map(Number)
+  if (octets.some((num) => Number.isNaN(num) || num < 0 || num > 255)) return true
+  if (octets[0] === 10) return true
+  if (octets[0] === 127) return true
+  if (octets[0] === 169 && octets[1] === 254) return true
+  if (octets[0] === 192 && octets[1] === 168) return true
+  if (octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31) return true
+
+  return false
+}
+
+function buildAllowedImageHosts(supabaseUrl?: string | null): Set<string> {
+  const hosts = new Set<string>()
+  if (!supabaseUrl) return hosts
+
+  try {
+    const parsed = new URL(supabaseUrl)
+    hosts.add(parsed.hostname.toLowerCase())
+  } catch (error) {
+    console.warn('[ai-image] Invalid SUPABASE_URL when building allowlist:', error)
+  }
+
+  return hosts
+}
+
+function isAllowedRemoteHost(hostname: string, allowedHosts: Set<string>): boolean {
+  const host = hostname.toLowerCase()
+  for (const allowedHost of allowedHosts) {
+    if (host === allowedHost || host.endsWith(`.${allowedHost}`)) {
+      return true
+    }
+  }
+  return false
+}
+
+/** 如果 image 是 https URL 且在 allowlist 内则下载并转为 data URL，否则原样返回 */
+async function resolveImageToDataUrl(image: string, allowedHosts: Set<string>): Promise<string> {
   if (image.startsWith('data:')) return image
-  if (image.startsWith('http')) {
-    const resp = await fetch(image)
+  if (image.startsWith('http://')) {
+    throw new Error('仅支持 HTTPS 远程图片链接')
+  }
+  if (image.startsWith('https://')) {
+    const parsed = new URL(image)
+    if (isPrivateOrLocalHostname(parsed.hostname)) {
+      throw new Error('不允许访问本地或内网地址')
+    }
+    if (!isAllowedRemoteHost(parsed.hostname, allowedHosts)) {
+      throw new Error('远程图片域名不在允许列表')
+    }
+
+    const resp = await fetch(image, { redirect: 'error' })
+    if (!resp.ok) {
+      throw new Error(`远程图片下载失败: ${resp.status}`)
+    }
+
+    const contentLengthHeader = resp.headers.get('content-length')
+    if (contentLengthHeader) {
+      const contentLength = Number(contentLengthHeader)
+      if (Number.isFinite(contentLength) && contentLength > MAX_REMOTE_IMAGE_BYTES) {
+        throw new Error('远程图片过大，超过 10MB 限制')
+      }
+    }
+
     const buf = await resp.arrayBuffer()
+    if (buf.byteLength > MAX_REMOTE_IMAGE_BYTES) {
+      throw new Error('远程图片过大，超过 10MB 限制')
+    }
+
     const bytes = new Uint8Array(buf)
     let binary = ''
     const chunk = 8192
@@ -116,48 +188,62 @@ serve(async (req) => {
       ai_pixel_art: 50,
     }
 
+    if (!feature_code || !(feature_code in CREDIT_COSTS)) {
+      return new Response(JSON.stringify({ success: false, error: 'feature_code 缺失或无效' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
     const authHeader = req.headers.get('Authorization')
     const token = authHeader?.replace('Bearer ', '')
+    if (!token) {
+      return new Response(JSON.stringify({ success: false, error: '请先登录后再使用图像生成功能' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
 
-    if (SUPABASE_URL && SUPABASE_SERVICE_KEY && token) {
-      supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
-      const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
-      if (authError || !user) {
-        return new Response(JSON.stringify({ success: false, error: '用户认证失败，请重新登录' }), {
-          status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+      throw new Error('服务端配置错误：SUPABASE_URL 或 SUPABASE_SERVICE_ROLE_KEY 未配置')
+    }
+
+    supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
+    if (authError || !user) {
+      return new Response(JSON.stringify({ success: false, error: '用户认证失败，请重新登录' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+    userId = user.id
+    creditCost = CREDIT_COSTS[feature_code]
+
+    if (creditCost > 0) {
+      const resolvedRequestId = typeof request_id === 'string' && request_id.trim() ? request_id.trim() : crypto.randomUUID()
+      creditOperationId = resolvedRequestId
+      creditOperationFeatureCode = feature_code
+
+      const { data: beginResult, error: beginError } = await supabaseAdmin.rpc('begin_credit_operation', {
+        p_user_id: userId,
+        p_operation_id: resolvedRequestId,
+        p_feature_code: creditOperationFeatureCode,
+        p_amount: creditCost,
+        p_description: creditOperationFeatureCode,
+      })
+
+      if (beginError || !beginResult?.success) {
+        const errMsg = beginResult?.error === 'INSUFFICIENT_BALANCE'
+          ? `积分不足，需要 ${creditCost} 积分，当前余额 ${beginResult?.balance || 0}`
+          : '积分扣减失败'
+        return new Response(JSON.stringify({ success: false, error: errMsg }), {
+          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
       }
-      userId = user.id
-      creditCost = CREDIT_COSTS[feature_code] || 0
-
-      if (creditCost > 0) {
-        const resolvedRequestId = typeof request_id === 'string' && request_id.trim() ? request_id.trim() : crypto.randomUUID()
-        creditOperationId = resolvedRequestId
-        creditOperationFeatureCode = feature_code || 'ai_image'
-
-        const { data: beginResult, error: beginError } = await supabaseAdmin.rpc('begin_credit_operation', {
-          p_user_id: userId,
-          p_operation_id: resolvedRequestId,
-          p_feature_code: creditOperationFeatureCode,
-          p_amount: creditCost,
-          p_description: creditOperationFeatureCode,
-        })
-
-        if (beginError || !beginResult?.success) {
-          const errMsg = beginResult?.error === 'INSUFFICIENT_BALANCE'
-            ? `积分不足，需要 ${creditCost} 积分，当前余额 ${beginResult?.balance || 0}`
-            : '积分扣减失败'
-          return new Response(JSON.stringify({ success: false, error: errMsg }), {
-            status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          })
-        }
-        if (!beginResult?.already_exists) {
-          console.log(`[ai-image] Deducted ${creditCost} credits from user ${userId}`)
-        } else {
-          console.log(`[ai-image] Reused credit operation ${resolvedRequestId} for user ${userId} (status=${beginResult?.status})`)
-        }
+      if (!beginResult?.already_exists) {
+        console.log(`[ai-image] Deducted ${creditCost} credits from user ${userId}`)
+      } else {
+        console.log(`[ai-image] Reused credit operation ${resolvedRequestId} for user ${userId} (status=${beginResult?.status})`)
       }
     }
+    const allowedImageHosts = buildAllowedImageHosts(SUPABASE_URL)
 
     const isPixelArt = feature_code === 'ai_pixel_art'
     const resolvedLine = getImageProvider(line)
@@ -303,7 +389,7 @@ Flat-lay product showcase requirements:
       // images/edits 接口要求 image 参数
       // 如果用户上传了参考图片，使用第一张；否则发送一个 1x1 透明占位图
       if (images && Array.isArray(images) && images.length > 0) {
-        const firstImage = await resolveImageToDataUrl(images[0])
+        const firstImage = await resolveImageToDataUrl(images[0], allowedImageHosts)
         const matches = firstImage.match(/^data:([^;]+);base64,(.+)$/)
         if (matches) {
           const binaryStr = atob(matches[2])
@@ -407,7 +493,7 @@ Flat-lay product showcase requirements:
     // 如果有上传的图片，添加到请求中（支持 data URL 和 http URL）
     if (images && Array.isArray(images) && images.length > 0) {
       for (const img of images) {
-        const resolved = await resolveImageToDataUrl(img)
+        const resolved = await resolveImageToDataUrl(img, allowedImageHosts)
         // 从 base64 data URL 中提取实际数据
         const matches = resolved.match(/^data:([^;]+);base64,(.+)$/)
         if (matches) {

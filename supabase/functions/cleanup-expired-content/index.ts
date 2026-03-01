@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-cleanup-secret",
 };
 
 serve(async (req) => {
@@ -12,6 +12,22 @@ serve(async (req) => {
   }
 
   try {
+    const cleanupSecret = Deno.env.get("CLEANUP_CRON_SECRET");
+    if (!cleanupSecret) {
+      throw new Error("Missing CLEANUP_CRON_SECRET");
+    }
+
+    const providedSecret = req.headers.get("x-cleanup-secret");
+    if (!providedSecret || providedSecret !== cleanupSecret) {
+      return new Response(
+        JSON.stringify({ success: false, error: "UNAUTHORIZED" }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 401,
+        }
+      );
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 

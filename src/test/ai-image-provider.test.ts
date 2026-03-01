@@ -16,9 +16,9 @@ describe("ai-image provider resolution", () => {
     expect(standard.model).toBe("gemini-3-pro-image-preview");
     expect(standard.apiKeyEnv).toBe("BLTCY_API_KEY");
 
-    expect(premium.baseUrl).toBe("https://zenmux.ai/api/vertex-ai");
-    expect(premium.pathPrefix).toBe("v1");
-    expect(premium.model).toBe("google/gemini-3-pro-image-preview");
-    expect(premium.apiKeyEnv).toBe("ZENMUX_API_KEY");
+    expect(premium.baseUrl).toBe("https://api.bltcy.ai");
+    expect(premium.pathPrefix).toBe("v1beta");
+    expect(premium.model).toBe("gemini-3-pro-image-preview");
+    expect(premium.apiKeyEnv).toBe("BLTCY_PRO_API_KEY");
   });
 });
