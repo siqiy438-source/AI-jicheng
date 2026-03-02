@@ -38,7 +38,7 @@ export const PageLayout = ({
       <div className="fixed inset-0 texture-paper pointer-events-none z-0" />
 
       <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden relative z-10">
+      <div className="flex-1 flex flex-col overflow-x-clip relative z-10">
         {showHeader && <Header />}
         <main
           id="main-content"

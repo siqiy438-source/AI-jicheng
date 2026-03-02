@@ -1006,14 +1006,14 @@ button[data-compact],
   }
 
   .px-safe {
-    padding-left: max(0.75rem, var(--safe-area-left));
-    padding-right: max(0.75rem, var(--safe-area-right));
+    padding-left: max(1rem, var(--safe-area-left));
+    padding-right: max(1rem, var(--safe-area-right));
   }
 
   @media (min-width: 475px) {
     .px-safe {
-      padding-left: max(1rem, var(--safe-area-left));
-      padding-right: max(1rem, var(--safe-area-right));
+      padding-left: max(1.25rem, var(--safe-area-left));
+      padding-right: max(1.25rem, var(--safe-area-right));
     }
   }
 

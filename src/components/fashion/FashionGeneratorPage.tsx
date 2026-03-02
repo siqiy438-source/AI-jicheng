@@ -401,7 +401,7 @@ export const FashionGeneratorPage = ({
 
           <div className="border-t border-border/50 my-2 md:my-3" />
 
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+          <div className="flex flex-row items-center justify-between gap-2">
             <div className="flex items-center gap-1 md:gap-1.5 flex-1 min-w-0 flex-wrap overflow-visible" style={{ rowGap: "6px" }}>
               {shouldShowStyleDropdown && (
                 <div className="relative flex-shrink-0" onClick={(event) => event.stopPropagation()}>
@@ -535,7 +535,7 @@ export const FashionGeneratorPage = ({
 
             </div>
 
-            <div className="flex items-center gap-1.5 w-full md:w-auto">
+            <div className="flex items-center gap-1.5 flex-shrink-0">
               {featureCodePrefix && (
                 <CreditCostHint
                   featureCode={lineOptions.find(o => o.id === selectedLine)?.line === 'premium' ? `${featureCodePrefix}_premium` : `${featureCodePrefix}_standard`}
@@ -545,7 +545,7 @@ export const FashionGeneratorPage = ({
                 onClick={handleGenerate}
                 disabled={!canGenerate}
                 className={cn(
-                  "w-full md:w-10 h-10 rounded-xl flex items-center justify-center gap-1 transition-all duration-200 touch-target flex-shrink-0",
+                  "h-10 px-4 md:w-10 md:px-0 rounded-xl flex items-center justify-center gap-1.5 transition-all duration-200 touch-target flex-shrink-0",
                   canGenerate
                     ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)]"
                     : "bg-secondary/50 text-muted-foreground/50 cursor-not-allowed",
