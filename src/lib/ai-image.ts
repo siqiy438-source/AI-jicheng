@@ -72,6 +72,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Imag
 
     // 401 时强制刷新 token 重试一次
     if (response.status === 401) {
+      clearTimeout(timeoutId);
       const newToken = await forceRefreshToken();
       if (!newToken) {
         return { success: false, error: '登录已过期，请重新登录' };
@@ -87,6 +88,9 @@ export async function generateImage(params: ImageGenerationParams): Promise<Imag
       });
       clearTimeout(retryTimeoutId);
       if (!retryResponse.ok) {
+        if (retryResponse.status === 401) {
+          return { success: false, error: '登录已过期，请重新登录后重试' };
+        }
         const errorData = await retryResponse.json().catch(() => ({ error: retryResponse.statusText }));
         throw new Error(errorData.error || `请求失败: ${retryResponse.status}`);
       }

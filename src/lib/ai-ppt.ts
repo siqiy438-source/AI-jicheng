@@ -223,6 +223,8 @@ export async function generateSlideImage(params: {
 }): Promise<{ success: boolean; imageBase64?: string; imageUrl?: string; error?: string }> {
   try {
     const imageUrl = `${supabaseUrl}/functions/v1/ai-image`;
+    const requestId = crypto.randomUUID();
+    const featureCode = params.featureCode || 'ai_ppt_image_standard';
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 180000);
@@ -268,7 +270,7 @@ Requirements:
 - Text should be in Chinese (简体中文)
 - Aspect ratio: ${params.aspectRatio}`;
 
-    const response = await fetch(imageUrl, {
+    const response = await fetchWithRetry(imageUrl, {
       method: 'POST',
       headers: await getHeaders(),
       body: JSON.stringify({
@@ -276,7 +278,8 @@ Requirements:
         aspectRatio: params.aspectRatio,
         line: params.line || 'standard',
         resolution: params.resolution || 'default',
-        feature_code: params.featureCode,
+        feature_code: featureCode,
+        request_id: requestId,
       }),
       signal: controller.signal,
     });
