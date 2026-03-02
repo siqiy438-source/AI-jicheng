@@ -41,6 +41,7 @@ type DisplayPhase = "upload" | "identifying" | "analyzing" | "review" | "generat
 
 // 线路选项
 const lineOptions = [
+  { id: "speed", name: "灵犀极速版", line: "standard" as const, resolution: "speed" as const },
   { id: "premium", name: "灵犀 Pro", line: "premium" as const, resolution: "2k" as const, badge: "优质" },
   { id: "standard", name: "灵犀标准", line: "standard" as const, resolution: "default" as const },
   { id: "standard_2k", name: "灵犀 2K", line: "standard" as const, resolution: "2k" as const },
@@ -65,7 +66,7 @@ const AIDisplay = () => {
   // 上传状态
   const [clothingImages, setClothingImages] = useState<string[]>([]);
   const [additionalNotes, setAdditionalNotes] = useState("");
-  const [selectedLine, setSelectedLine] = useState("standard");
+  const [selectedLine, setSelectedLine] = useState("speed");
   const [showLineMenu, setShowLineMenu] = useState(false);
   const [selectedScene, setSelectedScene] = useState<SceneType>("wide");
 
@@ -159,7 +160,7 @@ const AIDisplay = () => {
   // Phase 2: 确认方案 → 生成参考图
   const handleGenerate = async () => {
     if (!analysis || clothingImages.length === 0) return;
-    const selectedLineOption = lineOptions.find(l => l.id === selectedLine) || lineOptions[1];
+    const selectedLineOption = lineOptions.find(l => l.id === selectedLine) || lineOptions[0];
     const featureCode = selectedLineOption.line === 'premium' ? 'ai_display_premium' : 'ai_display_standard';
     if (!checkCredits(featureCode)) return;
     setPhase("generating");

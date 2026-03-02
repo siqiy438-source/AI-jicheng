@@ -20,7 +20,7 @@ export interface ImageGenerationParams {
   styleId?: string;
   images?: string[];
   line?: "standard" | "premium";
-  resolution?: "default" | "2k" | "4k";
+  resolution?: "default" | "2k" | "4k" | "speed";
   hasFrameworkPrompt?: boolean;
   conversationHistory?: ConversationMessage[];
   featureCode: string;

@@ -470,7 +470,7 @@ const GenerativeReport = () => {
         images: [sourceAsset.url],
         aspectRatio: "4:3",
         line: "standard",
-        resolution: "2k",
+        resolution: "speed",
         featureCode: 'ai_report_page',
       });
 
@@ -558,7 +558,7 @@ const GenerativeReport = () => {
             }),
             aspectRatio: "4:3",
             line: "standard",
-            resolution: "2k",
+            resolution: "speed",
             featureCode: 'ai_report_page',
           });
 
@@ -584,7 +584,7 @@ const GenerativeReport = () => {
             }),
             aspectRatio: "4:3",
             line: "standard",
-            resolution: "2k",
+            resolution: "speed",
             featureCode: 'ai_report_page',
           });
 

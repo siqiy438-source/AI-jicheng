@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from 'sonner';
 import { useNavigate } from "react-router-dom";
 import { PageLayout } from "@/components/PageLayout";
@@ -23,6 +23,8 @@ import {
   Upload,
   X,
   ShoppingBag,
+  ChevronDown,
+  Zap,
 } from "lucide-react";
 
 type OutfitSlot = "inner" | "top" | "pants";
@@ -34,6 +36,7 @@ interface OutfitImageState {
 }
 
 const lineOptions = [
+  { id: "speed", name: "灵犀极速版", line: "standard" as const, resolution: "speed" as const },
   { id: "standard", name: "灵犀标准", line: "standard" as const, resolution: "default" as const },
   { id: "standard_2k", name: "灵犀 2K", line: "standard" as const, resolution: "2k" as const },
   { id: "standard_4k", name: "灵犀 4K", line: "standard" as const, resolution: "4k" as const },
@@ -57,11 +60,23 @@ const AIOneClickOutfit = () => {
     top: null,
     pants: null,
   });
-  const [selectedLine, setSelectedLine] = useState("standard");
+  const [selectedLine, setSelectedLine] = useState("speed");
+  const [showLineMenu, setShowLineMenu] = useState(false);
   const [additionalNotes, setAdditionalNotes] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStep, setGenerationStep] = useState("");
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const lineMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (lineMenuRef.current && !lineMenuRef.current.contains(event.target as Node)) {
+        setShowLineMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const getInputRef = (slot: OutfitSlot) => {
     if (slot === "inner") return innerInputRef;
@@ -295,21 +310,36 @@ cropped garments, partial view, flat lay, low quality, blurry, distorted fabric,
           <span className="text-sm font-medium text-foreground">第二步：选择清晰度并生成</span>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 mb-3">
-          {lineOptions.map((option) => (
+        <div className="mb-3">
+          <div className="relative inline-block" ref={lineMenuRef}>
             <button
-              key={option.id}
-              onClick={() => setSelectedLine(option.id)}
-              className={cn(
-                "rounded-lg border px-3 py-2 text-sm transition-all",
-                selectedLine === option.id
-                  ? "border-primary/30 bg-primary/10 text-primary"
-                  : "border-border bg-card text-muted-foreground hover:border-primary/25"
-              )}
+              onClick={() => setShowLineMenu((prev) => !prev)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm bg-secondary/50 text-muted-foreground hover:bg-secondary transition-all duration-200 border border-transparent whitespace-nowrap"
             >
-              {option.name}
+              <Zap className="w-3.5 h-3.5" />
+              <span>{lineOptions.find((o) => o.id === selectedLine)?.name}</span>
+              <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showLineMenu && "rotate-180")} />
             </button>
-          ))}
+            {showLineMenu && (
+              <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 min-w-[140px] max-h-[220px] overflow-y-auto scrollbar-thin">
+                {lineOptions.map((option) => (
+                  <button
+                    key={option.id}
+                    onClick={() => {
+                      setSelectedLine(option.id);
+                      setShowLineMenu(false);
+                    }}
+                    className={cn(
+                      "w-full px-3 py-2.5 text-sm hover:bg-secondary/50 transition-all duration-200 text-left",
+                      selectedLine === option.id && "bg-orange-50 text-orange-700"
+                    )}
+                  >
+                    {option.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="mb-3 rounded-lg border border-primary/20 bg-primary/10 p-2.5 text-xs text-primary flex items-center gap-2">

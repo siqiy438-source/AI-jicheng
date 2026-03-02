@@ -5,7 +5,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
-import { buildGenerateContentUrl, getImageProvider, getProviderConfig, isHDResolution, isPremiumHD, getHDModel, getHDApiUrl, PIXEL_ART_MODEL } from "./provider.ts"
+import { buildGenerateContentUrl, getImageProvider, getProviderConfig, isHDResolution, isPremiumHD, getHDModel, getHDApiUrl, PIXEL_ART_MODEL, SPEED_IMAGE_MODEL } from "./provider.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -253,6 +253,10 @@ serve(async (req) => {
     // 像素块生成使用专用模型
     if (isPixelArt) {
       providerConfig.model = PIXEL_ART_MODEL
+    }
+    // 极速线路使用 Nano Banana 2（Gemini 3.1 Flash Image Preview）
+    if (!isPixelArt && resolvedResolution === 'speed') {
+      providerConfig.model = SPEED_IMAGE_MODEL
     }
     const providerApiKey = Deno.env.get(providerConfig.apiKeyEnv)
     const providerName = "BLTCY"

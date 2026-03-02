@@ -84,6 +84,7 @@ const PAGE_COUNTS = [3, 5, 8, 10, 12];
 
 // 线路选项
 const PPT_LINE_OPTIONS = [
+  { id: "speed", name: "灵犀极速版", line: "standard" as const, resolution: "speed" as const },
   { id: "standard", name: "灵犀标准", line: "standard" as const, resolution: "default" as const },
   { id: "standard_2k", name: "灵犀 2K", line: "standard" as const, resolution: "2k" as const },
   { id: "standard_4k", name: "灵犀 4K", line: "standard" as const, resolution: "4k" as const },
@@ -135,7 +136,7 @@ const AIPPT = () => {
   const [style, setStyle] = useState("free");
   const [template, setTemplate] = useState("none");
   const [aspectRatio, setAspectRatio] = useState("16:9");
-  const [selectedLine, setSelectedLine] = useState("standard_2k");
+  const [selectedLine, setSelectedLine] = useState("speed");
   const [showLineMenu, setShowLineMenu] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState("");
   const [isParsingFile, setIsParsingFile] = useState(false);

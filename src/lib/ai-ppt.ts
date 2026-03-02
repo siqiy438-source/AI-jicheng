@@ -218,7 +218,7 @@ export async function generateSlideImage(params: {
   template: string;
   aspectRatio: string;
   line?: "standard" | "premium";
-  resolution?: "default" | "2k" | "4k";
+  resolution?: "default" | "2k" | "4k" | "speed";
   featureCode?: string;
 }): Promise<{ success: boolean; imageBase64?: string; imageUrl?: string; error?: string }> {
   try {

@@ -69,7 +69,7 @@ const CreativeTools = () => {
               className="glass-card p-3 md:p-5 rounded-xl md:rounded-2xl hover:shadow-lg transition-shadow duration-200 group relative overflow-hidden text-left active:scale-[0.98] opacity-0 animate-fade-in"
               style={{ animationDelay: `${160 + index * 80}ms` }}
             >
-              <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center mb-2.5 md:mb-4 transition-transform group-hover:scale-110 bg-primary/10">
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center mb-2.5 md:mb-4 transition-transform group-hover:scale-110">
                 {tool.iconSrc ? (
                   <img src={tool.iconSrc} alt={tool.title} loading="lazy" decoding="async" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
                 ) : tool.Icon ? (

@@ -130,7 +130,7 @@ const OutfitRecommend = () => {
         images: [image],
         aspectRatio: "9:16",
         line: "standard",
-        resolution: "default",
+        resolution: "speed",
         hasFrameworkPrompt: true,
         featureCode: "ai_outfit_visual_standard",
       });

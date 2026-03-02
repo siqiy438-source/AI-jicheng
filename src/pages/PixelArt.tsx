@@ -90,7 +90,7 @@ const PixelArt = () => {
         images: [compressed],
         aspectRatio: "1:1",
         line: "standard",
-        resolution: "default",
+        resolution: "speed",
         featureCode: "ai_pixel_art",
         requestId: requestIdRef.current,
       });

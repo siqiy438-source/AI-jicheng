@@ -57,6 +57,7 @@ const ratioOptions = [
 ];
 
 const lineOptions = [
+  { id: "speed", name: "灵犀极速版", line: "standard" as const, resolution: "speed" as const },
   { id: "premium", name: "灵犀 Pro", line: "premium" as const, resolution: "2k" as const, badge: "优质" },
   { id: "standard", name: "灵犀标准", line: "standard" as const, resolution: "default" as const },
   { id: "standard_2k", name: "灵犀 2K", line: "standard" as const, resolution: "2k" as const },
@@ -82,7 +83,7 @@ export const FashionGeneratorPage = ({
   const [prompt, setPrompt] = useState("");
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [selectedRatio, setSelectedRatio] = useState("9:16");
-  const [selectedLine, setSelectedLine] = useState("standard");
+  const [selectedLine, setSelectedLine] = useState("speed");
   const [selectedStyleId, setSelectedStyleId] = useState(styleOptions?.[0]?.id ?? "");
   const [showRatioMenu, setShowRatioMenu] = useState(false);
   const [showLineMenu, setShowLineMenu] = useState(false);
@@ -160,7 +161,7 @@ export const FashionGeneratorPage = ({
   const handleGenerate = async () => {
     if (!canGenerate) return;
 
-    const selectedLineOption = lineOptions.find((lineOption) => lineOption.id === selectedLine) || lineOptions[1];
+    const selectedLineOption = lineOptions.find((lineOption) => lineOption.id === selectedLine) || lineOptions[0];
     const featureCode = featureCodePrefix
       ? (selectedLineOption.line === 'premium' ? `${featureCodePrefix}_premium` : `${featureCodePrefix}_standard`)
       : undefined;

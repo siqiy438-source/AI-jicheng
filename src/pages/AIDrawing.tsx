@@ -165,6 +165,7 @@ const ratioOptions = [
 
 // 线路选项
 const lineOptions = [
+  { id: "speed", name: "灵犀极速版", line: "standard" as const, resolution: "speed" as const },
   { id: "premium", name: "灵犀 Pro", line: "premium" as const, resolution: "2k" as const, badge: "优质" },
   { id: "standard", name: "灵犀标准", line: "standard" as const, resolution: "default" as const },
   { id: "standard_2k", name: "灵犀 2K", line: "standard" as const, resolution: "2k" as const },
@@ -198,7 +199,7 @@ const AIDrawing = () => {
   const [showRatioMenu, setShowRatioMenu] = useState(false);
   const [showLineMenu, setShowLineMenu] = useState(false);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
-  const [selectedLine, setSelectedLine] = useState("standard");
+  const [selectedLine, setSelectedLine] = useState("speed");
   const [selectedLanguage, setSelectedLanguage] = useState("zh");
 
   // 多轮对话状态
@@ -315,7 +316,7 @@ const AIDrawing = () => {
   // 调用 AI 生成
   const handleGenerate = async () => {
     if (!prompt.trim() && imagePreviews.length === 0) return;
-    const selectedLineOption = lineOptions.find(l => l.id === selectedLine) || lineOptions[1];
+    const selectedLineOption = lineOptions.find(l => l.id === selectedLine) || lineOptions[0];
     const featureCode = selectedLineOption.line === 'premium' ? 'ai_image_premium' : 'ai_image_standard';
     if (!checkCredits(featureCode)) return;
     setIsGenerating(true);

@@ -57,7 +57,7 @@ const DETAIL_SLOTS: DetailSlot[] = [
 
 const DEFAULT_RATIO = "3:4";
 const DEFAULT_LINE = "standard" as const;
-const DEFAULT_RESOLUTION = "default" as const;
+const DEFAULT_RESOLUTION = "speed" as const;
 
 const buildMainPrompt = () => {
   return `你是高端时尚电商摄影总监。请基于参考图，生成一张“高级感完整主图”。这是第 1 张图。

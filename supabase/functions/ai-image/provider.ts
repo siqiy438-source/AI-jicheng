@@ -1,5 +1,5 @@
 export type ImageLine = "standard" | "premium";
-export type ImageResolution = "default" | "2k" | "4k";
+export type ImageResolution = "default" | "2k" | "4k" | "speed";
 
 interface ProviderConfig {
   line: ImageLine;
@@ -39,6 +39,9 @@ export const getProviderConfig = (line: ImageLine): ProviderConfig => {
 
 /** 像素块生成专用模型 */
 export const PIXEL_ART_MODEL = "gemini-3.1-flash-image-preview";
+
+/** 极速线路专用模型 */
+export const SPEED_IMAGE_MODEL = "gemini-3.1-flash-image-preview";
 
 export const buildGenerateContentUrl = (config: ProviderConfig) =>
   `${config.baseUrl}/${config.pathPrefix}/models/${config.model}:generateContent`;
