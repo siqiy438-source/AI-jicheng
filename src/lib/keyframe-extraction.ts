@@ -58,15 +58,24 @@ export async function extractKeyframes(
       };
 
       video.onseeked = () => {
-        // 设置 Canvas 尺寸为视频尺寸
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
+        // 限制 Canvas 尺寸，最大宽度 800px
+        const maxWidth = 800;
+        let width = video.videoWidth;
+        let height = video.videoHeight;
+
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
 
         // 绘制当前帧到 Canvas
-        ctx.drawImage(video, 0, 0);
+        ctx.drawImage(video, 0, 0, width, height);
 
-        // 转为 Base64（JPEG 格式，质量 0.8）
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        // 转为 Base64（JPEG 格式，质量 0.5 降低文件大小）
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.5);
 
         keyframes.push({
           timestamp: video.currentTime,

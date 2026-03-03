@@ -88,8 +88,8 @@ export async function analyzeVideo(
   // 1. 上传视频
   const uploadResult: UploadVideoResult = await uploadVideoForAnalysis(videoFile, userId)
 
-  // 2. 提取关键帧
-  const keyframes: KeyframeData[] = await extractKeyframes(videoFile, 5)
+  // 2. 提取关键帧（减少到 3 个以降低数据大小）
+  const keyframes: KeyframeData[] = await extractKeyframes(videoFile, 3)
 
   // 3. 调用 Edge Function 分析
   let token = await getAccessToken()
