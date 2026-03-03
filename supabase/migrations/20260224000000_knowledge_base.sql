@@ -15,6 +15,7 @@ create table if not exists public.knowledge_base (
   constraint kb_content_not_empty check (char_length(trim(content)) > 0)
 );
 
+drop trigger if exists knowledge_base_set_updated_at on public.knowledge_base;
 create trigger knowledge_base_set_updated_at
 before update on public.knowledge_base
 for each row execute procedure public.set_updated_at();
@@ -24,16 +25,20 @@ create index if not exists knowledge_base_user_category_idx
 
 alter table public.knowledge_base enable row level security;
 
+drop policy if exists kb_select_own on public.knowledge_base;
 create policy kb_select_own on public.knowledge_base
   for select to authenticated using ((select auth.uid()) = user_id);
 
+drop policy if exists kb_insert_own on public.knowledge_base;
 create policy kb_insert_own on public.knowledge_base
   for insert to authenticated with check ((select auth.uid()) = user_id);
 
+drop policy if exists kb_update_own on public.knowledge_base;
 create policy kb_update_own on public.knowledge_base
   for update to authenticated
   using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
 
+drop policy if exists kb_delete_own on public.knowledge_base;
 create policy kb_delete_own on public.knowledge_base
   for delete to authenticated using ((select auth.uid()) = user_id);

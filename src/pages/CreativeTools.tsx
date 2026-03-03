@@ -4,6 +4,7 @@ import {
   Sparkles,
   Palette,
   Grid2x2,
+  Video,
   type LucideIcon,
 } from "lucide-react";
 
@@ -33,6 +34,12 @@ const tools: ToolItem[] = [
     description: "上传图片自动分析，并一键生成可编辑 PPT 报告。",
     iconSrc: "/icons/generative-report-vintage.png",
     to: "/generative-report",
+  },
+  {
+    title: "视频深度拉片",
+    description: "上传视频进行 6 轮深度分析，提炼卖点和改进建议。",
+    Icon: Video,
+    to: "/video-analysis",
   },
   {
     title: "像素块生成",

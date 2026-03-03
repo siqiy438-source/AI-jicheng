@@ -43,6 +43,8 @@ export const FEATURE_PRICES: Record<string, FeaturePriceConfig> = {
   ai_outfit_visual_standard: { name: '搭配师模特图', cost: 50, billing: 'fixed' },
   ai_fabric_analysis: { name: '面料说明生成器', cost: 30, billing: 'fixed' },
   ai_pixel_art: { name: '像素块生成', cost: 50, billing: 'fixed' },
+  ai_video_analysis_round: { name: '视频分析单轮', cost: 50, billing: 'fixed' },
+  ai_video_analysis: { name: '视频深度拉片', cost: 200, billing: 'fixed' },
 }
 
 export function parseCreditsValue(value: unknown): number | null {
