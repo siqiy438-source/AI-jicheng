@@ -1,7 +1,7 @@
-import { supabase, getAccessToken, forceRefreshToken } from './supabase'
+import { supabase, getAccessToken, forceRefreshToken, supabaseUrl } from './supabase'
 import { uploadVideoForAnalysis, type UploadVideoResult } from './video-upload'
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+const SUPABASE_URL = supabaseUrl
 
 // 更新后的接口定义
 export interface VideoAnalysisSession {
