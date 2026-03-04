@@ -121,12 +121,12 @@ export async function createAnalysisSession(
   // 1. 上传视频到 Supabase Storage
   const uploadResult: UploadVideoResult = await uploadVideoForAnalysis(videoFile, userId)
 
-  // 2. 转存到阿里云 OSS（豆包 API 可以访问）
-  console.log('[video-analysis] Uploading to Aliyun OSS...')
-  const ossUrl = await uploadToOSS(uploadResult.path)
-  console.log('[video-analysis] OSS URL:', ossUrl)
+  // 2. 临时方案：直接使用 Supabase Storage URL，跳过 OSS 上传
+  // 原因：大文件上传到 OSS 容易超时
+  console.log('[video-analysis] Using Supabase Storage URL directly (skipping OSS)')
+  const videoUrl = uploadResult.url
 
-  // 3. 创建会话（使用 OSS URL）
+  // 3. 创建会话（使用 Supabase Storage URL）
   let token = await getAccessToken()
 
   const makeRequest = async (authToken: string) => {
@@ -138,7 +138,7 @@ export async function createAnalysisSession(
       },
       body: JSON.stringify({
         action: 'create_session',
-        video_url: ossUrl, // 使用 OSS URL
+        video_url: videoUrl, // 使用 Supabase Storage URL
         video_path: uploadResult.path,
         video_filename: videoFile.name,
         feature_code: 'ai_video_analysis',
