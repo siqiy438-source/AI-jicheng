@@ -7,12 +7,12 @@ VALUES (
   'user-uploads',
   'user-uploads',
   true,
-  104857600,
+  524288000,
   ARRAY['video/mp4', 'video/quicktime', 'video/x-msvideo', 'image/jpeg', 'image/png']
 )
 ON CONFLICT (id) DO UPDATE SET
   public = true,
-  file_size_limit = 104857600,
+  file_size_limit = 524288000,
   allowed_mime_types = ARRAY['video/mp4', 'video/quicktime', 'video/x-msvideo', 'image/jpeg', 'image/png'];
 
 -- 2. 删除旧策略（如果存在）

@@ -15,10 +15,20 @@ export async function uploadVideoForAnalysis(
   file: File,
   userId: string
 ): Promise<UploadVideoResult> {
-  // 1. 校验文件大小（最大 100MB）
+  // 1. 校验文件大小（最大 100MB - 超过 50MB 会在上传前自动压缩）
   const MAX_SIZE = 100 * 1024 * 1024 // 100MB
+
+  // 详细日志：记录文件信息
+  console.log('[video-upload] 文件信息:', {
+    name: file.name,
+    size: file.size,
+    sizeInMB: (file.size / 1024 / 1024).toFixed(2),
+    type: file.type,
+    maxSizeInMB: (MAX_SIZE / 1024 / 1024).toFixed(2),
+  })
+
   if (file.size > MAX_SIZE) {
-    throw new Error('视频文件不能超过 100MB')
+    throw new Error(`视频文件不能超过 100MB，当前文件大小: ${(file.size / 1024 / 1024).toFixed(2)}MB`)
   }
 
   // 2. 校验文件格式
@@ -34,6 +44,8 @@ export async function uploadVideoForAnalysis(
   const filePath = `video-analysis/${userId}/${timestamp}-${randomStr}.${fileExt}`
 
   // 4. 上传到 Supabase Storage
+  console.log('[video-upload] 开始上传到 Supabase Storage:', filePath)
+
   const { error: uploadError } = await supabase.storage
     .from('user-uploads')
     .upload(filePath, file, {
@@ -42,16 +54,38 @@ export async function uploadVideoForAnalysis(
     })
 
   if (uploadError) {
+    console.error('[video-upload] 上传失败:', {
+      error: uploadError,
+      message: uploadError.message,
+      statusCode: uploadError.statusCode,
+    })
     throw new Error(`视频上传失败: ${uploadError.message}`)
   }
 
-  // 5. 获取公开 URL
-  const { data: { publicUrl } } = supabase.storage
+  console.log('[video-upload] 上传成功:', filePath)
+
+  // 5. 获取签名 URL（有效期 1 小时，供豆包 API 访问）
+  const { data: signedUrlData, error: signedUrlError } = await supabase.storage
     .from('user-uploads')
-    .getPublicUrl(filePath)
+    .createSignedUrl(filePath, 3600) // 1 小时有效期
+
+  if (signedUrlError || !signedUrlData) {
+    console.error('[video-upload] Failed to create signed URL:', signedUrlError)
+    // 如果签名 URL 失败，使用公开 URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('user-uploads')
+      .getPublicUrl(filePath)
+
+    return {
+      url: publicUrl,
+      path: filePath,
+    }
+  }
+
+  console.log('[video-upload] Created signed URL with 1 hour expiry')
 
   return {
-    url: publicUrl,
+    url: signedUrlData.signedUrl,
     path: filePath,
   }
 }

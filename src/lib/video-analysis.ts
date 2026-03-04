@@ -1,5 +1,4 @@
 import { supabase, getAccessToken, forceRefreshToken } from './supabase'
-import { extractKeyframes, type KeyframeData } from './keyframe-extraction'
 import { uploadVideoForAnalysis, type UploadVideoResult } from './video-upload'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
@@ -14,7 +13,6 @@ export interface VideoAnalysisSession {
   status: 'pending' | 'analyzing' | 'completed' | 'failed'
   analysis_result: VideoAnalysisResult | null
   report_image_url: string | null
-  keyframes: KeyframeData[] | null
   credits_cost: number
   created_at: string
   updated_at: string
@@ -76,22 +74,50 @@ export interface VideoAnalysisResult {
 }
 
 /**
- * 分析视频（完整流程）
+ * 将视频上传到阿里云 OSS
+ */
+async function uploadToOSS(supabasePath: string): Promise<string> {
+  const token = await getAccessToken()
+
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/upload-to-oss`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      supabase_path: supabasePath,
+    }),
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.error || '上传到 OSS 失败')
+  }
+
+  const data = await response.json()
+  return data.oss_url
+}
+
+/**
+ * 创建分析会话（立即返回，不等待分析完成）
  * @param videoFile 视频文件
  * @param userId 用户 ID
  * @returns 分析会话
  */
-export async function analyzeVideo(
+export async function createAnalysisSession(
   videoFile: File,
   userId: string
 ): Promise<VideoAnalysisSession> {
-  // 1. 上传视频
+  // 1. 上传视频到 Supabase Storage
   const uploadResult: UploadVideoResult = await uploadVideoForAnalysis(videoFile, userId)
 
-  // 2. 提取关键帧（减少到 3 个以降低数据大小）
-  const keyframes: KeyframeData[] = await extractKeyframes(videoFile, 3)
+  // 2. 转存到阿里云 OSS（豆包 API 可以访问）
+  console.log('[video-analysis] Uploading to Aliyun OSS...')
+  const ossUrl = await uploadToOSS(uploadResult.path)
+  console.log('[video-analysis] OSS URL:', ossUrl)
 
-  // 3. 调用 Edge Function 分析
+  // 3. 创建会话（使用 OSS URL）
   let token = await getAccessToken()
 
   const makeRequest = async (authToken: string) => {
@@ -102,11 +128,10 @@ export async function analyzeVideo(
         'Authorization': `Bearer ${authToken}`,
       },
       body: JSON.stringify({
-        action: 'analyze',
-        video_url: uploadResult.url,
+        action: 'create_session',
+        video_url: ossUrl, // 使用 OSS URL
         video_path: uploadResult.path,
         video_filename: videoFile.name,
-        keyframes: keyframes.map(kf => kf.dataUrl),
         feature_code: 'ai_video_analysis',
       }),
     })
@@ -122,11 +147,56 @@ export async function analyzeVideo(
 
   if (!response.ok) {
     const error = await response.json()
-    throw new Error(error.error || '分析失败')
+    console.error('[video-analysis] Create session error:', {
+      status: response.status,
+      statusText: response.statusText,
+      error: error,
+    })
+    throw new Error(error.error || `创建会话失败 (${response.status})`)
   }
 
   const data = await response.json()
   return data.session
+}
+
+/**
+ * 触发后台分析（不等待响应）
+ * @param sessionId 会话 ID
+ */
+export async function triggerBackgroundAnalysis(sessionId: string): Promise<void> {
+  const token = await getAccessToken()
+
+  // 触发后台分析，不等待响应
+  fetch(`${SUPABASE_URL}/functions/v1/ai-video-analysis`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      action: 'process_analysis',
+      session_id: sessionId,
+    }),
+  }).catch(error => {
+    // 忽略错误，因为这是后台处理
+    console.log('[video-analysis] Background analysis triggered (may timeout, but will continue in background)')
+  })
+}
+
+/**
+ * 分析视频（完整流程 - 已废弃，使用 createAnalysisSession + triggerBackgroundAnalysis）
+ * @param videoFile 视频文件
+ * @param userId 用户 ID
+ * @returns 分析会话
+ */
+export async function analyzeVideo(
+  videoFile: File,
+  userId: string
+): Promise<VideoAnalysisSession> {
+  // 使用新的异步处理流程
+  const session = await createAnalysisSession(videoFile, userId)
+  await triggerBackgroundAnalysis(session.id)
+  return session
 }
 
 /**
