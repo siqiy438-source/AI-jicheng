@@ -356,11 +356,11 @@ export function VideoAnalysisReport({ result, videoFilename, videoDuration }: Vi
               <div className="space-y-2 md:space-y-4">
                 {result.script_structure.structure_breakdown.map((segment, index) => (
                   <div key={index} className="bg-secondary/50 backdrop-blur-sm rounded-lg md:rounded-xl p-3 md:p-6 border border-border">
-                    <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
-                      <Badge className="bg-gradient-to-r from-purple-500 to-purple-600 text-foreground border-0">
+                    <div className="flex items-center gap-3 mb-3 md:mb-4">
+                      <Badge className="bg-gradient-to-r from-purple-500 to-purple-600 text-white border-0 shrink-0 py-1">
                         {segment.time_range}
                       </Badge>
-                      <h4 className="font-bold text-foreground">{segment.purpose}</h4>
+                      <h4 className="font-bold text-foreground leading-tight">{segment.purpose}</h4>
                     </div>
                     <div className="space-y-2 md:space-y-3">
                       <div>
@@ -422,7 +422,7 @@ export function VideoAnalysisReport({ result, videoFilename, videoDuration }: Vi
                                     <span className="text-sm font-mono font-bold text-orange-600">{formatTimestamp(moment.timestamp)}</span>
                                   </div>
                                 </div>
-                                <Badge className="bg-gradient-to-r from-orange-500 to-orange-600 text-foreground border-0 shadow-lg">
+                                <Badge className="bg-gradient-to-r from-orange-500 to-orange-600 text-white border-0 shadow-lg shrink-0 py-1">
                                   {moment.element}
                                 </Badge>
                               </div>
@@ -512,7 +512,7 @@ export function VideoAnalysisReport({ result, videoFilename, videoDuration }: Vi
                 </div>
                 <div className="bg-secondary/50 backdrop-blur-sm rounded-lg md:rounded-xl p-3 md:p-6 border border-border">
                   <div className="text-sm text-muted-foreground mb-3">钩子类型</div>
-                  <Badge className="text-sm md:text-lg px-3 md:px-6 py-1.5 md:py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-foreground border-0 shadow-lg">
+                  <Badge className="text-sm md:text-lg px-3 md:px-6 py-1.5 md:py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white border-0 shadow-lg shrink-0">
                     {result.hook_analysis.hook_type}
                   </Badge>
                 </div>
@@ -813,7 +813,7 @@ export function VideoAnalysisReport({ result, videoFilename, videoDuration }: Vi
               <div className="space-y-2 md:space-y-4">
                 <div className="bg-secondary/50 backdrop-blur-sm rounded-xl md:rounded-2xl p-5 border border-border">
                   <div className="text-xs text-muted-foreground mb-2">选题类型</div>
-                  <Badge className="text-sm md:text-base px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-foreground border-0">
+                  <Badge className="text-sm md:text-base px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white border-0 shrink-0">
                     {result.topic_analysis.topic_type}
                   </Badge>
                 </div>
@@ -852,7 +852,7 @@ export function VideoAnalysisReport({ result, videoFilename, videoDuration }: Vi
 
               <div className="space-y-2 md:space-y-3 md:space-y-6">
                 <div className="flex items-center justify-center">
-                  <Badge className="text-lg md:text-2xl px-4 md:px-8 py-2 md:py-4 bg-gradient-to-r from-purple-500 to-purple-600 text-foreground border-0 shadow-lg">
+                  <Badge className="text-lg md:text-2xl px-4 md:px-8 py-2 md:py-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white border-0 shadow-lg shrink-0">
                     {result.script_type.primary_type}
                   </Badge>
                 </div>
