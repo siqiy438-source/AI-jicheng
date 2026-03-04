@@ -44,6 +44,7 @@ const OutfitRecommend = lazy(() => import("./pages/OutfitRecommend"));
 const FabricAnalysis = lazy(() => import("./pages/FabricAnalysis"));
 const PixelArt = lazy(() => import("./pages/PixelArt"));
 const VideoAnalysis = lazy(() => import("./pages/VideoAnalysis"));
+const MobileTest = lazy(() => import("./pages/MobileTest"));
 
 const queryClient = new QueryClient();
 
@@ -83,6 +84,7 @@ const App = () => (
               <Route path="/generative-report" element={<ProtectedRoute><GenerativeReport /></ProtectedRoute>} />
               <Route path="/pixel-art" element={<ProtectedRoute><PixelArt /></ProtectedRoute>} />
               <Route path="/video-analysis" element={<ProtectedRoute><VideoAnalysis /></ProtectedRoute>} />
+              <Route path="/mobile-test" element={<ProtectedRoute><MobileTest /></ProtectedRoute>} />
               <Route path="/my-works" element={<ProtectedRoute><MyWorks /></ProtectedRoute>} />
               <Route path="/my-materials" element={<ProtectedRoute><MyMaterials /></ProtectedRoute>} />
               <Route path="/more-features" element={<ProtectedRoute><MoreFeatures /></ProtectedRoute>} />
