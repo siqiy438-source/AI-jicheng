@@ -233,7 +233,7 @@ export function VideoAnalysisReport({ result, videoFilename, videoDuration }: Vi
   const detectedHook = identifyHookTechnique(result.hook_analysis.hook_type)
 
   return (
-    <div className="space-y-3 md:space-y-6">
+    <div id="video-analysis-report" className="space-y-3 md:space-y-6">
       {/* 封面区域 */}
       <div className="glass-card rounded-xl md:rounded-2xl p-3 md:p-6 shadow-lg">
         <div className="text-center mb-3 md:mb-4">
@@ -243,9 +243,9 @@ export function VideoAnalysisReport({ result, videoFilename, videoDuration }: Vi
           </div>
           <h1 className="text-xl md:text-3xl font-bold text-foreground mb-2">
             视频深度拉片报告
-            </h1>
-            <p className="text-center text-muted-foreground text-xs md:text-sm mb-3 md:mb-4">AI-Powered Video Analysis Report</p>
-            <div className="grid grid-cols-3 gap-2 md:gap-3 max-w-2xl mx-auto">
+          </h1>
+          <p className="text-center text-muted-foreground text-xs md:text-sm mb-3 md:mb-4">AI-Powered Video Analysis Report</p>
+          <div className="grid grid-cols-3 gap-2 md:gap-3 max-w-2xl mx-auto">
               <div className="bg-secondary/50 backdrop-blur-sm rounded-lg md:rounded-xl p-2 md:p-4 border border-border">
                 <div className="text-lg md:text-2xl font-bold text-foreground mb-0.5 md:mb-1">{videoDuration || result.basic_info.duration}s</div>
                 <div className="text-[10px] md:text-xs text-muted-foreground">视频时长</div>
@@ -259,7 +259,6 @@ export function VideoAnalysisReport({ result, videoFilename, videoDuration }: Vi
                 <div className="text-[10px] md:text-xs text-muted-foreground">分析日期</div>
               </div>
             </div>
-          </div>
         </div>
 
         {/* 爆款拆解 - 核心成功要素 */}

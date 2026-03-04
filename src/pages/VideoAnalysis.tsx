@@ -3,15 +3,26 @@ import { useVideoAnalysis } from '@/hooks/use-video-analysis'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Upload, AlertCircle, Loader2, Video, Sparkles, Clock, ArrowLeft } from 'lucide-react'
+import { Upload, AlertCircle, Loader2, Video, Sparkles, Clock, ArrowLeft, Download, FileImage, FileText } from 'lucide-react'
 import { toast } from 'sonner'
 import { VideoAnalysisReport } from '@/components/VideoAnalysisReport'
 import { PageLayout } from '@/components/PageLayout'
 import { useNavigate } from 'react-router-dom'
 import { cn } from '@/lib/utils'
+import { exportReportAsPNG, exportReportAsPDF } from '@/lib/report-export'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 export default function VideoAnalysis() {
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
   const {
     session,
     isAnalyzing,
@@ -22,6 +33,8 @@ export default function VideoAnalysis() {
   } = useVideoAnalysis()
 
   const [dragActive, setDragActive] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
+  const [exportDialogOpen, setExportDialogOpen] = useState(false)
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault()
@@ -61,6 +74,48 @@ export default function VideoAnalysis() {
   const handleReset = () => {
     reset()
     toast.success('已重置')
+  }
+
+  const handleExportPNG = async () => {
+    setIsExporting(true)
+    try {
+      const filename = session?.video_filename
+        ? `${session.video_filename.replace(/\.[^/.]+$/, '')}-分析报告`
+        : `视频分析报告-${Date.now()}`
+
+      await exportReportAsPNG('video-analysis-report', filename)
+      setExportDialogOpen(false)
+    } catch (error) {
+      console.error('导出 PNG 失败:', error)
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
+  const handleExportPDF = async () => {
+    setIsExporting(true)
+    try {
+      const filename = session?.video_filename
+        ? `${session.video_filename.replace(/\.[^/.]+$/, '')}-分析报告`
+        : `视频分析报告-${Date.now()}`
+
+      await exportReportAsPDF('video-analysis-report', filename)
+      setExportDialogOpen(false)
+    } catch (error) {
+      console.error('导出 PDF 失败:', error)
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
+  const handleExport = () => {
+    // 移动端直接导出 PNG
+    if (isMobile) {
+      handleExportPNG()
+    } else {
+      // 桌面端打开对话框选择格式
+      setExportDialogOpen(true)
+    }
   }
 
   const getProgressPercentage = () => {
@@ -234,6 +289,91 @@ export default function VideoAnalysis() {
         <div className="space-y-4 md:space-y-6">
           {/* 视频信息卡片 */}
           <div className="glass-card rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg">
+            {/* 分析中状态 */}
+            {(session.status === 'pending' || session.status === 'analyzing') && (
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <Loader2 className="h-6 w-6 text-primary animate-spin" />
+                      <div className="absolute inset-0 h-6 w-6 rounded-full bg-primary/20 animate-ping"></div>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-foreground">正在深度分析中...</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {session.status === 'pending' ? '准备开始分析' : getProgressMessage()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-primary">{getProgressPercentage()}%</div>
+                    <div className="text-xs text-muted-foreground">预计 2-3 分钟</div>
+                  </div>
+                </div>
+
+                {/* 进度条 */}
+                <div className="relative">
+                  <Progress value={getProgressPercentage()} className="h-3" />
+                  <div className="flex justify-between text-xs text-muted-foreground mt-2">
+                    <span>已完成 {getProgressPercentage()}%</span>
+                    <span>剩余约 {Math.ceil((100 - getProgressPercentage()) / 50)} 分钟</span>
+                  </div>
+                </div>
+
+                {/* 分析步骤指示器 */}
+                <div className="mt-6 grid grid-cols-3 gap-3">
+                  <div className={cn(
+                    "p-3 rounded-lg border-2 transition-all",
+                    getProgressPercentage() >= 20
+                      ? "border-primary bg-primary/10"
+                      : "border-border bg-secondary/50"
+                  )}>
+                    <div className="flex items-center gap-2 mb-1">
+                      {getProgressPercentage() >= 20 ? (
+                        <div className="h-2 w-2 rounded-full bg-primary animate-pulse"></div>
+                      ) : (
+                        <div className="h-2 w-2 rounded-full bg-muted-foreground"></div>
+                      )}
+                      <span className="text-xs font-medium">视频上传</span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">解析视频内容</p>
+                  </div>
+                  <div className={cn(
+                    "p-3 rounded-lg border-2 transition-all",
+                    getProgressPercentage() >= 50
+                      ? "border-primary bg-primary/10"
+                      : "border-border bg-secondary/50"
+                  )}>
+                    <div className="flex items-center gap-2 mb-1">
+                      {getProgressPercentage() >= 50 ? (
+                        <div className="h-2 w-2 rounded-full bg-primary animate-pulse"></div>
+                      ) : (
+                        <div className="h-2 w-2 rounded-full bg-muted-foreground"></div>
+                      )}
+                      <span className="text-xs font-medium">AI 分析</span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">提取爆款要素</p>
+                  </div>
+                  <div className={cn(
+                    "p-3 rounded-lg border-2 transition-all",
+                    getProgressPercentage() >= 90
+                      ? "border-primary bg-primary/10"
+                      : "border-border bg-secondary/50"
+                  )}>
+                    <div className="flex items-center gap-2 mb-1">
+                      {getProgressPercentage() >= 90 ? (
+                        <div className="h-2 w-2 rounded-full bg-primary animate-pulse"></div>
+                      ) : (
+                        <div className="h-2 w-2 rounded-full bg-muted-foreground"></div>
+                      )}
+                      <span className="text-xs font-medium">生成报告</span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">整理分析结果</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="flex items-start justify-between gap-4 md:gap-6">
               {/* 左侧：视频信息 */}
               <div className="flex items-start gap-3 md:gap-4 flex-1 min-w-0">
@@ -253,12 +393,18 @@ export default function VideoAnalysis() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2">
                     <h3 className="text-base md:text-xl font-bold text-foreground">
-                      已上传的视频
+                      {session.status === 'completed' ? '分析完成' : '已上传的视频'}
                     </h3>
                     {session.status === 'completed' && (
                       <span className="inline-flex items-center gap-1.5 px-2 md:px-2.5 py-0.5 md:py-1 rounded-full bg-green-500/10 border border-green-500/20">
                         <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse"></div>
-                        <span className="text-xs font-medium text-green-600">分析完成</span>
+                        <span className="text-xs font-medium text-green-600">已完成</span>
+                      </span>
+                    )}
+                    {(session.status === 'pending' || session.status === 'analyzing') && (
+                      <span className="inline-flex items-center gap-1.5 px-2 md:px-2.5 py-0.5 md:py-1 rounded-full bg-primary/10 border border-primary/20">
+                        <Loader2 className="h-3 w-3 text-primary animate-spin" />
+                        <span className="text-xs font-medium text-primary">分析中</span>
                       </span>
                     )}
                   </div>
@@ -293,7 +439,75 @@ export default function VideoAnalysis() {
               </div>
 
               {/* 右侧：操作按钮 */}
-              <div className="flex-shrink-0">
+              <div className="flex-shrink-0 flex gap-2">
+                {/* 导出报告按钮 */}
+                {session.status === 'completed' && (
+                  <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button
+                        onClick={handleExport}
+                        size="sm"
+                        variant="outline"
+                        disabled={isExporting}
+                        className="border-primary/20 hover:bg-primary/10"
+                      >
+                        {isExporting ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Download className="h-4 w-4 mr-2" />
+                        )}
+                        <span className="hidden md:inline">
+                          {isExporting ? '导出中...' : '导出报告'}
+                        </span>
+                        <span className="md:hidden">
+                          {isExporting ? '...' : '导出'}
+                        </span>
+                      </Button>
+                    </DialogTrigger>
+                    {!isMobile && (
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>导出报告</DialogTitle>
+                          <DialogDescription>
+                            选择导出格式
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-3 py-4">
+                          <Button
+                            onClick={handleExportPNG}
+                            disabled={isExporting}
+                            className="w-full justify-start h-auto py-4"
+                            variant="outline"
+                          >
+                            <FileImage className="h-5 w-5 mr-3 text-primary" />
+                            <div className="text-left">
+                              <div className="font-medium">PNG 图片</div>
+                              <div className="text-xs text-muted-foreground">
+                                导出为高清长图，适合分享
+                              </div>
+                            </div>
+                          </Button>
+                          <Button
+                            onClick={handleExportPDF}
+                            disabled={isExporting}
+                            className="w-full justify-start h-auto py-4"
+                            variant="outline"
+                          >
+                            <FileText className="h-5 w-5 mr-3 text-primary" />
+                            <div className="text-left">
+                              <div className="font-medium">PDF 文档</div>
+                              <div className="text-xs text-muted-foreground">
+                                自动分页，适合打印和存档
+                              </div>
+                            </div>
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    )}
+                  </Dialog>
+                )}
+
+                {/* 重新分析按钮 */}
                 <Button
                   onClick={handleReset}
                   size="sm"
