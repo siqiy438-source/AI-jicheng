@@ -171,8 +171,13 @@ serve(async (req) => {
     })
   } catch (error) {
     console.error('[upload-to-oss] Error:', error)
+    console.error('[upload-to-oss] Error stack:', error.stack)
+    console.error('[upload-to-oss] Error details:', JSON.stringify(error, null, 2))
+
     return new Response(JSON.stringify({
-      error: error.message || 'Internal server error'
+      error: error.message || 'Internal server error',
+      details: error.stack || '',
+      timestamp: new Date().toISOString()
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

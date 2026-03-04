@@ -91,8 +91,17 @@ async function uploadToOSS(supabasePath: string): Promise<string> {
   })
 
   if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.error || '上传到 OSS 失败')
+    let error: any = {}
+    try {
+      const responseText = await response.text()
+      console.error('[video-analysis] OSS upload error response:', responseText)
+      if (responseText) {
+        error = JSON.parse(responseText)
+      }
+    } catch (parseError) {
+      console.error('[video-analysis] Failed to parse OSS error response:', parseError)
+    }
+    throw new Error(error.error || `上传到 OSS 失败 (${response.status}): ${response.statusText}`)
   }
 
   const data = await response.json()
