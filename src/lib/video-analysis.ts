@@ -146,13 +146,22 @@ export async function createAnalysisSession(
   }
 
   if (!response.ok) {
-    const error = await response.json()
+    let error: any = {}
+    try {
+      const responseText = await response.text()
+      console.log('[video-analysis] Error response text:', responseText)
+      if (responseText) {
+        error = JSON.parse(responseText)
+      }
+    } catch (parseError) {
+      console.error('[video-analysis] Failed to parse error response:', parseError)
+    }
     console.error('[video-analysis] Create session error:', {
       status: response.status,
       statusText: response.statusText,
       error: error,
     })
-    throw new Error(error.error || `创建会话失败 (${response.status})`)
+    throw new Error(error.error || `创建会话失败 (${response.status}): ${response.statusText}`)
   }
 
   const data = await response.json()
@@ -222,8 +231,17 @@ export async function getSessionStatus(
   })
 
   if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.error || '获取状态失败')
+    let error: any = {}
+    try {
+      const responseText = await response.text()
+      console.log('[video-analysis] Get status error response text:', responseText)
+      if (responseText) {
+        error = JSON.parse(responseText)
+      }
+    } catch (parseError) {
+      console.error('[video-analysis] Failed to parse error response:', parseError)
+    }
+    throw new Error(error.error || `获取状态失败 (${response.status}): ${response.statusText}`)
   }
 
   const data = await response.json()

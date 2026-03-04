@@ -229,6 +229,16 @@ serve(async (req) => {
       console.log(`[ai-video-analysis] Deducted 200 credits from user ${userId}`)
 
       // 创建会话（状态为 pending）
+      console.log('[ai-video-analysis] Creating session with data:', {
+        user_id: userId,
+        video_filename,
+        video_url,
+        video_path,
+        status: 'pending',
+        credits_cost: 200,
+        operation_id: operationId,
+      })
+
       const { data: session, error: sessionError } = await supabaseAdmin
         .from('video_analysis_sessions')
         .insert({
@@ -244,8 +254,14 @@ serve(async (req) => {
         .single()
 
       if (sessionError) {
+        console.error('[ai-video-analysis] Session creation error:', {
+          message: sessionError.message,
+          details: sessionError.details,
+          hint: sessionError.hint,
+          code: sessionError.code,
+        })
         await finalizeFixedCreditOperation(false, `创建会话失败: ${sessionError.message}`)
-        throw new Error(`创建会话失败: ${sessionError.message}`)
+        throw new Error(`创建会话失败: ${sessionError.message} (${sessionError.code})`)
       }
 
       // 标记积分操作为进行中（分析完成后再 finalize）
