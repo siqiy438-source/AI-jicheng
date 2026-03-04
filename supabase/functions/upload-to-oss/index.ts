@@ -78,13 +78,21 @@ async function uploadToOSS(
       'Authorization': `OSS ${OSS_ACCESS_KEY_ID}:${signature}`,
     },
     body: fileData,
+    // 添加超时控制（60秒）
+    signal: AbortSignal.timeout(60000),
   })
 
   if (!response.ok) {
     const errorText = await response.text()
+    console.error('[upload-to-oss] OSS upload failed:', {
+      status: response.status,
+      statusText: response.statusText,
+      error: errorText,
+    })
     throw new Error(`OSS upload failed: ${response.status} ${errorText}`)
   }
 
+  console.log('[upload-to-oss] OSS upload successful')
   return url
 }
 
