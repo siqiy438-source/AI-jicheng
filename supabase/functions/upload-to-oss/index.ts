@@ -53,33 +53,44 @@ function generateOSSSignature(
  */
 async function uploadToOSS(
   objectKey: string,
-  fileData: Uint8Array,
-  contentType: string
+  fileStream: ReadableStream<Uint8Array>,
+  contentType: string,
+  contentLength?: string | null
 ): Promise<string> {
   const date = new Date().toUTCString()
   const resource = `/${OSS_BUCKET}/${objectKey}`
+  const ossHeaders = {
+    // 强制对象公开可读，确保第三方模型服务可匿名拉取视频
+    'x-oss-object-acl': 'public-read',
+  }
 
   const signature = generateOSSSignature(
     'PUT',
     '',
     contentType,
     date,
-    {},
+    ossHeaders,
     resource
   )
 
   const url = `${OSS_ENDPOINT}/${objectKey}`
 
+  const headers: Record<string, string> = {
+    'Date': date,
+    'Content-Type': contentType,
+    ...ossHeaders,
+    'Authorization': `OSS ${OSS_ACCESS_KEY_ID}:${signature}`,
+  }
+  if (contentLength) {
+    headers['Content-Length'] = contentLength
+  }
+
   const response = await fetch(url, {
     method: 'PUT',
-    headers: {
-      'Date': date,
-      'Content-Type': contentType,
-      'Authorization': `OSS ${OSS_ACCESS_KEY_ID}:${signature}`,
-    },
-    body: fileData,
-    // 添加超时控制（60秒）
-    signal: AbortSignal.timeout(60000),
+    headers,
+    body: fileStream,
+    // 大文件跨地域传输可能较慢，放宽到 300 秒
+    signal: AbortSignal.timeout(300000),
   })
 
   if (!response.ok) {
@@ -91,6 +102,21 @@ async function uploadToOSS(
     })
     throw new Error(`OSS upload failed: ${response.status} ${errorText}`)
   }
+
+  // 快速探测公开可访问性，避免把私有链接返回给后续视频分析
+  const probeResponse = await fetch(url, {
+    method: 'GET',
+    headers: { 'Range': 'bytes=0-1023' },
+    signal: AbortSignal.timeout(10000),
+  })
+
+  if (!(probeResponse.status === 200 || probeResponse.status === 206)) {
+    const probeText = await probeResponse.text()
+    throw new Error(`OSS object not publicly readable: ${probeResponse.status} ${probeText.substring(0, 200)}`)
+  }
+
+  // 仅验证可读性，不消费完整响应体
+  probeResponse.body?.cancel().catch(() => undefined)
 
   console.log('[upload-to-oss] OSS upload successful')
   return url
@@ -141,29 +167,38 @@ serve(async (req) => {
 
     console.log('[upload-to-oss] Downloading from Supabase Storage:', supabase_path)
 
-    // 1. 从 Supabase Storage 下载文件
-    const { data: fileData, error: downloadError } = await supabaseAdmin.storage
+    // 1. 生成短时签名 URL，使用流式下载避免大文件占用内存
+    const { data: signedUrlData, error: signedUrlError } = await supabaseAdmin.storage
       .from('user-uploads')
-      .download(supabase_path)
+      .createSignedUrl(supabase_path, 60)
 
-    if (downloadError || !fileData) {
-      throw new Error(`Failed to download from Supabase: ${downloadError?.message}`)
+    if (signedUrlError || !signedUrlData?.signedUrl) {
+      throw new Error(`Failed to create signed URL: ${signedUrlError?.message}`)
     }
 
-    console.log('[upload-to-oss] Downloaded file size:', fileData.size)
+    const downloadResponse = await fetch(signedUrlData.signedUrl, {
+      method: 'GET',
+      signal: AbortSignal.timeout(120000),
+    })
+    if (!downloadResponse.ok || !downloadResponse.body) {
+      const downloadErrorText = await downloadResponse.text()
+      throw new Error(`Failed to stream from Supabase: ${downloadResponse.status} ${downloadErrorText.substring(0, 200)}`)
+    }
 
-    // 2. 转换为 Uint8Array
-    const arrayBuffer = await fileData.arrayBuffer()
-    const uint8Array = new Uint8Array(arrayBuffer)
+    const contentLength = downloadResponse.headers.get('content-length')
+    const contentType = downloadResponse.headers.get('content-type') || 'video/mp4'
+    console.log('[upload-to-oss] Streaming file metadata:', {
+      contentType,
+      contentLength: contentLength || 'unknown',
+    })
 
-    // 3. 生成 OSS 对象键（保持相同的路径结构）
-    const ossKey = `video-analysis/${supabase_path.split('/').pop()}`
-    const contentType = fileData.type || 'video/mp4'
+    // 2. 生成 OSS 对象键（保留完整路径，避免同名覆盖）
+    const ossKey = supabase_path
 
     console.log('[upload-to-oss] Uploading to OSS:', ossKey)
 
-    // 4. 上传到阿里云 OSS
-    const ossUrl = await uploadToOSS(ossKey, uint8Array, contentType)
+    // 3. 流式上传到阿里云 OSS
+    const ossUrl = await uploadToOSS(ossKey, downloadResponse.body, contentType, contentLength)
 
     console.log('[upload-to-oss] Upload successful:', ossUrl)
 

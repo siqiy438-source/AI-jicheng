@@ -177,7 +177,7 @@ export default function VideoAnalysis() {
           <div className="text-center mb-4 md:mb-6">
             <h2 className="text-lg md:text-xl font-bold text-foreground mb-2">上传爆款视频</h2>
             <p className="text-muted-foreground text-sm">
-              支持 MP4、MOV 格式 · 建议 50MB 以内 · 时长不超过 120 秒
+              支持 MP4、MOV 格式 · 最大 50MB · 建议 30MB 以内
             </p>
           </div>
 

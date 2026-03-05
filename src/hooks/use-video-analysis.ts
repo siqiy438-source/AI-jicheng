@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { VideoAnalysisSession, analyzeVideo, getSessionStatus } from '../lib/video-analysis'
 import { useAuth } from '../contexts/AuthContext'
-import { compressVideo } from '../lib/video-compressor'
 
 export function useVideoAnalysis() {
   const { user } = useAuth()
@@ -87,38 +86,14 @@ export function useVideoAnalysis() {
       let videoFile = file
       const fileSizeMB = file.size / 1024 / 1024
 
-      // 如果文件大于 45MB，先压缩
-      if (fileSizeMB > 45) {
-        // 检查是否超过 50MB（Supabase 限制）
-        if (fileSizeMB > 50) {
-          setProgress({ stage: 'compressing', percentage: 0, message: '正在压缩视频...' })
+      // 检查文件大小（最大 50MB）
+      if (fileSizeMB > 50) {
+        throw new Error(`视频文件不能超过 50MB，当前文件大小: ${fileSizeMB.toFixed(2)}MB。请使用视频编辑软件压缩后再上传。`)
+      }
 
-          try {
-            const compressionResult = await compressVideo(file, 45, (compressionProgress) => {
-              setProgress({
-                stage: 'compressing',
-                percentage: compressionProgress.percentage,
-                message: compressionProgress.message,
-              })
-            })
-
-            videoFile = compressionResult.file
-            console.log('[use-video-analysis] 压缩完成:', {
-              original: (compressionResult.originalSize / 1024 / 1024).toFixed(2) + 'MB',
-              compressed: (compressionResult.compressedSize / 1024 / 1024).toFixed(2) + 'MB',
-              ratio: (compressionResult.compressionRatio * 100).toFixed(1) + '%',
-            })
-          } catch (compressionError) {
-            console.error('[use-video-analysis] 压缩失败:', compressionError)
-            throw new Error(
-              `视频压缩失败: ${compressionError instanceof Error ? compressionError.message : '未知错误'}。` +
-              `请手动压缩视频到 50MB 以下，或使用更小的视频文件。`
-            )
-          }
-        } else {
-          // 45-50MB 之间，提示但允许上传
-          console.log('[use-video-analysis] 文件大小在 45-50MB 之间，跳过压缩')
-        }
+      // 如果文件大于 40MB，建议用户压缩（但仍允许上传）
+      if (fileSizeMB > 40) {
+        console.warn('[use-video-analysis] 文件较大，可能影响分析速度:', fileSizeMB.toFixed(2) + 'MB')
       }
 
       setProgress({ stage: 'uploading', percentage: 30, message: '正在上传视频...' })

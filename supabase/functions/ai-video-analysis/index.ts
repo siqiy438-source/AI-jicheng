@@ -128,6 +128,42 @@ const ANALYSIS_USER_PROMPT = `你是一位资深短视频创作导师，正在�
 
 请确保返回的是纯 JSON，不要包含任何其他文字。`
 
+function maskVideoUrl(rawUrl: string): string {
+  try {
+    const parsed = new URL(rawUrl)
+    return `${parsed.origin}${parsed.pathname}`
+  } catch {
+    return rawUrl
+  }
+}
+
+async function verifyVideoUrlReachable(videoUrl: string): Promise<{ status: number; contentType: string }> {
+  const response = await fetch(videoUrl, {
+    method: 'GET',
+    headers: {
+      // 只请求前 2KB，快速验证视频 URL 是否可访问
+      'Range': 'bytes=0-2047',
+    },
+    redirect: 'follow',
+    signal: AbortSignal.timeout(15000),
+  })
+
+  if (!(response.status === 200 || response.status === 206)) {
+    const body = await response.text()
+    throw new Error(`视频 URL 预检失败: HTTP ${response.status} ${body.substring(0, 200)}`)
+  }
+
+  // 仅做可达性探测，不读取完整视频体
+  response.body?.cancel().catch(() => undefined)
+
+  return {
+    status: response.status,
+    contentType: response.headers.get('content-type') || '',
+  }
+}
+
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
 serve(async (req) => {
   // 处理 CORS preflight
   if (req.method === 'OPTIONS') {
@@ -319,8 +355,20 @@ serve(async (req) => {
 
       try {
         // 1. 调用豆包 API 分析视频
-        console.log('[ai-video-analysis] Calling Doubao API with video_url:', session.video_url)
+        console.log('[ai-video-analysis] Calling Doubao API with video_url:', maskVideoUrl(session.video_url))
         console.log('[ai-video-analysis] This may take several minutes for large videos')
+
+        // 先预检 URL 是否可匿名访问，避免把无效链接直接交给模型导致超时
+        try {
+          const urlCheck = await verifyVideoUrlReachable(session.video_url)
+          console.log('[ai-video-analysis] Video URL preflight ok:', {
+            status: urlCheck.status,
+            contentType: urlCheck.contentType,
+          })
+        } catch (urlError) {
+          console.error('[ai-video-analysis] Video URL preflight failed:', urlError)
+          throw new Error(`视频链接不可访问，请重试上传。详情：${urlError instanceof Error ? urlError.message : 'unknown'}`)
+        }
 
         const doubaoStartTime = Date.now()
 
@@ -353,29 +401,53 @@ serve(async (req) => {
 
         console.log('[ai-video-analysis] Request body:', JSON.stringify(requestBody, null, 2).substring(0, 800))
 
-        const doubaoResponse = await fetch(`${DOUBAO_API_BASE_URL}/api/v3/chat/completions`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${DOUBAO_API_KEY}`,
-          },
-          body: JSON.stringify(requestBody),
-        })
-
-        if (!doubaoResponse.ok) {
-          const errorText = await doubaoResponse.text()
-          const doubaoElapsed = ((Date.now() - doubaoStartTime) / 1000).toFixed(1)
-          console.error('[ai-video-analysis] Doubao API error:', {
-            status: doubaoResponse.status,
-            statusText: doubaoResponse.statusText,
-            error: errorText,
-            elapsedSeconds: doubaoElapsed,
+        let doubaoResponse: Response | null = null
+        const maxAttempts = 2
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+          const currentAttemptStartTime = Date.now()
+          const response = await fetch(`${DOUBAO_API_BASE_URL}/api/v3/chat/completions`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${DOUBAO_API_KEY}`,
+            },
+            body: JSON.stringify(requestBody),
+            signal: AbortSignal.timeout(180000),
           })
-          throw new Error(`Doubao API error: ${doubaoResponse.status} ${errorText}`)
+
+          if (response.ok) {
+            const elapsed = ((Date.now() - currentAttemptStartTime) / 1000).toFixed(1)
+            console.log(`[ai-video-analysis] Doubao API attempt ${attempt} succeeded in ${elapsed}s`)
+            doubaoResponse = response
+            break
+          }
+
+          const errorText = await response.text()
+          const elapsed = ((Date.now() - currentAttemptStartTime) / 1000).toFixed(1)
+          const isVideoTimeout = response.status === 400 && errorText.includes('Timeout occurred while processing video')
+          console.error('[ai-video-analysis] Doubao API error:', {
+            attempt,
+            status: response.status,
+            statusText: response.statusText,
+            error: errorText,
+            elapsedSeconds: elapsed,
+          })
+
+          if (isVideoTimeout && attempt < maxAttempts) {
+            console.warn('[ai-video-analysis] Doubao timed out reading video, retrying once...')
+            await sleep(2000)
+            continue
+          }
+
+          throw new Error(`Doubao API error: ${response.status} ${errorText}`)
+        }
+
+        if (!doubaoResponse) {
+          throw new Error('Doubao API request failed after retries')
         }
 
         const doubaoElapsed = ((Date.now() - doubaoStartTime) / 1000).toFixed(1)
-        console.log(`[ai-video-analysis] Doubao API responded in ${doubaoElapsed}s`)
+        console.log(`[ai-video-analysis] Doubao API final elapsed ${doubaoElapsed}s`)
 
         const doubaoResult = await doubaoResponse.json()
         console.log('[ai-video-analysis] Doubao API response structure:', JSON.stringify(doubaoResult, null, 2).substring(0, 1000))

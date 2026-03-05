@@ -3,6 +3,17 @@ import { uploadVideoForAnalysis, type UploadVideoResult } from './video-upload'
 
 const SUPABASE_URL = supabaseUrl
 
+async function getValidAccessToken(): Promise<string> {
+  let token = await getAccessToken()
+  if (!token) {
+    token = await forceRefreshToken()
+  }
+  if (!token) {
+    throw new Error('登录已失效，请刷新页面后重新登录')
+  }
+  return token
+}
+
 // 更新后的接口定义
 export interface VideoAnalysisSession {
   id: string
@@ -77,18 +88,26 @@ export interface VideoAnalysisResult {
  * 将视频上传到阿里云 OSS
  */
 async function uploadToOSS(supabasePath: string): Promise<string> {
-  const token = await getAccessToken()
+  let token = await getValidAccessToken()
 
-  const response = await fetch(`${SUPABASE_URL}/functions/v1/upload-to-oss`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      supabase_path: supabasePath,
-    }),
-  })
+  const makeRequest = async (authToken: string) => {
+    return fetch(`${SUPABASE_URL}/functions/v1/upload-to-oss`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({
+        supabase_path: supabasePath,
+      }),
+    })
+  }
+
+  let response = await makeRequest(token)
+  if (response.status === 401) {
+    token = await getValidAccessToken()
+    response = await makeRequest(token)
+  }
 
   if (!response.ok) {
     let error: any = {}
@@ -121,13 +140,25 @@ export async function createAnalysisSession(
   // 1. 上传视频到 Supabase Storage
   const uploadResult: UploadVideoResult = await uploadVideoForAnalysis(videoFile, userId)
 
-  // 2. 临时方案：直接使用 Supabase Storage URL，跳过 OSS 上传
-  // 原因：大文件上传到 OSS 容易超时
-  console.log('[video-analysis] Using Supabase Storage URL directly (skipping OSS)')
-  const videoUrl = uploadResult.url
+  // 2. 优先上传到阿里云 OSS；大文件直接跳过中转，避免触发 Edge Worker 资源限制
+  let videoUrl = uploadResult.url
+  const fileSizeMB = videoFile.size / 1024 / 1024
+  if (fileSizeMB > 35) {
+    console.warn(`[video-analysis] File is ${fileSizeMB.toFixed(2)}MB, skip OSS transfer and use Supabase URL directly`)
+  } else {
+    console.log('[video-analysis] Uploading to OSS for Doubao API access...')
+    try {
+      const ossUrl = await uploadToOSS(uploadResult.path)
+      videoUrl = ossUrl
+      console.log('[video-analysis] OSS upload successful:', videoUrl)
+    } catch (ossError) {
+      console.error('[video-analysis] OSS upload failed, fallback to Supabase public URL:', ossError)
+      console.warn('[video-analysis] Fallback URL:', uploadResult.url)
+    }
+  }
 
-  // 3. 创建会话（使用 Supabase Storage URL）
-  let token = await getAccessToken()
+  // 3. 创建会话（优先 OSS，失败则 Supabase URL）
+  let token = await getValidAccessToken()
 
   const makeRequest = async (authToken: string) => {
     return fetch(`${SUPABASE_URL}/functions/v1/ai-video-analysis`, {
@@ -138,7 +169,7 @@ export async function createAnalysisSession(
       },
       body: JSON.stringify({
         action: 'create_session',
-        video_url: videoUrl, // 使用 Supabase Storage URL
+        video_url: videoUrl,
         video_path: uploadResult.path,
         video_filename: videoFile.name,
         feature_code: 'ai_video_analysis',
@@ -150,7 +181,7 @@ export async function createAnalysisSession(
 
   // 如果 401，刷新 token 重试
   if (response.status === 401) {
-    token = await forceRefreshToken()
+    token = await getValidAccessToken()
     response = await makeRequest(token)
   }
 
@@ -182,7 +213,7 @@ export async function createAnalysisSession(
  * @param sessionId 会话 ID
  */
 export async function triggerBackgroundAnalysis(sessionId: string): Promise<void> {
-  const token = await getAccessToken()
+  const token = await getValidAccessToken()
 
   // 触发后台分析，不等待响应
   fetch(`${SUPABASE_URL}/functions/v1/ai-video-analysis`, {
@@ -213,7 +244,8 @@ export async function analyzeVideo(
 ): Promise<VideoAnalysisSession> {
   // 使用新的异步处理流程
   const session = await createAnalysisSession(videoFile, userId)
-  await triggerBackgroundAnalysis(session.id)
+  // 不等待后台分析完成，立即返回会话
+  triggerBackgroundAnalysis(session.id)
   return session
 }
 
@@ -225,19 +257,27 @@ export async function analyzeVideo(
 export async function getSessionStatus(
   sessionId: string
 ): Promise<VideoAnalysisSession> {
-  const token = await getAccessToken()
+  let token = await getValidAccessToken()
 
-  const response = await fetch(`${SUPABASE_URL}/functions/v1/ai-video-analysis`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      action: 'get_status',
-      session_id: sessionId,
-    }),
-  })
+  const makeRequest = async (authToken: string) => {
+    return fetch(`${SUPABASE_URL}/functions/v1/ai-video-analysis`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({
+        action: 'get_status',
+        session_id: sessionId,
+      }),
+    })
+  }
+
+  let response = await makeRequest(token)
+  if (response.status === 401) {
+    token = await getValidAccessToken()
+    response = await makeRequest(token)
+  }
 
   if (!response.ok) {
     let error: any = {}

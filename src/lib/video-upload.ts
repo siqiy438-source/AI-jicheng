@@ -5,6 +5,8 @@ export interface UploadVideoResult {
   path: string
 }
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
 /**
  * 上传视频文件到 Supabase Storage
  * @param file 视频文件
@@ -43,15 +45,63 @@ export async function uploadVideoForAnalysis(
   const fileExt = file.name.split('.').pop() || 'mp4'
   const filePath = `video-analysis/${userId}/${timestamp}-${randomStr}.${fileExt}`
 
-  // 4. 上传到 Supabase Storage
+  // 4. 上传到 Supabase Storage（重试 + 备用 signed upload）
   console.log('[video-upload] 开始上传到 Supabase Storage:', filePath)
 
-  const { error: uploadError } = await supabase.storage
-    .from('user-uploads')
-    .upload(filePath, file, {
-      cacheControl: '3600',
-      upsert: false,
+  let uploadError: any = null
+
+  // 主路径：普通 upload，最多 3 次（网络抖动时常见 Failed to fetch）
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const { error } = await supabase.storage
+      .from('user-uploads')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: true,
+      })
+
+    if (!error) {
+      uploadError = null
+      console.log(`[video-upload] 普通上传成功 (attempt ${attempt})`)
+      break
+    }
+
+    uploadError = error
+    console.warn(`[video-upload] 普通上传失败 (attempt ${attempt}):`, {
+      message: error.message,
+      statusCode: error.statusCode,
     })
+
+    const isNetworkError = String(error?.message || '').includes('Failed to fetch')
+    if (!isNetworkError || attempt === 3) {
+      break
+    }
+    await sleep(1000 * attempt)
+  }
+
+  // 备用路径：signed upload（某些网络环境下更稳定）
+  if (uploadError) {
+    console.log('[video-upload] 尝试备用 signed upload...')
+    const { data: signedData, error: signedError } = await supabase.storage
+      .from('user-uploads')
+      .createSignedUploadUrl(filePath)
+
+    if (!signedError && signedData?.token) {
+      const { error: signedUploadError } = await supabase.storage
+        .from('user-uploads')
+        .uploadToSignedUrl(filePath, signedData.token, file, {
+          upsert: true,
+        })
+
+      if (!signedUploadError) {
+        uploadError = null
+        console.log('[video-upload] signed upload 成功')
+      } else {
+        uploadError = signedUploadError
+      }
+    } else if (signedError) {
+      console.warn('[video-upload] 创建 signed upload URL 失败:', signedError)
+    }
+  }
 
   if (uploadError) {
     console.error('[video-upload] 上传失败:', {
@@ -59,33 +109,24 @@ export async function uploadVideoForAnalysis(
       message: uploadError.message,
       statusCode: uploadError.statusCode,
     })
+    const message = String(uploadError?.message || '')
+    if (message.includes('Failed to fetch')) {
+      throw new Error('视频上传失败：网络连接不稳定或被拦截，请切换网络后重试')
+    }
     throw new Error(`视频上传失败: ${uploadError.message}`)
   }
 
   console.log('[video-upload] 上传成功:', filePath)
 
-  // 5. 获取签名 URL（有效期 1 小时，供豆包 API 访问）
-  const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+  // 5. 获取公开 URL（bucket 已设置为 public，豆包 API 可直接访问）
+  const { data: { publicUrl } } = supabase.storage
     .from('user-uploads')
-    .createSignedUrl(filePath, 3600) // 1 小时有效期
+    .getPublicUrl(filePath)
 
-  if (signedUrlError || !signedUrlData) {
-    console.error('[video-upload] Failed to create signed URL:', signedUrlError)
-    // 如果签名 URL 失败，使用公开 URL
-    const { data: { publicUrl } } = supabase.storage
-      .from('user-uploads')
-      .getPublicUrl(filePath)
-
-    return {
-      url: publicUrl,
-      path: filePath,
-    }
-  }
-
-  console.log('[video-upload] Created signed URL with 1 hour expiry')
+  console.log('[video-upload] Using public URL for video access')
 
   return {
-    url: signedUrlData.signedUrl,
+    url: publicUrl,
     path: filePath,
   }
 }
