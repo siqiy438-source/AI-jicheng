@@ -32,16 +32,16 @@ export const getProviderConfig = (line: ImageLine): ProviderConfig => {
     line,
     baseUrl: "https://api.bltcy.ai",
     pathPrefix: "v1beta",
-    model: "gemini-3-pro-image-preview",
+    model: "nano-banana",
     apiKeyEnv: line === "premium" ? "BLTCY_PRO_API_KEY" : "BLTCY_API_KEY",
   };
 };
 
 /** 像素块生成专用模型 */
-export const PIXEL_ART_MODEL = "gemini-3.1-flash-image-preview";
+export const PIXEL_ART_MODEL = "nano-banana-2";
 
 /** 极速线路专用模型 */
-export const SPEED_IMAGE_MODEL = "gemini-3.1-flash-image-preview";
+export const SPEED_IMAGE_MODEL = "nano-banana-2";
 
 export const buildGenerateContentUrl = (config: ProviderConfig) =>
   `${config.baseUrl}/${config.pathPrefix}/models/${config.model}:generateContent`;
