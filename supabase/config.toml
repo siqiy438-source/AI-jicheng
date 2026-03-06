@@ -1,0 +1,31 @@
+project_id = "ai-jicheng"
+
+[functions.ai-image]
+verify_jwt = false
+
+[functions.ai-chat]
+verify_jwt = false
+
+[functions.ai-ppt]
+verify_jwt = false
+
+[functions.ai-video-analysis]
+verify_jwt = false
+
+[functions.upload-to-oss]
+verify_jwt = false
+
+[functions.payment-create]
+verify_jwt = false
+
+[functions.payment-webhook]
+verify_jwt = false
+
+[functions.admin-users]
+verify_jwt = false
+
+[functions.cleanup-expired-content]
+verify_jwt = false
+
+[functions.cleanup-sessions]
+verify_jwt = false
