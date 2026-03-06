@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { deleteWork, listWorks, WORKS_PAGE_SIZE, type WorkListItem } from "@/lib/repositories/works";
+import { deleteWork, getWorkDetail, listWorks, type WorkListItem } from "@/lib/repositories/works";
 import { downloadGeneratedImage } from "@/lib/image-utils";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -43,6 +43,9 @@ import {
 import type { OutfitRecommendResult } from "@/lib/outfit-recommend";
 
 type WorkCategory = "image" | "copywriting";
+
+const INITIAL_MOBILE_PAGE_SIZE = 12;
+const INITIAL_DESKTOP_PAGE_SIZE = 18;
 
 const getWorkCategory = (workType: string): WorkCategory => {
   return (workType === "copywriting" || workType === "outfit-recommend") ? "copywriting" : "image";
@@ -328,6 +331,76 @@ const OutfitDetailDialog = ({ work, open, onClose }: { work: WorkListItem | null
   );
 };
 
+const ImagePreviewDialog = ({
+  work,
+  open,
+  onClose,
+  onDownload,
+}: {
+  work: WorkListItem | null;
+  open: boolean;
+  onClose: () => void;
+  onDownload: (work: WorkListItem) => void;
+}) => {
+  if (!work || !open) return null;
+
+  const previewSrc = work.preview || work.original || work.thumbnail;
+  const originalSrc = work.original || work.preview || work.thumbnail;
+  if (!previewSrc) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center" onClick={onClose}>
+      <div className="fixed inset-0 bg-black/70 animate-fade-in" />
+      <div
+        className="relative z-10 w-full md:max-w-4xl max-h-[90vh] bg-background rounded-t-2xl md:rounded-2xl overflow-hidden animate-slide-up md:animate-fade-in"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/30 px-4 py-3 flex items-center justify-between">
+          <div className="min-w-0">
+            <h2 className="text-base font-semibold text-foreground truncate">{work.title}</h2>
+            <p className="text-xs text-muted-foreground">预览使用轻量图，显示尺寸不变；保存下载原图</p>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              onClick={() => onDownload(work)}
+              className="p-2 rounded-lg hover:bg-secondary transition-colors"
+              title="保存原图"
+              aria-label="保存原图"
+            >
+              <Download className="w-4 h-4 text-muted-foreground" />
+            </button>
+            <button
+              onClick={() => {
+                if (originalSrc) window.open(originalSrc, "_blank");
+              }}
+              className="p-2 rounded-lg hover:bg-secondary transition-colors"
+              title="打开原图"
+              aria-label="打开原图"
+            >
+              <Share2 className="w-4 h-4 text-muted-foreground" />
+            </button>
+            <button onClick={onClose} className="p-2 rounded-lg hover:bg-secondary transition-colors" aria-label="关闭">
+              <X className="w-4 h-4 text-muted-foreground" />
+            </button>
+          </div>
+        </div>
+
+        <div className="p-4 md:p-6 overflow-auto max-h-[calc(90vh-60px)]">
+          <div className="rounded-2xl overflow-hidden bg-secondary/20 border border-border/30">
+            <ProgressiveImage
+              src={previewSrc}
+              alt={work.title}
+              containerClassName="w-full"
+              sizes="(max-width: 768px) 100vw, 960px"
+              className="w-full h-auto object-contain max-h-[72vh] bg-secondary/20"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const MyWorks = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -342,11 +415,18 @@ const MyWorks = () => {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [detailWork, setDetailWork] = useState<WorkListItem | null>(null);
   const [copyDetailWork, setCopyDetailWork] = useState<WorkListItem | null>(null);
+  const [imagePreviewWork, setImagePreviewWork] = useState<WorkListItem | null>(null);
+  const [previewLoadingId, setPreviewLoadingId] = useState<string | null>(null);
+
+  const getPageSize = useCallback(() => {
+    if (typeof window === "undefined") return INITIAL_DESKTOP_PAGE_SIZE;
+    return window.innerWidth < 768 ? INITIAL_MOBILE_PAGE_SIZE : INITIAL_DESKTOP_PAGE_SIZE;
+  }, []);
 
   const refreshWorks = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoading(true);
-      const result = await listWorks(0);
+      const result = await listWorks(0, getPageSize());
       setWorks(result.items);
       setHasMore(result.hasMore);
     } catch (error) {
@@ -355,12 +435,12 @@ const MyWorks = () => {
     } finally {
       if (!silent) setLoading(false);
     }
-  }, []);
+  }, [getPageSize]);
 
   const loadMore = useCallback(async () => {
     try {
       setLoadingMore(true);
-      const result = await listWorks(works.length);
+      const result = await listWorks(works.length, getPageSize());
       setWorks((prev) => [...prev, ...result.items]);
       setHasMore(result.hasMore);
     } catch (error) {
@@ -369,7 +449,7 @@ const MyWorks = () => {
     } finally {
       setLoadingMore(false);
     }
-  }, [works.length]);
+  }, [getPageSize, works.length]);
 
   useEffect(() => {
     if (!user?.id) {
@@ -378,30 +458,6 @@ const MyWorks = () => {
       return;
     }
     void refreshWorks();
-  }, [user?.id, refreshWorks]);
-
-  useEffect(() => {
-    if (!user?.id) return;
-
-    const handleFocus = () => {
-      void refreshWorks(true);
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        void refreshWorks(true);
-      }
-    };
-
-    window.addEventListener("focus", handleFocus);
-    window.addEventListener("pageshow", handleFocus);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      window.removeEventListener("focus", handleFocus);
-      window.removeEventListener("pageshow", handleFocus);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
   }, [user?.id, refreshWorks]);
 
   const confirmDeleteWork = async () => {
@@ -418,27 +474,50 @@ const MyWorks = () => {
     }
   };
 
-  const handlePreview = (work: WorkListItem) => {
+  const handlePreview = async (work: WorkListItem) => {
     setSelectedWork(work.id);
-    if (work.type === "outfit-recommend" && work.contentJson) {
-      setDetailWork(work);
+    const previewUrl = work.original || work.thumbnail;
+
+    if (work.type === "outfit-recommend" || getWorkCategory(work.type) === "copywriting") {
+      try {
+        setPreviewLoadingId(work.id);
+        const detail = await getWorkDetail(work.id);
+        if (!detail) {
+          toast.error("作品详情不存在");
+          return;
+        }
+        if (detail.type === "outfit-recommend" && detail.contentJson) {
+          setDetailWork(detail);
+          return;
+        }
+        if (getWorkCategory(detail.type) === "copywriting" && detail.content?.trim()) {
+          setCopyDetailWork(detail);
+          return;
+        }
+        if (detail.original || detail.thumbnail) {
+          window.open(detail.original || detail.thumbnail || "", "_blank");
+        }
+      } catch (error) {
+        console.error("加载作品详情失败", error);
+        toast.error("加载作品详情失败");
+      } finally {
+        setPreviewLoadingId(null);
+      }
       return;
     }
-    if (getWorkCategory(work.type) === "copywriting" && work.content?.trim()) {
-      setCopyDetailWork(work);
-      return;
-    }
-    if (work.thumbnail) {
-      window.open(work.thumbnail, "_blank");
+
+    if (previewUrl) {
+      setImagePreviewWork(work);
     }
   };
 
   const handleDownload = async (work: WorkListItem) => {
-    if (!work.thumbnail) return;
+    const downloadUrl = work.original || work.thumbnail;
+    if (!downloadUrl) return;
     try {
-      await downloadGeneratedImage(work.thumbnail, `${work.title || "work"}-${Date.now()}.png`);
+      await downloadGeneratedImage(downloadUrl, `${work.title || "work"}-${Date.now()}.png`);
     } catch {
-      window.open(work.thumbnail, "_blank");
+      window.open(downloadUrl, "_blank");
     }
   };
 
@@ -594,30 +673,12 @@ const MyWorks = () => {
               >
                 {/* 缩略图 */}
                 <div className="aspect-[4/3] bg-secondary/30 relative overflow-hidden">
-                  {work.type === "outfit-recommend" && work.contentJson ? (() => {
-                    const r = work.contentJson as unknown as OutfitRecommendResult;
-                    const combo = r?.combinations?.[0];
-                    return (
-                      <div className="w-full h-full p-3 flex flex-col justify-between bg-gradient-to-br from-primary/5 to-primary/10">
-                        <div className="space-y-1 min-w-0">
-                          <p className="text-xs font-medium text-primary truncate">{r?.inputAnalysis?.itemType} · {r?.inputAnalysis?.style}</p>
-                          {combo && <p className="text-xs font-semibold text-foreground truncate">{combo.name}</p>}
-                          {combo && <p className="text-xs text-muted-foreground line-clamp-2">{combo.overallLook}</p>}
-                        </div>
-                        {combo && combo.items.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {combo.items.slice(0, 3).map((item, i) => (
-                              <span key={i} className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full truncate max-w-[80px]">{item.category}</span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })() : work.thumbnail ? (
+                  {work.thumbnail ? (
                     <ProgressiveImage
                       src={work.thumbnail}
                       alt={work.title}
                       containerClassName="w-full h-full"
+                      sizes="(max-width: 768px) 50vw, 33vw"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
@@ -640,7 +701,7 @@ const MyWorks = () => {
                       className="p-2 bg-white rounded-lg hover:bg-gray-100 transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (work.thumbnail) window.open(work.thumbnail, "_blank");
+                        if (work.original || work.thumbnail) window.open(work.original || work.thumbnail || "", "_blank");
                       }}
                     >
                       <Share2 className="w-4 h-4 text-gray-700" />
@@ -670,6 +731,9 @@ const MyWorks = () => {
                     <span className="hidden md:inline">·</span>
                     <span className="hidden md:inline">{work.tool}</span>
                   </div>
+                  {previewLoadingId === work.id && (
+                    <div className="mt-2 text-xs text-muted-foreground">正在加载详情...</div>
+                  )}
 
                   <div className="mt-2.5 flex md:hidden items-center gap-1.5">
                     <button
@@ -686,7 +750,7 @@ const MyWorks = () => {
                       className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-secondary/60 text-muted-foreground text-xs touch-target"
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (work.thumbnail) window.open(work.thumbnail, "_blank");
+                        if (work.original || work.thumbnail) window.open(work.original || work.thumbnail || "", "_blank");
                       }}
                     >
                       <Share2 className="w-3.5 h-3.5" />
@@ -723,6 +787,7 @@ const MyWorks = () => {
                       src={work.thumbnail}
                       alt={work.title}
                       containerClassName="w-full h-full"
+                      sizes="64px"
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -744,6 +809,9 @@ const MyWorks = () => {
                     <Clock className="w-3 h-3" />
                     <span>{work.createdAt}</span>
                   </div>
+                  {previewLoadingId === work.id && (
+                    <div className="mt-2 text-xs text-muted-foreground">正在加载详情...</div>
+                  )}
 
                   <div className="mt-2 flex md:hidden items-center gap-1.5">
                     <button
@@ -759,7 +827,7 @@ const MyWorks = () => {
                       className="p-2 rounded-lg bg-secondary/60 text-muted-foreground touch-target"
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (work.thumbnail) window.open(work.thumbnail, "_blank");
+                        if (work.original || work.thumbnail) window.open(work.original || work.thumbnail || "", "_blank");
                       }}
                     >
                       <Share2 className="w-4 h-4" />
@@ -788,11 +856,11 @@ const MyWorks = () => {
                   </button>
                   <button
                     className="p-2 hover:bg-secondary rounded-lg transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (work.thumbnail) window.open(work.thumbnail, "_blank");
-                    }}
-                  >
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (work.original || work.thumbnail) window.open(work.original || work.thumbnail || "", "_blank");
+                      }}
+                    >
                     <Share2 className="w-4 h-4 text-muted-foreground" />
                   </button>
                   <button
@@ -850,6 +918,12 @@ const MyWorks = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <ImagePreviewDialog
+        work={imagePreviewWork}
+        open={!!imagePreviewWork}
+        onClose={() => setImagePreviewWork(null)}
+        onDownload={handleDownload}
+      />
       <OutfitDetailDialog work={detailWork} open={!!detailWork} onClose={() => setDetailWork(null)} />
       <CopywritingDetailDialog work={copyDetailWork} open={!!copyDetailWork} onClose={() => setCopyDetailWork(null)} />
     </PageLayout>

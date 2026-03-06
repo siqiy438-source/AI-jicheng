@@ -5,6 +5,8 @@ export interface WorkListItem {
   title: string;
   type: string;
   thumbnail: string | null;
+  preview: string | null;
+  original: string | null;
   content?: string;
   contentJson?: Record<string, unknown>;
   createdAt: string;
@@ -28,6 +30,12 @@ interface UpdateWorkInput {
 }
 
 const WORKS_BUCKET = 'works-assets';
+const HISTORY_THUMBNAIL_WIDTH = 480;
+const HISTORY_THUMBNAIL_HEIGHT = 360;
+const HISTORY_THUMBNAIL_QUALITY = 72;
+const HISTORY_PREVIEW_WIDTH = 1440;
+const HISTORY_PREVIEW_HEIGHT = 1440;
+const HISTORY_PREVIEW_QUALITY = 45;
 
 const isDataUrl = (value: string) => value.startsWith('data:');
 
@@ -52,9 +60,70 @@ const getCurrentUserId = async () => {
 };
 
 /** 获取 Storage 文件的公开 URL（bucket 已设为 public） */
-const getPublicUrl = (bucket: string, path: string): string => {
-  const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+const getPublicUrl = (
+  bucket: string,
+  path: string,
+  transform?: {
+    width?: number;
+    height?: number;
+    resize?: 'cover' | 'contain' | 'fill';
+    quality?: number;
+    format?: 'origin';
+  },
+): string => {
+  const { data } = supabase.storage.from(bucket).getPublicUrl(path, transform ? { transform } : undefined);
   return data.publicUrl;
+};
+
+const buildHistoryStorageThumbnailUrl = (bucket: string, path: string): string => {
+  return getPublicUrl(bucket, path, {
+    width: HISTORY_THUMBNAIL_WIDTH,
+    height: HISTORY_THUMBNAIL_HEIGHT,
+    resize: 'cover',
+    quality: HISTORY_THUMBNAIL_QUALITY,
+    format: 'origin',
+  });
+};
+
+const buildHistoryStoragePreviewUrl = (bucket: string, path: string): string => {
+  return getPublicUrl(bucket, path, {
+    width: HISTORY_PREVIEW_WIDTH,
+    height: HISTORY_PREVIEW_HEIGHT,
+    resize: 'contain',
+    quality: HISTORY_PREVIEW_QUALITY,
+    format: 'origin',
+  });
+};
+
+const resolveWorkImageUrls = (row: {
+  storage_bucket: string | null;
+  storage_path: string | null;
+  thumbnail_url: string | null;
+}) => {
+  let original: string | null = null;
+  let preview: string | null = null;
+  let thumbnail: string | null = null;
+
+  if (row.storage_bucket && row.storage_path) {
+    original = getPublicUrl(row.storage_bucket, row.storage_path);
+    preview = buildHistoryStoragePreviewUrl(row.storage_bucket, row.storage_path);
+    thumbnail = buildHistoryStorageThumbnailUrl(row.storage_bucket, row.storage_path);
+  }
+
+  if (!original && row.thumbnail_url) {
+    const path = extractPathFromSignedUrl(row.thumbnail_url);
+    if (path) {
+      original = getPublicUrl(WORKS_BUCKET, path);
+      preview = buildHistoryStoragePreviewUrl(WORKS_BUCKET, path);
+      thumbnail = buildHistoryStorageThumbnailUrl(WORKS_BUCKET, path);
+    } else {
+      original = row.thumbnail_url;
+      preview = row.thumbnail_url;
+      thumbnail = row.thumbnail_url;
+    }
+  }
+
+  return { original, preview, thumbnail };
 };
 
 /** 从签名 URL 中提取 storage path（兼容旧数据） */
@@ -109,50 +178,70 @@ const resolveImage = async (userId: string, imageInput: string): Promise<{ bucke
 
 export const WORKS_PAGE_SIZE = 20;
 
-export const listWorks = async (offset = 0): Promise<{ items: WorkListItem[]; hasMore: boolean }> => {
+export const listWorks = async (
+  offset = 0,
+  pageSize = WORKS_PAGE_SIZE,
+): Promise<{ items: WorkListItem[]; hasMore: boolean }> => {
   const userId = await getCurrentUserId();
   if (!userId) return { items: [], hasMore: false };
 
   const { data, error } = await supabase
     .from('works')
-    .select('id, title, type, tool, content_json, thumbnail_url, created_at, storage_bucket, storage_path')
+    .select('id, title, type, tool, thumbnail_url, created_at, storage_bucket, storage_path, content_text:content_json->>text')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
-    .range(offset, offset + WORKS_PAGE_SIZE); // 多取 1 条用于判断 hasMore
+    .range(offset, offset + pageSize); // 多取 1 条用于判断 hasMore
 
   if (error) throw error;
 
   const items = (data ?? []).map((row) => {
-    let thumbnail: string | null = null;
-
-    // 优先用 storage_bucket + storage_path 生成公开 URL
-    if (row.storage_bucket && row.storage_path) {
-      thumbnail = getPublicUrl(row.storage_bucket, row.storage_path);
-    }
-    // 兼容旧数据：从过期签名 URL 中提取 path 生成公开 URL
-    if (!thumbnail && row.thumbnail_url) {
-      const path = extractPathFromSignedUrl(row.thumbnail_url);
-      if (path) {
-        thumbnail = getPublicUrl(WORKS_BUCKET, path);
-      } else {
-        thumbnail = row.thumbnail_url; // 非签名 URL，直接用
-      }
-    }
+    const { original, preview, thumbnail } = resolveWorkImageUrls(row);
 
     return {
       id: row.id,
       title: row.title || '未命名作品',
       type: row.type,
       tool: row.tool || 'AI 创作',
-      content: typeof row.content_json?.text === 'string' ? row.content_json.text : undefined,
-      contentJson: row.content_json ?? undefined,
+      content: typeof row.content_text === 'string' ? row.content_text : undefined,
       thumbnail,
+      preview,
+      original,
       createdAt: formatCreatedAt(row.created_at),
     };
   });
 
-  const hasMore = items.length > WORKS_PAGE_SIZE;
-  return { items: hasMore ? items.slice(0, WORKS_PAGE_SIZE) : items, hasMore };
+  const hasMore = items.length > pageSize;
+  return { items: hasMore ? items.slice(0, pageSize) : items, hasMore };
+};
+
+export const getWorkDetail = async (workId: string): Promise<WorkListItem | null> => {
+  const userId = await getCurrentUserId();
+  if (!userId) return null;
+
+  const { data, error } = await supabase
+    .from('works')
+    .select('id, title, type, tool, content_json, thumbnail_url, created_at, storage_bucket, storage_path')
+    .eq('id', workId)
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) return null;
+
+  const { original, preview, thumbnail } = resolveWorkImageUrls(data);
+
+  return {
+    id: data.id,
+    title: data.title || '未命名作品',
+    type: data.type,
+    tool: data.tool || 'AI 创作',
+    content: typeof data.content_json?.text === 'string' ? data.content_json.text : undefined,
+    contentJson: data.content_json ?? undefined,
+    thumbnail,
+    preview,
+    original,
+    createdAt: formatCreatedAt(data.created_at),
+  };
 };
 
 // ==================== 保存 ====================

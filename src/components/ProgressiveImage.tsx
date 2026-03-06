@@ -6,6 +6,7 @@ interface ProgressiveImageProps {
   alt: string;
   className?: string;
   containerClassName?: string;
+  sizes?: string;
 }
 
 export const ProgressiveImage = ({
@@ -13,10 +14,16 @@ export const ProgressiveImage = ({
   alt,
   className,
   containerClassName,
+  sizes,
 }: ProgressiveImageProps) => {
   const [loaded, setLoaded] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   const onLoad = useCallback(() => setLoaded(true), []);
+  const onError = useCallback(() => {
+    setLoaded(true);
+    setFailed(true);
+  }, []);
 
   return (
     <div className={cn("relative overflow-hidden", containerClassName)}>
@@ -24,18 +31,26 @@ export const ProgressiveImage = ({
       {!loaded && (
         <div className="absolute inset-0 bg-secondary/40 animate-pulse" />
       )}
-      <img
-        src={src}
-        alt={alt}
-        loading="lazy"
-        decoding="async"
-        onLoad={onLoad}
-        className={cn(
-          "transition-opacity duration-300",
-          loaded ? "opacity-100" : "opacity-0",
-          className,
-        )}
-      />
+      {failed ? (
+        <div className="absolute inset-0 flex items-center justify-center bg-secondary/30 text-xs text-muted-foreground">
+          图片加载失败
+        </div>
+      ) : (
+        <img
+          src={src}
+          alt={alt}
+          loading="lazy"
+          decoding="async"
+          sizes={sizes}
+          onLoad={onLoad}
+          onError={onError}
+          className={cn(
+            "transition-opacity duration-300",
+            loaded ? "opacity-100" : "opacity-0",
+            className,
+          )}
+        />
+      )}
     </div>
   );
 };
