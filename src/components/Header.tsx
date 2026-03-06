@@ -32,17 +32,17 @@ export const Header = () => {
   return (
     <>
     <header className={cn(
-      "min-h-14 md:min-h-16 flex items-center justify-between",
+      "sticky top-0 z-40 min-h-14 md:min-h-16 flex items-center justify-between",
       "px-safe",
-      "glass border-b border-border",
+      "glass border-b border-border shadow-[0_6px_18px_rgba(15,23,42,0.04)] md:shadow-none",
       // 安全区域适配（顶部刘海）
       "pt-safe md:pt-0"
     )}>
       {/* 左侧：Logo（移动端显示）或导航 */}
-      <div className="flex items-center gap-4 md:gap-6">
+      <div className="flex items-center gap-2 md:gap-6 min-w-0">
         {/* 移动端显示 Logo */}
         {isMobile ? (
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/" className="flex min-w-0 items-center gap-2">
             {/* Logo 图标 - 直接铺满 */}
             <img 
               src="/logo.webp" 
@@ -51,7 +51,7 @@ export const Header = () => {
               decoding="async"
               className="w-8 h-8 object-cover flex-shrink-0"
             />
-            <span className="font-semibold text-foreground text-sm">灵犀</span>
+            <span className="truncate font-semibold text-foreground text-sm">灵犀</span>
           </Link>
         ) : (
           <nav className="flex items-center gap-1">
@@ -63,10 +63,11 @@ export const Header = () => {
       </div>
 
       {/* 右侧：操作按钮 */}
-      <div className="flex items-center gap-1 md:gap-2">
+      <div className="flex items-center gap-1 md:gap-2 min-w-0">
         {/* 使用教程按钮 */}
         <Link
           to="/tutorials"
+          aria-label="使用教程"
           className="flex md:hidden p-2.5 rounded-xl bg-secondary/40 active:bg-secondary/70 transition-colors touch-target"
         >
           <BookOpen className="w-5 h-5 text-muted-foreground" />
@@ -84,12 +85,12 @@ export const Header = () => {
           <Link
             to="/recharge"
             className={cn(
-              "flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl",
+              "flex items-center gap-1 px-2 py-1.5 rounded-xl max-w-[92px] min-w-0",
               "bg-secondary/40 active:bg-secondary/70 transition-colors text-sm font-medium touch-target"
             )}
           >
             <Coins className="w-4 h-4 text-amber-500 flex-shrink-0" />
-            <span className="text-foreground">{formatCredits(balance)}</span>
+            <span className="text-foreground truncate text-xs min-[390px]:text-sm">{formatCredits(balance)}</span>
           </Link>
         )}
 
@@ -101,8 +102,8 @@ export const Header = () => {
           }
         }}>
           <DropdownMenuTrigger asChild>
-            <button className="p-2.5 rounded-xl bg-secondary/40 active:bg-secondary/70 transition-colors relative touch-target focus:outline-none" aria-label="更新通知">
-              <Bell className="w-5 h-5 text-muted-foreground" />
+              <button className="p-2.5 rounded-xl bg-secondary/40 active:bg-secondary/70 transition-colors relative touch-target focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" aria-label="更新通知">
+                <Bell className="w-5 h-5 text-muted-foreground" />
               {unreadCount > 0 && (
                 <span className="absolute top-1 right-1 flex h-2.5 w-2.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary/60" />
@@ -164,18 +165,18 @@ export const Header = () => {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className={cn(
-                "ml-1 md:ml-2 flex items-center gap-2",
-                "px-2 md:px-3 py-1.5 md:py-2",
-                "rounded-xl bg-secondary/40 active:bg-secondary/70",
-                "text-sm font-medium transition-colors",
-                "touch-target"
+                 "ml-1 md:ml-2 flex items-center gap-1.5 md:gap-2 min-w-0",
+                 "px-2 md:px-3 py-1.5 md:py-2 max-w-[116px] md:max-w-none",
+                 "rounded-xl bg-secondary/40 active:bg-secondary/70",
+                 "text-sm font-medium transition-colors",
+                 "touch-target"
               )}>
                 <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
                   <User className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary-foreground" />
                 </div>
-                <span className="max-w-[80px] md:max-w-[120px] truncate hidden xs:inline">
-                  {user.email?.split('@')[0]}
-                </span>
+                 <span className="max-w-[56px] min-[390px]:max-w-[72px] md:max-w-[120px] truncate hidden xs:inline">
+                   {user.email?.split('@')[0]}
+                 </span>
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
@@ -224,9 +225,9 @@ export const Header = () => {
           <Link
             to="/auth"
             className={cn(
-              "ml-1 md:ml-2 px-3 md:px-4 py-1.5 md:py-2",
-              "bg-primary text-primary-foreground rounded-xl",
-              "text-sm font-medium hover:bg-primary/90 transition-colors",
+               "ml-1 md:ml-2 px-3 md:px-4 py-1.5 md:py-2",
+               "bg-primary text-primary-foreground rounded-xl",
+               "text-sm font-medium hover:bg-primary/90 transition-colors",
               "shadow-soft touch-target"
             )}
           >

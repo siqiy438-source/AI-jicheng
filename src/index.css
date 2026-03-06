@@ -448,6 +448,12 @@
     box-shadow: var(--shadow-lg);
   }
 
+  @media (hover: none) and (pointer: coarse) {
+    .glass-card:hover {
+      box-shadow: var(--shadow-md);
+    }
+  }
+
   /* L3 交互卡片 */
   .card-interactive {
     background: hsl(var(--card));
@@ -551,11 +557,11 @@
 
   /* 交互过渡 */
   .transition-smooth {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .transition-bounce {
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
   /* 滚动触发动画 */
@@ -1032,7 +1038,7 @@ button[data-compact],
 
   /* 移动端底部导航栏空间 */
   .pb-mobile-nav {
-    padding-bottom: calc(var(--mobile-nav-height) + var(--safe-area-bottom) + 0.5rem);
+    padding-bottom: calc(var(--mobile-nav-height) + var(--safe-area-bottom) + 0.875rem);
   }
 
   @media (min-width: 768px) {

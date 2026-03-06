@@ -30,7 +30,7 @@ export const PageLayout = ({
   maxWidth = "4xl",
 }: PageLayoutProps) => {
   return (
-    <div className="flex h-[100dvh] bg-gradient-main relative overflow-hidden">
+    <div className="relative flex min-h-[100dvh] bg-gradient-main overflow-hidden md:h-[100dvh]">
       {/* 背景氛围光斑 - 移动端缩小 */}
       <div className="ambient-orb ambient-orb-primary w-[280px] h-[280px] md:w-[500px] md:h-[500px] -top-24 -right-24 md:-top-40 md:-right-40" />
       <div className="ambient-orb ambient-orb-accent w-[220px] h-[220px] md:w-[400px] md:h-[400px] bottom-10 -left-20 md:bottom-20 md:-left-32" />
@@ -38,12 +38,12 @@ export const PageLayout = ({
       <div className="fixed inset-0 texture-paper pointer-events-none z-0" />
 
       <Sidebar />
-      <div className="flex-1 flex flex-col overflow-x-clip relative z-10">
+      <div className="relative z-10 flex flex-1 flex-col overflow-x-hidden">
         {showHeader && <Header />}
         <main
           id="main-content"
           className={cn(
-            "flex-1 overflow-y-auto overscroll-y-contain scrollbar-thin",
+            "flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain scrollbar-thin",
             // 移动端底部留出导航栏空间
             "pb-mobile-nav"
           )}

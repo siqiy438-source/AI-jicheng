@@ -1,4 +1,4 @@
-import { useNavigate, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Palette,
@@ -17,18 +17,16 @@ interface NavItemProps {
 }
 
 const MobileNavItem = ({ icon, label, to, active }: NavItemProps) => {
-  const navigate = useNavigate();
-
   return (
-    <button
-      onClick={() => navigate(to)}
+    <Link
+      to={to}
       aria-label={label}
       className={cn(
-        "flex flex-col items-center justify-center gap-0.5 flex-1 py-1.5 min-h-[52px]",
+        "flex min-h-[52px] flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl py-1.5",
         "transition-all duration-200 ease-out",
         "active:scale-95",
         active
-          ? "text-primary"
+          ? "bg-primary/[0.08] text-primary"
           : "text-muted-foreground"
       )}
     >
@@ -52,7 +50,7 @@ const MobileNavItem = ({ icon, label, to, active }: NavItemProps) => {
       >
         {label}
       </span>
-    </button>
+    </Link>
   );
 };
 
@@ -133,7 +131,7 @@ export const MobileNav = () => {
         "pl-safe pr-safe"
       )}
     >
-      <div className="flex h-full items-start justify-around px-1 pt-1 pb-safe">
+      <div className="flex h-full items-start justify-around gap-1 px-2 pt-1.5 pb-safe">
         {navItems.map((item) => (
           <MobileNavItem
             key={item.to}
