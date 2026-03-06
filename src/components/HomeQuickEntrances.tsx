@@ -42,7 +42,7 @@ export const HomeQuickEntrances = () => {
         先选最接近你当前任务的入口，再继续创作。
       </p>
 
-      <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 scrollbar-none md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0 md:pb-0">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-3">
         {entranceItems.map((item, index) => {
           const Icon = item.icon;
 
@@ -50,22 +50,24 @@ export const HomeQuickEntrances = () => {
             <Link
               key={item.to}
               to={item.to}
-              className="group w-[82vw] max-w-[320px] shrink-0 snap-start rounded-2xl border border-border/60 bg-background/88 p-4 shadow-[0_8px_30px_rgba(15,23,42,0.05)] transition-transform duration-200 hover:-translate-y-1 hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:w-auto md:max-w-none md:p-5"
+              className="group flex min-h-[132px] flex-col rounded-[20px] border border-border/60 bg-background/88 p-3.5 shadow-[0_8px_24px_rgba(15,23,42,0.05)] transition-transform duration-200 hover:-translate-y-1 hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:min-h-0 md:rounded-2xl md:p-5"
             >
               <div
-                className={`mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br ${item.accent}`}
+                className={`mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br md:mb-4 md:h-11 md:w-11 md:rounded-2xl ${item.accent}`}
               >
-                <Icon className={`w-5 h-5 ${item.iconClassName}`} aria-hidden="true" />
+                <Icon className={`h-4.5 w-4.5 md:h-5 md:w-5 ${item.iconClassName}`} aria-hidden="true" />
               </div>
-              <div className="flex items-center justify-between gap-3 mb-2">
-                <h3 className="text-base font-semibold text-foreground">{item.title}</h3>
-                <span className="text-xs font-medium text-primary">进入</span>
+              <div className="mb-1.5 flex items-start justify-between gap-2 md:mb-2 md:items-center md:gap-3">
+                <h3 className="text-[15px] font-semibold leading-5 text-foreground md:text-base">{item.title}</h3>
+                <span className="text-[12px] font-medium text-primary md:text-xs">进入</span>
               </div>
-              <p className="min-w-0 text-sm leading-6 text-muted-foreground">{item.description}</p>
+              <p className="line-clamp-1 min-w-0 text-[12px] leading-5 text-muted-foreground md:text-sm md:leading-6">{item.description}</p>
               <div
-                className="mt-4 h-px bg-gradient-to-r from-primary/20 via-primary/5 to-transparent"
+                className="mt-auto pt-3"
                 style={{ animationDelay: `${120 + index * 60}ms` }}
-              />
+              >
+                <div className="h-px bg-gradient-to-r from-primary/20 via-primary/5 to-transparent" />
+              </div>
             </Link>
           );
         })}
