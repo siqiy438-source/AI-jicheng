@@ -5,7 +5,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
-import { buildGenerateContentUrl, getImageProvider, getProviderConfig, isHDResolution, isPremiumHD, getHDModel, getHDApiUrl, PIXEL_ART_MODEL, SPEED_IMAGE_MODEL } from "./provider.ts"
+import { buildGenerateContentUrl, getImageProvider, getProviderConfig, isHDResolution, isPremiumHD, getHDModel, getHDApiUrl, PIXEL_ART_MODEL, SPEED_IMAGE_MODEL, ZENMUX_PRO_IMAGE_MODEL, getZenMuxImageUrl } from "./provider.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -247,14 +247,14 @@ serve(async (req) => {
 
     const isPixelArt = feature_code === 'ai_pixel_art'
     const resolvedLine = getImageProvider(line)
-    // 优质线路固定走 2K HD
-    const resolvedResolution = resolvedLine === "premium" ? "2k" : (resolution || "default")
+    // 优质线路走 ZenMux 专属分支，不需要强制 2K
+    const resolvedResolution = resolution || "default"
     const providerConfig = getProviderConfig(resolvedLine)
     // 像素块生成使用专用模型
     if (isPixelArt) {
       providerConfig.model = PIXEL_ART_MODEL
     }
-    // 极速线路使用 Nano Banana 2（Gemini 3.1 Flash Image Preview）
+    // 极速线路使用 BLTCY 的 Gemini 3.1 Flash Image Preview 兼容别名
     if (!isPixelArt && resolvedResolution === 'speed') {
       providerConfig.model = SPEED_IMAGE_MODEL
     }
@@ -373,7 +373,100 @@ Flat-lay product showcase requirements:
       fullPrompt += `. Aspect ratio: ${aspectRatio}`
     }
 
-    // ========== 2K/4K 高清线路（含优质线路）：走 images/edits 接口 ==========
+    // ========== 灵犀Pro线路：走 ZenMux API ==========
+    if (resolvedLine === "premium") {
+      const zenMuxApiKey = Deno.env.get('ZENMUX_API_KEY')
+      if (!zenMuxApiKey) {
+        throw new Error('图像服务配置错误：ZENMUX_API_KEY 未配置，请联系管理员')
+      }
+
+      const formData = new FormData()
+      formData.append('model', ZENMUX_PRO_IMAGE_MODEL)
+      formData.append('prompt', fullPrompt)
+      formData.append('n', '1')
+      formData.append('response_format', 'b64_json')
+
+      if (images && Array.isArray(images) && images.length > 0) {
+        const firstImage = await resolveImageToDataUrl(images[0], allowedImageHosts)
+        const matches = firstImage.match(/^data:([^;]+);base64,(.+)$/)
+        if (matches) {
+          const binaryStr = atob(matches[2])
+          const bytes = new Uint8Array(binaryStr.length)
+          for (let i = 0; i < binaryStr.length; i++) {
+            bytes[i] = binaryStr.charCodeAt(i)
+          }
+          const blob = new Blob([bytes], { type: matches[1] })
+          formData.append('image', blob, 'image.png')
+        }
+      } else {
+        const placeholderB64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
+        const binaryStr = atob(placeholderB64)
+        const bytes = new Uint8Array(binaryStr.length)
+        for (let i = 0; i < binaryStr.length; i++) {
+          bytes[i] = binaryStr.charCodeAt(i)
+        }
+        const blob = new Blob([bytes], { type: 'image/png' })
+        formData.append('image', blob, 'placeholder.png')
+      }
+
+      console.log(`[ai-image] ZenMux Pro → model=${ZENMUX_PRO_IMAGE_MODEL}`)
+      const zenResponse = await fetch(getZenMuxImageUrl(), {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${zenMuxApiKey}` },
+        body: formData,
+      })
+
+      if (!zenResponse.ok) {
+        const errorText = await zenResponse.text()
+        console.error(`[ai-image] ZenMux Pro API error: ${zenResponse.status} - ${errorText}`)
+        throw new Error(`ZenMux Pro API 错误: ${zenResponse.status} - ${errorText}`)
+      }
+
+      const zenData = await zenResponse.json()
+
+      let imageBase64: string | null = null
+      if (zenData.data && zenData.data.length > 0) {
+        const item = zenData.data[0]
+        if (item.b64_json) {
+          imageBase64 = `data:image/png;base64,${item.b64_json}`
+        } else if (item.url) {
+          const imgResp = await fetch(item.url)
+          const imgBuffer = await imgResp.arrayBuffer()
+          const imgBytes = new Uint8Array(imgBuffer)
+          let imgBinary = ''
+          const chunkSize = 8192
+          for (let i = 0; i < imgBytes.length; i += chunkSize) {
+            imgBinary += String.fromCharCode(...imgBytes.subarray(i, i + chunkSize))
+          }
+          imageBase64 = `data:image/png;base64,${btoa(imgBinary)}`
+        }
+      }
+
+      if (!imageBase64) {
+        throw new Error('ZenMux Pro 未能生成图片')
+      }
+
+      let imageUrl: string | null = null
+      if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
+        imageUrl = await uploadImageToStorage(SUPABASE_URL, SUPABASE_SERVICE_KEY, imageBase64)
+      }
+
+      if (imageUrl) {
+        await finalizeCreditOperation(true)
+        console.log(`[ai-image] ZenMux Pro 图片已上传 Storage，返回 URL`)
+        return new Response(JSON.stringify({ success: true, imageUrl }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      await finalizeCreditOperation(true)
+      console.log(`[ai-image] ZenMux Pro Storage 上传失败，回退 base64`)
+      return new Response(JSON.stringify({ success: true, imageBase64 }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    // ========== 2K/4K 高清线路：走 images/edits 接口 ==========
     if (isHDResolution(resolvedResolution)) {
       const hdApiKey = providerApiKey
       if (!hdApiKey) {
@@ -523,30 +616,38 @@ Flat-lay product showcase requirements:
       contents = [{ role: 'user', parts }]
     }
 
-    // 调用对应线路 API 生成图像
+    // 调用对应线路 API 生成图像（546 自动重试，最多 2 次）
     const apiUrl = buildGenerateContentUrl(providerConfig)
     const generationConfig = {
       responseModalities: ['IMAGE'],
       imageConfig: aspectRatio ? { aspectRatio } : undefined,
     }
+    const requestBody = JSON.stringify({ contents, generationConfig })
 
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${providerApiKey}`,
-      },
-      body: JSON.stringify({
-        contents,
-        generationConfig,
-      }),
-    })
+    let response: Response | null = null
+    const MAX_RETRIES = 2
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${providerApiKey}`,
+        },
+        body: requestBody,
+      })
 
-    if (!response.ok) {
+      if (response.ok) break
+
       const errorText = await response.text()
-      console.error(`[ai-image] ${providerName} API error: ${response.status} - ${errorText}`)
+      console.error(`[ai-image] ${providerName} API error (attempt ${attempt}/${MAX_RETRIES}): ${response.status} - ${errorText}`)
 
-      // 区分不同的错误类型，提供更友好的错误信息
+      if (response.status === 546 && attempt < MAX_RETRIES) {
+        console.log(`[ai-image] 546 服务过载，1.5s 后重试 (${attempt}/${MAX_RETRIES})...`)
+        await new Promise(r => setTimeout(r, 1500))
+        continue
+      }
+
+      // 不可重试的错误直接抛出
       if (response.status === 401) {
         throw new Error(`${providerName} 认证失败：API Key 无效或已过期，请联系管理员更新`)
       } else if (response.status === 403) {
@@ -554,7 +655,7 @@ Flat-lay product showcase requirements:
       } else if (response.status === 429) {
         throw new Error(`${providerName} 请求过于频繁，请稍后再试`)
       } else if (response.status === 546) {
-        throw new Error(`BLTCY 服务暂时不可用（错误码 546），请切换到高级线路或稍后重试`)
+        throw new Error(`当前线路服务繁忙，请点击重试或切换到其他线路`)
       } else if (response.status >= 500) {
         throw new Error(`${providerName} 服务暂时不可用，请稍后再试`)
       } else {
@@ -563,6 +664,21 @@ Flat-lay product showcase requirements:
     }
 
     const data = await response.json()
+
+    // 调试：打印 BLTCY 返回结构（排除 base64 图片数据）
+    const debugData = JSON.parse(JSON.stringify(data))
+    if (debugData.candidates) {
+      debugData.candidates = debugData.candidates.map((c: Record<string, unknown>) => ({
+        ...c,
+        content: c.content ? {
+          ...(c.content as Record<string, unknown>),
+          parts: ((c.content as Record<string, unknown>).parts as Array<Record<string, unknown>>)?.map((p: Record<string, unknown>) => (
+            p.inlineData ? { inlineData: { mimeType: (p.inlineData as Record<string, unknown>).mimeType, data: '[BASE64_OMITTED]' } } : p
+          ))
+        } : c.content
+      }))
+    }
+    console.log(`[ai-image] BLTCY 响应结构 model=${providerConfig.model}:`, JSON.stringify(debugData))
 
     // 解析 Vertex AI 响应
     let imageBase64: string | null = null
@@ -584,6 +700,7 @@ Flat-lay product showcase requirements:
     }
 
     if (!imageBase64) {
+      console.error(`[ai-image] 未找到图片数据，候选项数量=${candidates.length}，finishReasons=${candidates.map((c: Record<string, unknown>) => c.finishReason).join(',')}`)
       throw new Error('未能生成图片')
     }
 

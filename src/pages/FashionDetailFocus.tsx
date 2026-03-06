@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { CreditCostHint } from "@/components/CreditCostHint";
 import {
   ArrowLeft,
+  ChevronDown,
   Download,
   ImagePlus,
   Loader2,
@@ -56,8 +57,14 @@ const DETAIL_SLOTS: DetailSlot[] = [
 ];
 
 const DEFAULT_RATIO = "3:4";
-const DEFAULT_LINE = "standard" as const;
-const DEFAULT_RESOLUTION = "speed" as const;
+
+const LINE_OPTIONS = [
+  { id: "speed", name: "灵犀极速版", line: "standard" as const, resolution: "speed" as const },
+  { id: "premium", name: "灵犀 Pro", line: "premium" as const, resolution: "2k" as const, badge: "优质" },
+  { id: "standard", name: "灵犀标准", line: "standard" as const, resolution: "default" as const },
+  { id: "standard_2k", name: "灵犀 2K", line: "standard" as const, resolution: "2k" as const },
+  { id: "standard_4k", name: "灵犀 4K", line: "standard" as const, resolution: "4k" as const },
+];
 
 const buildMainPrompt = () => {
   return `你是高端时尚电商摄影总监。请基于参考图，生成一张“高级感完整主图”。这是第 1 张图。
@@ -103,12 +110,16 @@ const FashionDetailFocus = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingText, setGeneratingText] = useState("正在生成...");
+  const [selectedLine, setSelectedLine] = useState("speed");
+  const [showLineMenu, setShowLineMenu] = useState(false);
 
   const allFrames = [mainFrame, ...detailFrames].filter((item): item is GeneratedFrame => Boolean(item));
   const activeFrame = allFrames[activeIndex] || null;
   const nextSlot = DETAIL_SLOTS[detailFrames.length];
   const canGenerateMain = Boolean(sourceImage && !mainFrame && !isGenerating);
   const canGenerateNext = Boolean(sourceImage && mainFrame && nextSlot && !isGenerating);
+  const currentLineOption = LINE_OPTIONS.find((o) => o.id === selectedLine) ?? LINE_OPTIONS[0];
+  const featureCode = currentLineOption.line === "premium" ? "ai_detail_premium" : "ai_detail_standard";
 
   const resetFlow = () => {
     setMainFrame(null);
@@ -138,7 +149,7 @@ const FashionDetailFocus = () => {
 
   const handleGenerateMain = async () => {
     if (!sourceImage || !canGenerateMain) return;
-    if (!checkCredits('ai_detail_standard')) return;
+    if (!checkCredits(featureCode)) return;
 
     setIsGenerating(true);
     setGeneratingText("正在生成高级主图...");
@@ -149,10 +160,10 @@ const FashionDetailFocus = () => {
         prompt,
         images: [sourceImage],
         aspectRatio: DEFAULT_RATIO,
-        line: DEFAULT_LINE,
-        resolution: DEFAULT_RESOLUTION,
+        line: currentLineOption.line,
+        resolution: currentLineOption.resolution,
         hasFrameworkPrompt: true,
-        featureCode: 'ai_detail_standard',
+        featureCode,
       });
 
       if (!data.success) throw new Error(data.error || "主图生成失败");
@@ -178,7 +189,8 @@ const FashionDetailFocus = () => {
         metadata: {
           stage: "main",
           ratio: DEFAULT_RATIO,
-          line: DEFAULT_LINE,
+          line: currentLineOption.line,
+          lineId: selectedLine,
         },
       }).catch((error) => {
         console.error("保存主图失败", error);
@@ -196,7 +208,7 @@ const FashionDetailFocus = () => {
 
   const handleGenerateNext = async () => {
     if (!sourceImage || !mainFrame || !nextSlot || !canGenerateNext) return;
-    if (!checkCredits('ai_detail_standard')) return;
+    if (!checkCredits(featureCode)) return;
 
     setIsGenerating(true);
     setGeneratingText(`正在生成${nextSlot.title}...`);
@@ -208,10 +220,10 @@ const FashionDetailFocus = () => {
         prompt,
         images: [sourceImage, mainFrame.image],
         aspectRatio: DEFAULT_RATIO,
-        line: DEFAULT_LINE,
-        resolution: DEFAULT_RESOLUTION,
+        line: currentLineOption.line,
+        resolution: currentLineOption.resolution,
         hasFrameworkPrompt: true,
-        featureCode: 'ai_detail_standard',
+        featureCode,
       });
 
       if (!data.success) throw new Error(data.error || "细节图生成失败");
@@ -239,7 +251,8 @@ const FashionDetailFocus = () => {
           detailIndex: index,
           slotId: nextSlot.id,
           ratio: DEFAULT_RATIO,
-          line: DEFAULT_LINE,
+          line: currentLineOption.line,
+          lineId: selectedLine,
         },
       }).catch((error) => {
         console.error("保存细节图失败", error);
@@ -266,6 +279,7 @@ const FashionDetailFocus = () => {
 
   return (
     <PageLayout className="pt-6 pb-2 md:py-8">
+      <div onClick={() => setShowLineMenu(false)}>
       <button
         onClick={() => navigate("/clothing")}
         className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-3 md:mb-6 transition-colors"
@@ -325,6 +339,50 @@ const FashionDetailFocus = () => {
 
         <div className="border-t border-border/50 my-3" />
 
+        <div className="flex flex-wrap gap-2 items-center mb-2.5">
+          <div className="relative" onClick={(event) => event.stopPropagation()}>
+            <button
+              onClick={() => setShowLineMenu((prev) => !prev)}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-sm bg-secondary/50 text-muted-foreground hover:bg-secondary transition-all duration-200 border border-transparent whitespace-nowrap"
+            >
+              <Zap className="w-3.5 h-3.5" />
+              <span>{currentLineOption.name}</span>
+              {currentLineOption.badge && (
+                <span className="px-1 py-0.5 text-[10px] leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded">
+                  {currentLineOption.badge}
+                </span>
+              )}
+              <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showLineMenu && "rotate-180")} />
+            </button>
+            {showLineMenu && (
+              <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 w-[140px] max-h-[200px] overflow-y-auto">
+                {LINE_OPTIONS.map((option) => (
+                  <button
+                    key={option.id}
+                    onClick={() => {
+                      setSelectedLine(option.id);
+                      setShowLineMenu(false);
+                      if (mainFrame) resetFlow();
+                    }}
+                    className={cn(
+                      "w-full flex items-center gap-1.5 px-3 py-2.5 text-sm hover:bg-secondary/50 transition-colors text-left",
+                      selectedLine === option.id && "bg-orange-50 text-orange-700",
+                    )}
+                  >
+                    <span>{option.name}</span>
+                    {option.badge && (
+                      <span className="px-1 py-0.5 text-[10px] leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded">
+                        {option.badge}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <CreditCostHint featureCode={featureCode} />
+        </div>
+
         <div className="flex flex-wrap gap-2 items-center">
           <Button onClick={handleGenerateMain} disabled={!canGenerateMain} className="rounded-full">
             {isGenerating && !mainFrame ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Sparkles className="w-4 h-4 mr-1.5" />}
@@ -335,8 +393,6 @@ const FashionDetailFocus = () => {
             {isGenerating && mainFrame ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Zap className="w-4 h-4 mr-1.5" />}
             {nextSlot ? "继续生成细节图" : "已完成"}
           </Button>
-
-          <CreditCostHint featureCode="ai_detail_standard" />
 
           <Button onClick={handleDownloadCurrent} disabled={!activeFrame} variant="outline" className="rounded-full">
             <Download className="w-4 h-4 mr-1.5" />
@@ -412,6 +468,7 @@ const FashionDetailFocus = () => {
         featureName={featureName}
         onRecharge={goToRecharge}
       />
+      </div>
     </PageLayout>
   );
 };
