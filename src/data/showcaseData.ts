@@ -52,7 +52,7 @@ export const showcaseCategories: ShowcaseCategory[] = [
       {
         id: "hangoutfit",
         title: "AI 一键挂搭图",
-        description: "上传内搭与单品，自动补全完整挂搭效果图",
+        description: "支持 2-3 张服装图生成挂搭效果，完整展示版型与细节",
         beforeImages: [
           "/showcase/hangoutfit-before-1.jpg",
           "/showcase/hangoutfit-before-2.jpg",

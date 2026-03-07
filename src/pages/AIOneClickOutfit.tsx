@@ -14,6 +14,7 @@ import { InsufficientBalanceDialog } from "@/components/InsufficientBalanceDialo
 import {
   ArrowLeft,
   Download,
+  Image,
   Loader2,
   RefreshCw,
   Send,
@@ -27,14 +28,6 @@ import {
   Zap,
 } from "lucide-react";
 
-type OutfitSlot = "inner" | "top" | "pants";
-
-interface OutfitImageState {
-  inner: string | null;
-  top: string | null;
-  pants: string | null;
-}
-
 const lineOptions = [
   { id: "speed", name: "灵犀极速版", line: "standard" as const, resolution: "speed" as const },
   { id: "standard", name: "灵犀标准", line: "standard" as const, resolution: "default" as const },
@@ -42,24 +35,14 @@ const lineOptions = [
   { id: "standard_4k", name: "灵犀 4K", line: "standard" as const, resolution: "4k" as const },
 ];
 
-const uploadSlots: { key: OutfitSlot; title: string; desc: string }[] = [
-  { key: "inner", title: "内搭", desc: "如 T 恤、衬衣、针织打底" },
-  { key: "top", title: "上衣", desc: "如外套、西装、夹克" },
-  { key: "pants", title: "裤子", desc: "如牛仔裤、西裤、半裙" },
-];
+const MAX_IMAGES = 3;
 
 const AIOneClickOutfit = () => {
   const navigate = useNavigate();
   const { checkCredits, showInsufficientDialog, requiredAmount, featureName, currentBalance, goToRecharge, dismissDialog, refreshBalance } = useCreditCheck();
-  const innerInputRef = useRef<HTMLInputElement>(null);
-  const topInputRef = useRef<HTMLInputElement>(null);
-  const pantsInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
-  const [images, setImages] = useState<OutfitImageState>({
-    inner: null,
-    top: null,
-    pants: null,
-  });
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [selectedLine, setSelectedLine] = useState("speed");
   const [showLineMenu, setShowLineMenu] = useState(false);
   const [additionalNotes, setAdditionalNotes] = useState("");
@@ -78,55 +61,68 @@ const AIOneClickOutfit = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const getInputRef = (slot: OutfitSlot) => {
-    if (slot === "inner") return innerInputRef;
-    if (slot === "top") return topInputRef;
-    return pantsInputRef;
-  };
+  const handleUpload = async (files: FileList | null) => {
+    if (!files) return;
 
-  const handleUpload = async (slot: OutfitSlot, files: FileList | null) => {
-    if (!files || files.length === 0) return;
-    const file = files[0];
-    if (!file.type.startsWith("image/")) return;
+    const remainingSlots = MAX_IMAGES - imagePreviews.length;
+    const filesToProcess = Array.from(files)
+      .filter((file) => file.type.startsWith("image/"))
+      .slice(0, remainingSlots);
 
-    try {
-      const compressed = await compressImage(file, {
-        maxWidth: 1024,
-        maxHeight: 1024,
-        quality: 0.85,
-      });
-      setImages((prev) => ({ ...prev, [slot]: compressed }));
-      setGeneratedImage(null);
-    } catch {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImages((prev) => ({ ...prev, [slot]: e.target?.result as string }));
+    for (const file of filesToProcess) {
+      try {
+        const compressed = await compressImage(file, {
+          maxWidth: 1024,
+          maxHeight: 1024,
+          quality: 0.85,
+        });
+        setImagePreviews((prev) => [...prev, compressed]);
         setGeneratedImage(null);
-      };
-      reader.readAsDataURL(file);
-    } finally {
-      const ref = getInputRef(slot);
-      if (ref.current) ref.current.value = "";
+      } catch {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setImagePreviews((prev) => [...prev, e.target?.result as string]);
+          setGeneratedImage(null);
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    if (imageInputRef.current) {
+      imageInputRef.current.value = "";
     }
   };
 
-  const clearImage = (slot: OutfitSlot) => {
-    setImages((prev) => ({ ...prev, [slot]: null }));
+  const clearImage = (index: number) => {
+    setImagePreviews((prev) => prev.filter((_, imageIndex) => imageIndex !== index));
     setGeneratedImage(null);
   };
 
+  const clearAllImages = () => {
+    setImagePreviews([]);
+    setGeneratedImage(null);
+    if (imageInputRef.current) {
+      imageInputRef.current.value = "";
+    }
+  };
+
   const handleGenerate = async () => {
-    if (!images.inner || !images.top || !images.pants) return;
+    if (imagePreviews.length < 2) return;
     const selectedLineOption = lineOptions.find((option) => option.id === selectedLine) || lineOptions[0];
-    const featureCode = selectedLineOption.line === 'premium' ? 'ai_outfit_premium' : 'ai_outfit_standard';
+    const featureCode = 'ai_outfit_standard';
     if (!checkCredits(featureCode)) return;
     setIsGenerating(true);
     setGeneratedImage(null);
 
     try {
       setGenerationStep("正在整理服装信息...");
-      const outfitReference = await mergeImagesToGrid([images.inner, images.top, images.pants], 380, 1);
+      const uploadedCount = imagePreviews.length;
+      const outfitReference = await mergeImagesToGrid(imagePreviews, 380, 1, {
+        cellHeight: Math.round(380 * 16 / 9),
+        fit: "contain",
+      });
       const referenceImages = [outfitReference];
+      const hasBottoms = uploadedCount === 3;
 
       const prompt = `[Core Setup: Minimal Hanging Rod]
 A real photograph of garments displayed on a slim, simple horizontal metal rod that spans across the frame. The rod is thin and understated — plain silver or light chrome, not thick or heavy. The garments hang on natural wooden hangers, giving a warm, authentic boutique feel.
@@ -153,11 +149,19 @@ Shot from a near-frontal angle with a very slight offset. Soft, even, natural di
 Set in a cozy, minimalist clothing boutique. The background is a clean, plain off-white or light gray wall. The overall mood is warm, natural, and inviting — like a real indie fashion store, not a luxury showroom. The image should look like a casual iPhone photo taken in a well-lit shop.
 
 [Hard Constraints: Separation Is Mandatory]
-- You receive exactly 3 uploaded garments (#1, #2, #3).
-- Display all 3 garments in one scene on the same slim rod, each on its own wooden hanger with clear spacing.
+- You receive exactly ${uploadedCount} uploaded garments.
+- Display all uploaded garments in one scene on the same slim rod, each on its own wooden hanger with clear spacing.
 - One garment per hanger only. Never combine two garments on one hanger.
-- Do not style them as one worn outfit set; present them as three separate hanging pieces.
+- Do not style them as one worn outfit set; present them as separate hanging pieces only.
 - Keep full length visible for each garment (no heavy crop).
+- Treat every uploaded reference image as one independent garment item.
+- The uploaded items may be different garment categories, or the same garment style in different colors. Preserve each one separately and exactly as shown.
+- If two or more references show the same style in different colors, keep them as separate hanging pieces. Never merge them into one item and never swap colors between them.
+- If only 2 garments are uploaded, generate exactly 2 hanging garments. Do not invent any third garment such as pants, skirts, or extra tops.
+- If 3 garments are uploaded, generate exactly 3 hanging garments.
+- Use only the uploaded garments. Do not add any extra clothing item that was not uploaded.
+- Each garment must be shown as fully and clearly as possible: complete silhouette, neckline, sleeves, hem, closures, pockets, trims, labels, embroidery, and other visible details.
+- Prioritize garment fidelity over styling creativity. When uncertain, copy the uploaded garment details conservatively instead of inventing missing parts.
 - Generate exactly one final image only.
 
 ${additionalNotes ? `[Additional Notes]\n${additionalNotes}` : ""}`;
@@ -169,7 +173,7 @@ studio equipment, light stands, softboxes, lighting gear, umbrella reflector, ca
 harsh shadows, dramatic side lighting, cinematic lighting, strong directional light, deep shadows, high contrast lighting, studio flash, HDR effect, specular highlights on metal, glossy reflections.
 
 [Quality Control]
-cropped garments, partial view, flat lay, low quality, blurry, distorted fabric, CGI artifacts, CGI rendering, plastic texture, overly sharp, over-processed, merged garments, layered on same hanger, one complete worn outfit look, two garments fused together, too many props, overly busy composition.`;
+cropped garments, partial view, missing hem, missing sleeves, missing collar details, wrong buttons, wrong zipper, wrong pockets, wrong labels, wrong embroidery, flat lay, low quality, blurry, distorted fabric, CGI artifacts, CGI rendering, plastic texture, overly sharp, over-processed, merged garments, layered on same hanger, one complete worn outfit look, two garments fused together, color mixing between garments, same-style garments merged into one, too many props, overly busy composition, invented pants, invented skirt, invented extra garment${hasBottoms ? "" : ", three garments when only two were uploaded"}.`;
 
       setGenerationStep("AI 正在生成挂搭图...");
       const response = await generateImage({
@@ -207,6 +211,7 @@ cropped garments, partial view, flat lay, low quality, blurry, distorted fabric,
         metadata: {
           line: selectedLine,
           hasAdditionalNotes: Boolean(additionalNotes.trim()),
+          uploadedImageCount: uploadedCount,
         },
       }).catch((error) => {
         console.error("自动保存挂搭图失败", error);
@@ -229,7 +234,7 @@ cropped garments, partial view, flat lay, low quality, blurry, distorted fabric,
     }
   };
 
-  const canGenerate = Boolean(images.inner && images.top && images.pants && !isGenerating);
+  const canGenerate = Boolean(imagePreviews.length >= 2 && !isGenerating);
 
   return (
     <PageLayout className="py-2 md:py-8">
@@ -251,56 +256,80 @@ cropped garments, partial view, flat lay, low quality, blurry, distorted fabric,
         </div>
         <div>
           <h1 className="text-2xl font-bold text-foreground">AI 一键挂搭图</h1>
-          <p className="text-muted-foreground text-sm">上传内搭、上衣、裤子，自动补全包包和配饰</p>
+          <p className="text-muted-foreground text-sm">上传 2-3 张服装图，自动生成完整挂搭效果图并补充包包和配饰</p>
         </div>
       </div>
 
       <div className="glass-card rounded-xl md:rounded-2xl p-3 md:p-5 mb-3 md:mb-4 shadow-lg">
         <div className="flex items-center gap-2 mb-3">
           <ShirtIcon className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium text-foreground">第一步：上传三件服装</span>
+          <span className="text-sm font-medium text-foreground">第一步：上传服装</span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {uploadSlots.map((slot) => {
-            const image = images[slot.key];
-            return (
-              <div key={slot.key} className="rounded-xl border border-border bg-card/60 p-3">
-                <div className="mb-2">
-                  <div className="text-sm font-medium text-foreground">{slot.title}</div>
-                  <div className="text-xs text-muted-foreground">{slot.desc}</div>
-                </div>
+        <p className="mb-3 text-xs text-muted-foreground">支持上传 2-3 张服装图。系统会把每张图都当成独立服装参考，完整展示版型和细节；只上传 2 张时，不会补第三件衣服。</p>
 
-                {image ? (
-                  <div className="relative group">
-                    <img src={image} alt={slot.title} loading="lazy" decoding="async" className="w-full h-44 object-cover rounded-lg border border-border" />
+        <div className="rounded-xl border border-border bg-card/60 p-3">
+          <div className="flex items-center gap-2 mb-2.5">
+            <Image className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium text-foreground">上传服装照片</span>
+            <span className="text-xs text-muted-foreground ml-auto">{imagePreviews.length}/{MAX_IMAGES}</span>
+          </div>
+
+          {imagePreviews.length > 0 ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">每张图都会作为独立服装参考使用</span>
+                <button onClick={clearAllImages} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                  清空全部
+                </button>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                {imagePreviews.map((image, index) => (
+                  <div key={`${image.slice(0, 24)}-${index}`} className="relative group">
+                    <img src={image} alt={`参考图 ${index + 1}`} loading="lazy" decoding="async" className="w-full h-32 md:h-44 object-cover rounded-lg border border-border bg-background" />
+                    <div className="absolute left-2 top-2 rounded-md bg-black/60 px-2 py-1 text-[11px] text-white">
+                      {`参考图 ${index + 1}`}
+                    </div>
                     <button
-                      onClick={() => clearImage(slot.key)}
+                      onClick={() => clearImage(index)}
                       className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                ) : (
+                ))}
+
+                {imagePreviews.length < MAX_IMAGES && (
                   <button
-                    onClick={() => getInputRef(slot.key).current?.click()}
-                    className="w-full h-44 rounded-lg border-2 border-dashed border-border hover:border-primary/40 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+                    onClick={() => imageInputRef.current?.click()}
+                    className="h-32 md:h-44 rounded-lg border-2 border-dashed border-border hover:border-primary/40 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary transition-colors"
                   >
                     <Upload className="w-5 h-5" />
-                    <span className="text-xs">点击上传{slot.title}</span>
+                    <span className="text-xs">继续上传</span>
                   </button>
                 )}
-
-                <input
-                  ref={getInputRef(slot.key)}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(event) => handleUpload(slot.key, event.target.files)}
-                />
               </div>
-            );
-          })}
+            </div>
+          ) : (
+            <button
+              onClick={() => imageInputRef.current?.click()}
+              className="w-full py-8 rounded-xl border-2 border-dashed border-border hover:border-primary/40 flex flex-col items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+            >
+              <Upload className="w-8 h-8" />
+              <span className="text-sm">点击上传服装照片</span>
+              <span className="text-xs text-muted-foreground">支持最多 3 张图片</span>
+            </button>
+          )}
+
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={(event) => handleUpload(event.target.files)}
+          />
         </div>
       </div>
 
@@ -372,7 +401,7 @@ cropped garments, partial view, flat lay, low quality, blurry, distorted fabric,
             <span>{isGenerating ? "生成中..." : "生成挂搭图"}</span>
           </button>
           <CreditCostHint
-            featureCode={lineOptions.find(o => o.id === selectedLine)?.line === 'premium' ? 'ai_outfit_premium' : 'ai_outfit_standard'}
+            featureCode="ai_outfit_standard"
           />
         </div>
       </div>

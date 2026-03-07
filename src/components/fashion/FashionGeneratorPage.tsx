@@ -21,7 +21,7 @@ import { PageLayout } from "@/components/PageLayout";
 import { GeneratingLoader } from "@/components/GeneratingLoader";
 import { Button } from "@/components/ui/button";
 import { generateImage } from "@/lib/ai-image";
-import { compressImage, downloadGeneratedImage } from "@/lib/image-utils";
+import { compressImage, downloadGeneratedImage, mergeImagesToGrid } from "@/lib/image-utils";
 import { saveGeneratedImageWork } from "@/lib/repositories/works";
 import { cn } from "@/lib/utils";
 import { useCreditCheck } from "@/hooks/use-credit-check";
@@ -47,6 +47,12 @@ interface FashionGeneratorPageProps {
   resultAlt: string;
   downloadPrefix: string;
   featureCodePrefix?: string;
+  minImages?: number;
+  maxImages?: number;
+  uploadLabel?: string;
+  uploadHint?: string;
+  emptyStateHint?: string;
+  promptPrefixBuilder?: (imageCount: number) => string;
 }
 
 const ratioOptions = [
@@ -76,6 +82,12 @@ export const FashionGeneratorPage = ({
   resultAlt,
   downloadPrefix,
   featureCodePrefix,
+  minImages = 1,
+  maxImages = MAX_IMAGES,
+  uploadLabel = "上传服装照片",
+  uploadHint,
+  emptyStateHint,
+  promptPrefixBuilder,
 }: FashionGeneratorPageProps) => {
   const navigate = useNavigate();
   const { checkCredits, showInsufficientDialog, requiredAmount, featureName, currentBalance, goToRecharge, dismissDialog } = useCreditCheck();
@@ -94,7 +106,7 @@ export const FashionGeneratorPage = ({
   const shouldShowStyleDropdown = Boolean(styleOptions && styleOptions.length > 1 && styleSelectorVariant !== "cards");
   const selectedStyleOption = styleOptions?.find((style) => style.id === selectedStyleId);
 
-  const canGenerate = imagePreviews.length > 0 && !isGenerating;
+  const canGenerate = imagePreviews.length >= minImages && !isGenerating;
 
   const closeAllMenus = () => {
     setShowRatioMenu(false);
@@ -105,7 +117,7 @@ export const FashionGeneratorPage = ({
   const handleImageUpload = async (files: FileList | null) => {
     if (!files) return;
 
-    const remainingSlots = MAX_IMAGES - imagePreviews.length;
+    const remainingSlots = maxImages - imagePreviews.length;
     const filesToProcess = Array.from(files)
       .filter((file) => file.type.startsWith("image/"))
       .slice(0, remainingSlots);
@@ -153,9 +165,12 @@ export const FashionGeneratorPage = ({
   const buildPrompt = () => {
     const userPrompt = prompt.trim();
     const activePrompt = styleOptions?.find((s) => s.id === selectedStyleId)?.prompt ?? basePrompt;
-    return activePrompt.includes("{user_prompt}")
+    const resolvedPrompt = activePrompt.includes("{user_prompt}")
       ? activePrompt.replace("{user_prompt}", userPrompt || "请基于上传服装图片生成")
       : `${activePrompt}${userPrompt ? `\n\n用户补充说明（可选）：${userPrompt}` : ""}`;
+    const promptPrefix = promptPrefixBuilder?.(imagePreviews.length)?.trim();
+
+    return promptPrefix ? `${promptPrefix}\n\n${resolvedPrompt}` : resolvedPrompt;
   };
 
   const handleGenerate = async () => {
@@ -173,10 +188,26 @@ export const FashionGeneratorPage = ({
 
     try {
       const finalPrompt = buildPrompt();
+      let requestImages = imagePreviews.length > 0 ? [...imagePreviews] : undefined;
+      let mergedReferenceForHD = false;
+
+      if (
+        requestImages &&
+        requestImages.length > 1 &&
+        (selectedLineOption.resolution === "2k" || selectedLineOption.resolution === "4k")
+      ) {
+        try {
+          requestImages = [await mergeImagesToGrid(requestImages, 380, Math.min(requestImages.length, 3))];
+          mergedReferenceForHD = true;
+        } catch (error) {
+          console.warn("高清线路参考图拼接失败，回退原始多图上传", error);
+        }
+      }
+
       const data = await generateImage({
         prompt: finalPrompt,
         aspectRatio: selectedRatio,
-        images: imagePreviews.length > 0 ? imagePreviews : undefined,
+        images: requestImages,
         line: selectedLineOption.line,
         resolution: selectedLineOption.resolution,
         hasFrameworkPrompt: true,
@@ -206,6 +237,8 @@ export const FashionGeneratorPage = ({
           selectedRatio,
           selectedLine,
           referenceImageCount: imagePreviews.length,
+          submittedReferenceImageCount: requestImages?.length ?? 0,
+          mergedReferenceForHD,
         },
       }).catch((error) => {
         console.error("自动保存服装作品失败", error);
@@ -249,11 +282,11 @@ export const FashionGeneratorPage = ({
 
         <div className="glass-card rounded-xl md:rounded-2xl p-3 md:p-5 mb-4 md:mb-6 shadow-lg">
           <div className="mb-4">
-            <div className="flex items-center gap-2 mb-2.5">
-              <Image className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-foreground">上传服装照片</span>
-              <span className="text-xs text-muted-foreground ml-auto">{imagePreviews.length}/{MAX_IMAGES}</span>
-            </div>
+              <div className="flex items-center gap-2 mb-2.5">
+                <Image className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium text-foreground">{uploadLabel}</span>
+                <span className="text-xs text-muted-foreground ml-auto">{imagePreviews.length}/{maxImages}</span>
+              </div>
 
             {imagePreviews.length > 0 && (
               <div className="mb-2.5">
@@ -281,7 +314,7 @@ export const FashionGeneratorPage = ({
                       </button>
                     </div>
                   ))}
-                  {imagePreviews.length < MAX_IMAGES && (
+                  {imagePreviews.length < maxImages && (
                     <button
                       onClick={() => imageInputRef.current?.click()}
                       className="h-16 w-16 md:h-20 md:w-20 rounded-lg md:rounded-xl border-2 border-dashed border-border hover:border-primary/40 flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
@@ -293,6 +326,8 @@ export const FashionGeneratorPage = ({
               </div>
             )}
 
+            {uploadHint && <p className="mt-2 text-xs text-muted-foreground leading-relaxed">{uploadHint}</p>}
+
             {imagePreviews.length === 0 && (
               <button
                 onClick={() => imageInputRef.current?.click()}
@@ -300,7 +335,7 @@ export const FashionGeneratorPage = ({
               >
                 <Image className="w-8 h-8" />
                 <span className="text-sm">点击上传服装照片</span>
-                <span className="text-xs text-muted-foreground">支持最多 {MAX_IMAGES} 张图片</span>
+                <span className="text-xs text-muted-foreground">支持最多 {maxImages} 张图片</span>
               </button>
             )}
           </div>
@@ -607,7 +642,7 @@ export const FashionGeneratorPage = ({
             <div className="w-14 h-14 md:w-20 md:h-20 rounded-full bg-secondary/50 flex items-center justify-center mx-auto mb-3 md:mb-4">
               <Sparkles className="w-7 h-7 md:w-10 md:h-10 text-muted-foreground/50" />
             </div>
-            <p className="text-muted-foreground text-xs md:text-base">先上传服装照片，再添加补充说明（可选）开始创作</p>
+            <p className="text-muted-foreground text-xs md:text-base">{emptyStateHint ?? "先上传服装照片，再添加补充说明（可选）开始创作"}</p>
           </div>
         )}
       </div>

@@ -155,7 +155,11 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 export async function mergeImagesToGrid(
   images: string[],
   cellSize: number = 256,
-  columns: number = 5
+  columns: number = 5,
+  options?: {
+    cellHeight?: number;
+    fit?: 'cover' | 'contain';
+  }
 ): Promise<string> {
   if (images.length === 0) throw new Error('没有图片可合并');
 
@@ -164,9 +168,12 @@ export async function mergeImagesToGrid(
   const rows = Math.ceil(images.length / actualColumns);
   const gap = 6;
   const labelH = 22;
+  const cellW = cellSize;
+  const cellH = options?.cellHeight ?? cellSize;
+  const fit = options?.fit ?? 'cover';
 
-  const canvasW = actualColumns * cellSize + (actualColumns + 1) * gap;
-  const canvasH = rows * (cellSize + labelH) + (rows + 1) * gap;
+  const canvasW = actualColumns * cellW + (actualColumns + 1) * gap;
+  const canvasH = rows * (cellH + labelH) + (rows + 1) * gap;
 
   const canvas = document.createElement('canvas');
   canvas.width = canvasW;
@@ -182,39 +189,48 @@ export async function mergeImagesToGrid(
   for (let i = 0; i < images.length; i++) {
     const col = i % actualColumns;
     const row = Math.floor(i / actualColumns);
-    const x = gap + col * (cellSize + gap);
-    const y = gap + row * (cellSize + labelH + gap);
+    const x = gap + col * (cellW + gap);
+    const y = gap + row * (cellH + labelH + gap);
 
     // 白色单元格背景
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(x, y, cellSize, cellSize + labelH);
+    ctx.fillRect(x, y, cellW, cellH + labelH);
 
     // 编号标签
     ctx.fillStyle = '#666666';
     ctx.font = 'bold 13px Arial, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(`#${i + 1}`, x + cellSize / 2, y + 15);
+    ctx.fillText(`#${i + 1}`, x + cellW / 2, y + 15);
 
-    // 加载并绘制图片（居中裁剪为正方形）
+    // 加载并绘制图片（默认居中裁剪；可选完整包含）
     try {
       const img = await loadImage(images[i]);
-      const size = Math.min(img.width, img.height);
-      const sx = (img.width - size) / 2;
-      const sy = (img.height - size) / 2;
-      ctx.drawImage(img, sx, sy, size, size, x, y + labelH, cellSize, cellSize);
+      if (fit === 'contain') {
+        const scale = Math.min(cellW / img.width, cellH / img.height);
+        const drawW = img.width * scale;
+        const drawH = img.height * scale;
+        const dx = x + (cellW - drawW) / 2;
+        const dy = y + labelH + (cellH - drawH) / 2;
+        ctx.drawImage(img, 0, 0, img.width, img.height, dx, dy, drawW, drawH);
+      } else {
+        const size = Math.min(img.width, img.height);
+        const sx = (img.width - size) / 2;
+        const sy = (img.height - size) / 2;
+        ctx.drawImage(img, sx, sy, size, size, x, y + labelH, cellW, cellH);
+      }
     } catch {
       // 图片加载失败时绘制占位符
       ctx.fillStyle = '#eeeeee';
-      ctx.fillRect(x, y + labelH, cellSize, cellSize);
+      ctx.fillRect(x, y + labelH, cellW, cellH);
       ctx.fillStyle = '#999999';
       ctx.font = '12px Arial';
-      ctx.fillText('加载失败', x + cellSize / 2, y + labelH + cellSize / 2);
+      ctx.fillText('加载失败', x + cellW / 2, y + labelH + cellH / 2);
     }
 
     // 细边框
     ctx.strokeStyle = '#e0e0e0';
     ctx.lineWidth = 1;
-    ctx.strokeRect(x, y, cellSize, cellSize + labelH);
+    ctx.strokeRect(x, y, cellW, cellH + labelH);
   }
 
   return canvas.toDataURL('image/jpeg', 0.85);

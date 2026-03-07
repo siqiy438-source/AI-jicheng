@@ -7,6 +7,19 @@ import {
   FASHION_MODEL_INDOOR_PROMPT,
 } from "@/lib/fashion-prompts";
 
+const buildModelPromptPrefix = (imageCount: number) => `STRICT MODEL RULES:
+- There are ${imageCount} uploaded garment reference image${imageCount === 1 ? "" : "s"}.
+- Use all uploaded garments and only the uploaded garments in the final look.
+- If 1 garment is uploaded, create a single-garment styling photo only.
+- If 2 garments are uploaded, create a two-piece outfit only.
+- If 3 garments are uploaded, create a three-piece outfit only.
+- Never invent or add extra clothing. Do not add outerwear unless an outerwear reference image is uploaded.
+- Shoes, bags, jewelry, belts, and other accessories may be added only as styling accessories.
+- The model must be an East Asian / Chinese woman only, with realistic East Asian features and natural East Asian skin tone.
+- Do not depict Black, White, mixed-race, or other non-East-Asian model features.
+- Keep the original default face identity and the original camera angle / framing style of the selected mode. Do not change the established face template or viewpoint.
+- Hair can be adjusted to match the outfit style, such as a neat bun, ponytail, straight hair, or soft waves, but the face identity should remain stable.`;
+
 const modelStyles: StyleOption[] = [
   {
     id: "mirror-selfie",
@@ -41,7 +54,7 @@ const modelStyles: StyleOption[] = [
     name: "室内模特图",
     prompt: FASHION_MODEL_INDOOR_PROMPT,
     icon: "⌂",
-    description: "平整室内背景+自然抓拍动作，强调三件单品完整上身和真实氛围",
+    description: "平整室内背景+自然抓拍动作，强调整体上身和真实氛围",
   },
 ];
 
@@ -57,6 +70,10 @@ const FashionModelOutfit = () => {
       resultAlt="模特生成图"
       downloadPrefix="fashion-model-outfit"
       featureCodePrefix="ai_fashion"
+      maxImages={3}
+      uploadHint="上传服装参考图后，可根据不同风格生成更自然的模特上身效果。"
+      emptyStateHint="先上传服装照片，再添加补充说明（可选）开始创作"
+      promptPrefixBuilder={buildModelPromptPrefix}
     />
   );
 };
