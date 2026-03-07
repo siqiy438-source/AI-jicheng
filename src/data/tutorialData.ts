@@ -59,7 +59,7 @@ export const tutorials: ToolTutorial[] = [
     steps: [
       { stepNumber: 1, title: "上传单品图片", description: "上传一张服装单品的完整图片，系统将基于此图生成主图和细节特写。" },
       { stepNumber: 2, title: "生成主图", description: "系统首先生成一张高质量的服装主图，作为后续细节特写的基础。" },
-      { stepNumber: 3, title: "生成细节特写", description: "AI 自动识别并生成 3 张细节特写：结构特写（领口/袖口）、五金特写（纽扣/拉链）、工艺纹理特写。" },
+      { stepNumber: 3, title: "生成细节特写", description: "AI 自动识别并生成 3 张细节特写：结构特写、元素特写（纽扣/拉链/口袋等真实存在细节）、工艺/纹理特写。" },
       { stepNumber: 4, title: "查看与下载", description: "浏览全部 4 张生成图片（1 张主图 + 3 张细节），可逐张下载或全部保存。" },
     ],
   },
