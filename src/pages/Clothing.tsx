@@ -38,6 +38,12 @@ const tools: ToolItem[] = [
     to: "/fashion-model-outfit",
   },
   {
+    title: "裤子上身效果",
+    description: "上传裤子图，AI 自动配上衣，生成腰到脚模特上身图。",
+    iconSrc: "/icons/fashion-outfit-custom.webp",
+    to: "/fashion-pants",
+  },
+  {
     title: "AI 细节特写",
     description: "先生成主图，再按衣服真实存在的元素输出细节特写。",
     iconSrc: "/icons/fashion-outfit-custom.webp",
