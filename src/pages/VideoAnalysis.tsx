@@ -149,7 +149,7 @@ export default function VideoAnalysis() {
         <div className="flex items-center gap-3 md:gap-4 mb-3">
           <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center">
             <img
-              src="/icons/video-analysis-custom.webp"
+              src="/icons/video-analysis-custom.png"
               alt="视频深度拉片"
               className="w-12 h-12 md:w-14 md:h-14 object-contain"
               onError={(e) => {

@@ -40,7 +40,7 @@ const tools: ToolItem[] = [
   {
     title: "裤子上身效果",
     description: "上传裤子图，AI 自动配上衣，生成腰到脚模特上身图。",
-    iconSrc: "/icons/fashion-outfit-custom.webp",
+    iconSrc: "/icons/fashion-pants-custom.png",
     to: "/fashion-pants",
   },
   {
@@ -52,13 +52,13 @@ const tools: ToolItem[] = [
   {
     title: "专业搭配师",
     description: "上传一件单品，20年资深服装搭配师为你提供穿搭方案。",
-    iconSrc: "/icons/fashion-outfit-custom.webp",
+    iconSrc: "/icons/outfit-recommend-custom.png",
     to: "/outfit-recommend",
   },
   {
     title: "面料说明生成器",
     description: "拍一张水洗标，自动生成面向顾客的面料营销话术。",
-    iconSrc: "/icons/fashion-outfit-custom.webp",
+    iconSrc: "/icons/fabric-analysis-custom.png",
     to: "/fabric-analysis",
   },
 ];

@@ -42,7 +42,7 @@ const FashionPants = () => {
     <FashionGeneratorPage
       title="裤子上身效果"
       subtitle="上传裤子图，生成腰到脚的模特上身效果图，突出版型和腿型"
-      iconSrc="/icons/fashion-outfit-custom.webp"
+      iconSrc="/icons/fashion-pants-custom.png"
       basePrompt={FASHION_PANTS_STUDIO_PROMPT}
       styleOptions={pantsStyles}
       styleSelectorVariant="cards"
