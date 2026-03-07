@@ -292,7 +292,7 @@ const FashionDetailFocus = () => {
 
       <div className="hidden md:flex items-center gap-4 mb-8">
         <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0">
-          <img src="/icons/fashion-outfit-custom.webp" alt="AI 细节特写" className="w-14 h-14 object-contain" />
+          <img src="/icons/fashion-detail-focus-custom.png" alt="AI 细节特写" className="w-14 h-14 object-contain" />
         </div>
         <div>
           <h1 className="text-2xl font-bold text-foreground">AI 细节特写</h1>
