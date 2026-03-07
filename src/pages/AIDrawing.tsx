@@ -15,7 +15,6 @@ import {
   Image,
   Ratio,
   ChevronDown,
-  Zap,
   FolderUp,
   Languages,
 } from "lucide-react";
@@ -28,7 +27,9 @@ import type { ConversationMessage } from "@/lib/ai-image";
 import { compressImage, downloadGeneratedImage } from "@/lib/image-utils";
 import { saveGeneratedImageWork } from "@/lib/repositories/works";
 import { useCreditCheck } from "@/hooks/use-credit-check";
+import { useLineStatus } from "@/hooks/use-line-status";
 import { InsufficientBalanceDialog } from "@/components/InsufficientBalanceDialog";
+import { LineStatusSelector } from "@/components/LineStatusSelector";
 
 // 提示词类型
 interface PromptPreset {
@@ -197,9 +198,9 @@ const AIDrawing = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [showRatioMenu, setShowRatioMenu] = useState(false);
-  const [showLineMenu, setShowLineMenu] = useState(false);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [selectedLine, setSelectedLine] = useState("speed");
+  const { statuses } = useLineStatus();
   const [selectedLanguage, setSelectedLanguage] = useState("zh");
 
   // 多轮对话状态
@@ -466,7 +467,6 @@ const AIDrawing = () => {
   // 关闭所有下拉菜单
   const closeAllMenus = () => {
     setShowRatioMenu(false);
-    setShowLineMenu(false);
     setShowFrameworkMenu(false);
     setShowVisualStyleMenu(false);
     setShowLanguageMenu(false);
@@ -576,7 +576,6 @@ const AIDrawing = () => {
                     setShowFrameworkMenu(!showFrameworkMenu);
                     setShowVisualStyleMenu(false);
                     setShowRatioMenu(false);
-                    setShowLineMenu(false);
                     setShowLanguageMenu(false);
                   }}
                   className={cn(
@@ -619,7 +618,6 @@ const AIDrawing = () => {
                     setShowVisualStyleMenu(!showVisualStyleMenu);
                     setShowFrameworkMenu(false);
                     setShowRatioMenu(false);
-                    setShowLineMenu(false);
                     setShowLanguageMenu(false);
                   }}
                   className={cn(
@@ -662,7 +660,6 @@ const AIDrawing = () => {
                     setShowRatioMenu(!showRatioMenu);
                     setShowFrameworkMenu(false);
                     setShowVisualStyleMenu(false);
-                    setShowLineMenu(false);
                     setShowLanguageMenu(false);
                   }}
                   className="flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-full text-[11px] md:text-sm bg-secondary/50 text-muted-foreground hover:bg-secondary transition-all duration-200 border border-transparent touch-target whitespace-nowrap"
@@ -693,51 +690,13 @@ const AIDrawing = () => {
               </div>
 
               {/* 线路选择 */}
-              <div className="relative flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                <button
-                  onClick={() => {
-                    setShowLineMenu(!showLineMenu);
-                    setShowFrameworkMenu(false);
-                    setShowVisualStyleMenu(false);
-                    setShowRatioMenu(false);
-                    setShowLanguageMenu(false);
-                  }}
-                  className="flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-full text-[11px] md:text-sm bg-secondary/50 text-muted-foreground hover:bg-secondary transition-all duration-200 border border-transparent touch-target whitespace-nowrap"
-                >
-                  <Zap className="w-3.5 h-3.5" />
-                  <span>{lineOptions.find(l => l.id === selectedLine)?.name}</span>
-                  {lineOptions.find(l => l.id === selectedLine)?.badge && (
-                    <span className="px-1 py-0.5 text-[10px] md:text-xs leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded">
-                      {lineOptions.find(l => l.id === selectedLine)?.badge}
-                    </span>
-                  )}
-                  <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showLineMenu && "rotate-180")} />
-                </button>
-                {showLineMenu && (
-                  <div className="absolute top-full right-0 sm:left-0 sm:right-auto mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 w-[130px] max-w-[calc(100vw-2rem)] animate-dropdown max-h-[180px] overflow-y-auto scrollbar-thin dropdown-panel">
-                    {lineOptions.map((line) => (
-                      <button
-                        key={line.id}
-                        onClick={() => {
-                          setSelectedLine(line.id);
-                          setShowLineMenu(false);
-                        }}
-                        className={cn(
-                          "w-full flex items-center gap-1.5 px-3 py-2.5 text-sm hover:bg-secondary/50 transition-all duration-200 text-left touch-target",
-                          selectedLine === line.id && "bg-orange-50 text-orange-700"
-                        )}
-                      >
-                        <span>{line.name}</span>
-                        {line.badge && (
-                          <span className="px-1 py-0.5 text-[10px] leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded">
-                            {line.badge}
-                          </span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <LineStatusSelector
+                selectedLine={selectedLine}
+                lineOptions={lineOptions}
+                statuses={statuses}
+                onSelect={setSelectedLine}
+                alignRight
+              />
 
               {/* 分隔符 */}
               <div className="w-px h-4 bg-border mx-0.5" />
@@ -784,7 +743,6 @@ const AIDrawing = () => {
                     setShowFrameworkMenu(false);
                     setShowVisualStyleMenu(false);
                     setShowRatioMenu(false);
-                    setShowLineMenu(false);
                   }}
                   className="p-2 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground transition-all duration-200 touch-target"
                   title="选择语言"

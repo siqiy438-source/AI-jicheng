@@ -38,6 +38,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { saveWork, updateWork } from "@/lib/repositories/works";
 import { useCreditCheck } from "@/hooks/use-credit-check";
+import { useLineStatus } from "@/hooks/use-line-status";
+import { LineStatusSelector } from "@/components/LineStatusSelector";
 import { InsufficientBalanceDialog } from "@/components/InsufficientBalanceDialog";
 
 // ==================== Types ====================
@@ -137,8 +139,8 @@ const AIPPT = () => {
   const [template, setTemplate] = useState("none");
   const [aspectRatio, setAspectRatio] = useState("16:9");
   const [selectedLine, setSelectedLine] = useState("speed");
-  const [showLineMenu, setShowLineMenu] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState("");
+  const { statuses } = useLineStatus();
   const [isParsingFile, setIsParsingFile] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -515,7 +517,6 @@ ${outlineText || "暂无要点，请基于标题延展"}
     setShowStyleMenu(false);
     setShowTemplateMenu(false);
     setShowRatioMenu(false);
-    setShowLineMenu(false);
     setShowExportMenu(false);
   };
 
@@ -610,7 +611,7 @@ ${outlineText || "暂无要点，请基于标题延展"}
           {/* Page count selector */}
           <div className="relative" onClick={(e) => e.stopPropagation()}>
             <button
-              onClick={() => { setShowPageCountMenu(!showPageCountMenu); setShowStyleMenu(false); setShowTemplateMenu(false); setShowRatioMenu(false); setShowLineMenu(false); }}
+              onClick={() => { setShowPageCountMenu(!showPageCountMenu); setShowStyleMenu(false); setShowTemplateMenu(false); setShowRatioMenu(false); }}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm bg-secondary/50 hover:bg-secondary border border-border/50 transition-all"
             >
               <span>🖥</span>
@@ -635,7 +636,7 @@ ${outlineText || "暂无要点，请基于标题延展"}
           {/* Style selector */}
           <div className="relative" onClick={(e) => e.stopPropagation()}>
             <button
-              onClick={() => { setShowStyleMenu(!showStyleMenu); setShowPageCountMenu(false); setShowTemplateMenu(false); setShowRatioMenu(false); setShowLineMenu(false); }}
+              onClick={() => { setShowStyleMenu(!showStyleMenu); setShowPageCountMenu(false); setShowTemplateMenu(false); setShowRatioMenu(false); }}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm bg-secondary/50 hover:bg-secondary border border-border/50 transition-all"
             >
               <span>{PPT_STYLES.find((s) => s.id === style)?.icon}</span>
@@ -661,7 +662,7 @@ ${outlineText || "暂无要点，请基于标题延展"}
           {/* Template selector */}
           <div className="relative" onClick={(e) => e.stopPropagation()}>
             <button
-              onClick={() => { setShowTemplateMenu(!showTemplateMenu); setShowPageCountMenu(false); setShowStyleMenu(false); setShowRatioMenu(false); setShowLineMenu(false); }}
+              onClick={() => { setShowTemplateMenu(!showTemplateMenu); setShowPageCountMenu(false); setShowStyleMenu(false); setShowRatioMenu(false); }}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm bg-secondary/50 hover:bg-secondary border border-border/50 transition-all"
             >
               <span>{PPT_TEMPLATES.find((t) => t.id === template)?.icon}</span>
@@ -687,7 +688,7 @@ ${outlineText || "暂无要点，请基于标题延展"}
           {/* Ratio selector */}
           <div className="relative" onClick={(e) => e.stopPropagation()}>
             <button
-              onClick={() => { setShowRatioMenu(!showRatioMenu); setShowPageCountMenu(false); setShowStyleMenu(false); setShowTemplateMenu(false); setShowLineMenu(false); }}
+              onClick={() => { setShowRatioMenu(!showRatioMenu); setShowPageCountMenu(false); setShowStyleMenu(false); setShowTemplateMenu(false); }}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm bg-secondary/50 hover:bg-secondary border border-border/50 transition-all"
             >
               <span>{aspectRatio}</span>
@@ -709,29 +710,12 @@ ${outlineText || "暂无要点，请基于标题延展"}
           </div>
 
           {/* 线路选择 */}
-          <div className="relative" onClick={(e) => e.stopPropagation()}>
-            <button
-              onClick={() => { setShowLineMenu(!showLineMenu); setShowPageCountMenu(false); setShowStyleMenu(false); setShowTemplateMenu(false); setShowRatioMenu(false); }}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm bg-secondary/50 hover:bg-secondary border border-border/50 transition-all"
-            >
-              <Zap className="w-3.5 h-3.5" />
-              <span>{PPT_LINE_OPTIONS.find(l => l.id === selectedLine)?.name}</span>
-              <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", showLineMenu && "rotate-180")} />
-            </button>
-            {showLineMenu && (
-              <div className="absolute top-full right-0 sm:left-0 sm:right-auto mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 w-[130px] max-w-[calc(100vw-2rem)] max-h-[180px] overflow-y-auto scrollbar-thin dropdown-panel">
-                {PPT_LINE_OPTIONS.map((line) => (
-                  <button
-                    key={line.id}
-                    onClick={() => { setSelectedLine(line.id); setShowLineMenu(false); }}
-                    className={cn("w-full px-3 py-2 text-sm hover:bg-secondary/50 text-left", selectedLine === line.id && "bg-orange-50 text-orange-700")}
-                  >
-                    {line.name}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <LineStatusSelector
+            selectedLine={selectedLine}
+            lineOptions={PPT_LINE_OPTIONS}
+            statuses={statuses}
+            onSelect={setSelectedLine}
+          />
 
 
         </div>
@@ -1022,7 +1006,7 @@ ${outlineText || "暂无要点，请基于标题延展"}
           {/* Style dropdown */}
           <div className="relative" onClick={(e) => e.stopPropagation()}>
             <button
-              onClick={() => { setShowStyleMenu(!showStyleMenu); setShowTemplateMenu(false); setShowLineMenu(false); }}
+              onClick={() => { setShowStyleMenu(!showStyleMenu); setShowTemplateMenu(false); }}
               className="flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-lg text-xs bg-secondary/50 hover:bg-secondary border border-border/50 transition-all"
             >
               <span>{PPT_STYLES.find((s) => s.id === style)?.icon}</span>
@@ -1046,7 +1030,7 @@ ${outlineText || "暂无要点，请基于标题延展"}
           {/* Template dropdown */}
           <div className="relative" onClick={(e) => e.stopPropagation()}>
             <button
-              onClick={() => { setShowTemplateMenu(!showTemplateMenu); setShowStyleMenu(false); setShowLineMenu(false); }}
+              onClick={() => { setShowTemplateMenu(!showTemplateMenu); setShowStyleMenu(false); }}
               className="flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-lg text-xs bg-secondary/50 hover:bg-secondary border border-border/50 transition-all"
             >
               <span>{PPT_TEMPLATES.find((t) => t.id === template)?.icon}</span>
@@ -1068,30 +1052,13 @@ ${outlineText || "暂无要点，请基于标题延展"}
             )}
           </div>
           {/* Resolution dropdown */}
-          <div className="relative" onClick={(e) => e.stopPropagation()}>
-            <button
-              onClick={() => { setShowLineMenu(!showLineMenu); setShowStyleMenu(false); setShowTemplateMenu(false); }}
-              className="flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-lg text-xs bg-secondary/50 hover:bg-secondary border border-border/50 transition-all"
-            >
-              <Zap className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">{PPT_LINE_OPTIONS.find((l) => l.id === selectedLine)?.name}</span>
-              <span className="md:hidden">画质</span>
-              <ChevronDown className="w-3 h-3" />
-            </button>
-            {showLineMenu && (
-              <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 w-[130px] max-w-[calc(100vw-2rem)] max-h-[180px] overflow-y-auto scrollbar-thin dropdown-panel">
-                {PPT_LINE_OPTIONS.map((line) => (
-                  <button
-                    key={line.id}
-                    onClick={() => { setSelectedLine(line.id); setShowLineMenu(false); }}
-                    className={cn("w-full px-3 py-2 text-xs hover:bg-secondary/50 text-left", selectedLine === line.id && "bg-orange-50 text-orange-700")}
-                  >
-                    {line.name}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <LineStatusSelector
+            selectedLine={selectedLine}
+            lineOptions={PPT_LINE_OPTIONS}
+            statuses={statuses}
+            onSelect={setSelectedLine}
+            alignRight
+          />
           <span className="hidden md:inline text-xs text-muted-foreground px-2 py-1 rounded-lg bg-secondary/50">简体中文</span>
           <Button
             variant="outline"

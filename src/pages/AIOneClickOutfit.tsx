@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-import { toast } from 'sonner';
+import { useEffect, useRef, useState } from "react";import { toast } from 'sonner';
 import { useNavigate } from "react-router-dom";
 import { PageLayout } from "@/components/PageLayout";
 import { GeneratingLoader } from "@/components/GeneratingLoader";
@@ -10,7 +9,9 @@ import { compressImage, mergeImagesToGrid, downloadGeneratedImage } from "@/lib/
 import { generateImage } from "@/lib/ai-image";
 import { saveGeneratedImageWork } from "@/lib/repositories/works";
 import { useCreditCheck } from "@/hooks/use-credit-check";
+import { useLineStatus } from "@/hooks/use-line-status";
 import { InsufficientBalanceDialog } from "@/components/InsufficientBalanceDialog";
+import { LineStatusSelector } from "@/components/LineStatusSelector";
 import {
   ArrowLeft,
   Download,
@@ -25,7 +26,6 @@ import {
   X,
   ShoppingBag,
   ChevronDown,
-  Zap,
 } from "lucide-react";
 
 const lineOptions = [
@@ -44,22 +44,11 @@ const AIOneClickOutfit = () => {
 
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [selectedLine, setSelectedLine] = useState("speed");
-  const [showLineMenu, setShowLineMenu] = useState(false);
   const [additionalNotes, setAdditionalNotes] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStep, setGenerationStep] = useState("");
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
-  const lineMenuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (lineMenuRef.current && !lineMenuRef.current.contains(event.target as Node)) {
-        setShowLineMenu(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const { statuses } = useLineStatus();
 
   const handleUpload = async (files: FileList | null) => {
     if (!files) return;
@@ -340,35 +329,12 @@ cropped garments, partial view, missing hem, missing sleeves, missing collar det
         </div>
 
         <div className="mb-3">
-          <div className="relative inline-block" ref={lineMenuRef}>
-            <button
-              onClick={() => setShowLineMenu((prev) => !prev)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm bg-secondary/50 text-muted-foreground hover:bg-secondary transition-all duration-200 border border-transparent whitespace-nowrap"
-            >
-              <Zap className="w-3.5 h-3.5" />
-              <span>{lineOptions.find((o) => o.id === selectedLine)?.name}</span>
-              <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showLineMenu && "rotate-180")} />
-            </button>
-            {showLineMenu && (
-              <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 min-w-[140px] max-h-[220px] overflow-y-auto scrollbar-thin">
-                {lineOptions.map((option) => (
-                  <button
-                    key={option.id}
-                    onClick={() => {
-                      setSelectedLine(option.id);
-                      setShowLineMenu(false);
-                    }}
-                    className={cn(
-                      "w-full px-3 py-2.5 text-sm hover:bg-secondary/50 transition-all duration-200 text-left",
-                      selectedLine === option.id && "bg-orange-50 text-orange-700"
-                    )}
-                  >
-                    {option.name}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <LineStatusSelector
+            selectedLine={selectedLine}
+            lineOptions={lineOptions}
+            statuses={statuses}
+            onSelect={setSelectedLine}
+          />
         </div>
 
         <div className="mb-3 rounded-lg border border-primary/20 bg-primary/10 p-2.5 text-xs text-primary flex items-center gap-2">

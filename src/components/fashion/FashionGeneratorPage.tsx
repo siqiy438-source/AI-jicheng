@@ -13,7 +13,6 @@ import {
   Send,
   Sparkles,
   X,
-  Zap,
   Ratio,
 } from "lucide-react";
 
@@ -25,7 +24,9 @@ import { compressImage, downloadGeneratedImage, mergeImagesToGrid } from "@/lib/
 import { saveGeneratedImageWork } from "@/lib/repositories/works";
 import { cn } from "@/lib/utils";
 import { useCreditCheck } from "@/hooks/use-credit-check";
+import { useLineStatus } from "@/hooks/use-line-status";
 import { InsufficientBalanceDialog } from "@/components/InsufficientBalanceDialog";
+import { LineStatusSelector } from "@/components/LineStatusSelector";
 
 export interface StyleOption {
   id: string;
@@ -98,8 +99,8 @@ export const FashionGeneratorPage = ({
   const [selectedLine, setSelectedLine] = useState("speed");
   const [selectedStyleId, setSelectedStyleId] = useState(styleOptions?.[0]?.id ?? "");
   const [showRatioMenu, setShowRatioMenu] = useState(false);
-  const [showLineMenu, setShowLineMenu] = useState(false);
   const [showStyleMenu, setShowStyleMenu] = useState(false);
+  const { statuses } = useLineStatus();
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const shouldShowStyleCards = Boolean(styleOptions && styleOptions.length > 1 && styleSelectorVariant === "cards");
@@ -110,7 +111,6 @@ export const FashionGeneratorPage = ({
 
   const closeAllMenus = () => {
     setShowRatioMenu(false);
-    setShowLineMenu(false);
     setShowStyleMenu(false);
   };
 
@@ -359,7 +359,6 @@ export const FashionGeneratorPage = ({
                   onClick={() => {
                     setShowStyleMenu(!showStyleMenu);
                     setShowRatioMenu(false);
-                    setShowLineMenu(false);
                   }}
                   className="w-full md:max-w-[340px] flex items-center justify-between gap-2 rounded-xl border border-orange-200 bg-orange-50/80 px-3 py-2.5 text-left hover:bg-orange-100 transition-colors"
                 >
@@ -444,7 +443,6 @@ export const FashionGeneratorPage = ({
                     onClick={() => {
                       setShowStyleMenu(!showStyleMenu);
                       setShowRatioMenu(false);
-                      setShowLineMenu(false);
                     }}
                     className="flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 rounded-full text-[11px] md:text-sm transition-all duration-200 border bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100 touch-target whitespace-nowrap"
                   >
@@ -494,7 +492,6 @@ export const FashionGeneratorPage = ({
                 <button
                   onClick={() => {
                     setShowRatioMenu(!showRatioMenu);
-                    setShowLineMenu(false);
                     setShowStyleMenu(false);
                   }}
                   className="flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-full text-[11px] md:text-sm bg-secondary/50 text-muted-foreground hover:bg-secondary transition-all duration-200 border border-transparent touch-target whitespace-nowrap"
@@ -524,49 +521,12 @@ export const FashionGeneratorPage = ({
                 )}
               </div>
 
-              <div className="relative flex-shrink-0" onClick={(event) => event.stopPropagation()}>
-                <button
-                  onClick={() => {
-                    setShowLineMenu(!showLineMenu);
-                    setShowRatioMenu(false);
-                    setShowStyleMenu(false);
-                  }}
-                  className="flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-full text-[11px] md:text-sm bg-secondary/50 text-muted-foreground hover:bg-secondary transition-all duration-200 border border-transparent touch-target whitespace-nowrap"
-                >
-                  <Zap className="w-3.5 h-3.5" />
-                  <span>{lineOptions.find((lineOption) => lineOption.id === selectedLine)?.name}</span>
-                  {lineOptions.find((lineOption) => lineOption.id === selectedLine)?.badge && (
-                    <span className="px-1 py-0.5 text-[10px] md:text-xs leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded">
-                      {lineOptions.find((lineOption) => lineOption.id === selectedLine)?.badge}
-                    </span>
-                  )}
-                  <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showLineMenu && "rotate-180")} />
-                </button>
-                {showLineMenu && (
-                  <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 w-[130px] max-w-[calc(100vw-2rem)] animate-dropdown max-h-[180px] overflow-y-auto scrollbar-thin dropdown-panel">
-                    {lineOptions.map((lineOption) => (
-                      <button
-                        key={lineOption.id}
-                        onClick={() => {
-                          setSelectedLine(lineOption.id);
-                          setShowLineMenu(false);
-                        }}
-                        className={cn(
-                          "w-full flex items-center gap-1.5 px-3 py-2.5 text-sm hover:bg-secondary/50 transition-all duration-200 text-left touch-target",
-                          selectedLine === lineOption.id && "bg-orange-50 text-orange-700",
-                        )}
-                      >
-                        <span>{lineOption.name}</span>
-                        {lineOption.badge && (
-                          <span className="px-1 py-0.5 text-[10px] leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded">
-                            {lineOption.badge}
-                          </span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <LineStatusSelector
+                selectedLine={selectedLine}
+                lineOptions={lineOptions}
+                statuses={statuses}
+                onSelect={setSelectedLine}
+              />
 
             </div>
 

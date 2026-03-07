@@ -3,6 +3,8 @@ import { toast } from 'sonner';
 import { PageLayout } from "@/components/PageLayout";
 import { GeneratingLoader } from "@/components/GeneratingLoader";
 import { CreditCostHint } from "@/components/CreditCostHint";
+import { useLineStatus } from "@/hooks/use-line-status";
+import { LineStatusSelector } from "@/components/LineStatusSelector";
 import {
   ArrowLeft,
   X,
@@ -11,7 +13,6 @@ import {
   RefreshCw,
   Send,
   ChevronDown,
-  Zap,
   ShirtIcon,
   Store,
   Mountain,
@@ -67,8 +68,8 @@ const AIDisplay = () => {
   const [clothingImages, setClothingImages] = useState<string[]>([]);
   const [additionalNotes, setAdditionalNotes] = useState("");
   const [selectedLine, setSelectedLine] = useState("speed");
-  const [showLineMenu, setShowLineMenu] = useState(false);
   const [selectedScene, setSelectedScene] = useState<SceneType>("wide");
+  const { statuses } = useLineStatus();
 
   // 分析状态
   const [analysis, setAnalysis] = useState<VMAnalysisResult | null>(null);
@@ -254,7 +255,7 @@ const AIDisplay = () => {
 
   return (
     <PageLayout className="py-2 md:py-8">
-      <div onClick={() => setShowLineMenu(false)}>
+      <div onClick={() => {}}>
         {/* 返回按钮 - 仅桌面端 */}
         <button
           onClick={() => navigate("/clothing")}
@@ -401,45 +402,12 @@ const AIDisplay = () => {
 
               <div className="flex items-center justify-between gap-2">
                 {/* 线路选择 */}
-                <div className="relative" onClick={(e) => e.stopPropagation()}>
-                  <button
-                    onClick={() => setShowLineMenu(!showLineMenu)}
-                    className="flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-full text-[11px] md:text-sm bg-secondary/50 text-muted-foreground hover:bg-secondary transition-all duration-200 border border-transparent touch-target whitespace-nowrap"
-                  >
-                    <Zap className="w-3.5 h-3.5" />
-                    <span>{lineOptions.find(l => l.id === selectedLine)?.name}</span>
-                    {lineOptions.find(l => l.id === selectedLine)?.badge && (
-                      <span className="px-1 py-0.5 text-[10px] md:text-xs leading-none font-medium bg-primary text-primary-foreground rounded">
-                        {lineOptions.find(l => l.id === selectedLine)?.badge}
-                      </span>
-                    )}
-                    <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showLineMenu && "rotate-180")} />
-                  </button>
-                  {showLineMenu && (
-                    <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-[0_8px_30px_-8px_hsl(30_20%_20%/0.15)] py-1 z-10 w-[130px] animate-dropdown dropdown-panel">
-                      {lineOptions.map((line) => (
-                        <button
-                          key={line.id}
-                          onClick={() => {
-                            setSelectedLine(line.id);
-                            setShowLineMenu(false);
-                          }}
-                          className={cn(
-                            "w-full flex items-center gap-1.5 px-3 py-2.5 text-sm hover:bg-secondary/50 transition-all duration-200 text-left touch-target",
-                            selectedLine === line.id && "bg-primary/10 text-primary"
-                          )}
-                        >
-                          <span>{line.name}</span>
-                          {line.badge && (
-                            <span className="px-1 py-0.5 text-[10px] leading-none font-medium bg-primary text-primary-foreground rounded">
-                              {line.badge}
-                            </span>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <LineStatusSelector
+                  selectedLine={selectedLine}
+                  lineOptions={lineOptions}
+                  statuses={statuses}
+                  onSelect={setSelectedLine}
+                />
 
                 {/* 开始分析按钮 */}
                 <div className="flex items-center gap-3">

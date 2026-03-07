@@ -19,7 +19,9 @@ import { generateImage } from "@/lib/ai-image";
 import { compressImage, downloadGeneratedImage } from "@/lib/image-utils";
 import { saveGeneratedImageWork } from "@/lib/repositories/works";
 import { useCreditCheck } from "@/hooks/use-credit-check";
+import { useLineStatus } from "@/hooks/use-line-status";
 import { InsufficientBalanceDialog } from "@/components/InsufficientBalanceDialog";
+import { LineStatusSelector } from "@/components/LineStatusSelector";
 import { cn } from "@/lib/utils";
 
 interface DetailSlot {
@@ -113,7 +115,7 @@ const FashionDetailFocus = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingText, setGeneratingText] = useState("正在生成...");
   const [selectedLine, setSelectedLine] = useState("speed");
-  const [showLineMenu, setShowLineMenu] = useState(false);
+  const { statuses } = useLineStatus();
 
   const allFrames = [mainFrame, ...detailFrames].filter((item): item is GeneratedFrame => Boolean(item));
   const activeFrame = allFrames[activeIndex] || null;
@@ -281,7 +283,7 @@ const FashionDetailFocus = () => {
 
   return (
     <PageLayout className="pt-6 pb-2 md:py-8">
-      <div onClick={() => setShowLineMenu(false)}>
+      <div onClick={() => {}}>
       <button
         onClick={() => navigate("/clothing")}
         className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-3 md:mb-6 transition-colors"
@@ -342,46 +344,15 @@ const FashionDetailFocus = () => {
         <div className="border-t border-border/50 my-3" />
 
         <div className="flex flex-wrap gap-2 items-center mb-2.5">
-          <div className="relative" onClick={(event) => event.stopPropagation()}>
-            <button
-              onClick={() => setShowLineMenu((prev) => !prev)}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-sm bg-secondary/50 text-muted-foreground hover:bg-secondary transition-all duration-200 border border-transparent whitespace-nowrap"
-            >
-              <Zap className="w-3.5 h-3.5" />
-              <span>{currentLineOption.name}</span>
-              {currentLineOption.badge && (
-                <span className="px-1 py-0.5 text-[10px] leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded">
-                  {currentLineOption.badge}
-                </span>
-              )}
-              <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", showLineMenu && "rotate-180")} />
-            </button>
-            {showLineMenu && (
-              <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 w-[140px] max-h-[200px] overflow-y-auto">
-                {LINE_OPTIONS.map((option) => (
-                  <button
-                    key={option.id}
-                    onClick={() => {
-                      setSelectedLine(option.id);
-                      setShowLineMenu(false);
-                      if (mainFrame) resetFlow();
-                    }}
-                    className={cn(
-                      "w-full flex items-center gap-1.5 px-3 py-2.5 text-sm hover:bg-secondary/50 transition-colors text-left",
-                      selectedLine === option.id && "bg-orange-50 text-orange-700",
-                    )}
-                  >
-                    <span>{option.name}</span>
-                    {option.badge && (
-                      <span className="px-1 py-0.5 text-[10px] leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded">
-                        {option.badge}
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <LineStatusSelector
+            selectedLine={selectedLine}
+            lineOptions={LINE_OPTIONS}
+            statuses={statuses}
+            onSelect={(id) => {
+              setSelectedLine(id);
+              if (mainFrame) resetFlow();
+            }}
+          />
           <CreditCostHint featureCode={featureCode} />
         </div>
 
