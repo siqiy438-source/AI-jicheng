@@ -373,47 +373,43 @@ Flat-lay product showcase requirements:
       fullPrompt += `. Aspect ratio: ${aspectRatio}`
     }
 
-    // ========== 灵犀Pro线路：走 ZenMux API ==========
+    // ========== 灵犀Pro线路：走 ZenMux Vertex AI generateContent ==========
     if (resolvedLine === "premium") {
       const zenMuxApiKey = Deno.env.get('ZENMUX_API_KEY')
       if (!zenMuxApiKey) {
         throw new Error('图像服务配置错误：ZENMUX_API_KEY 未配置，请联系管理员')
       }
 
-      const formData = new FormData()
-      formData.append('model', ZENMUX_PRO_IMAGE_MODEL)
-      formData.append('prompt', fullPrompt)
-      formData.append('n', '1')
-      formData.append('response_format', 'b64_json')
+      // 构建 parts：文字提示词 + 参考图片（如有）
+      type ZenPartType = { text: string } | { inlineData: { mimeType: string; data: string } }
+      const zenParts: ZenPartType[] = [{ text: fullPrompt }]
 
       if (images && Array.isArray(images) && images.length > 0) {
-        const firstImage = await resolveImageToDataUrl(images[0], allowedImageHosts)
-        const matches = firstImage.match(/^data:([^;]+);base64,(.+)$/)
-        if (matches) {
-          const binaryStr = atob(matches[2])
-          const bytes = new Uint8Array(binaryStr.length)
-          for (let i = 0; i < binaryStr.length; i++) {
-            bytes[i] = binaryStr.charCodeAt(i)
+        for (const img of images) {
+          const resolved = await resolveImageToDataUrl(img, allowedImageHosts)
+          const matches = resolved.match(/^data:([^;]+);base64,(.+)$/)
+          if (matches) {
+            zenParts.push({ inlineData: { mimeType: matches[1], data: matches[2] } })
           }
-          const blob = new Blob([bytes], { type: matches[1] })
-          formData.append('image', blob, 'image.png')
         }
-      } else {
-        const placeholderB64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
-        const binaryStr = atob(placeholderB64)
-        const bytes = new Uint8Array(binaryStr.length)
-        for (let i = 0; i < binaryStr.length; i++) {
-          bytes[i] = binaryStr.charCodeAt(i)
-        }
-        const blob = new Blob([bytes], { type: 'image/png' })
-        formData.append('image', blob, 'placeholder.png')
       }
 
-      console.log(`[ai-image] ZenMux Pro → model=${ZENMUX_PRO_IMAGE_MODEL}`)
+      const zenRequestBody = JSON.stringify({
+        contents: [{ role: 'user', parts: zenParts }],
+        generationConfig: {
+          responseModalities: ['IMAGE', 'TEXT'],
+          ...(aspectRatio ? { imageConfig: { aspectRatio } } : {}),
+        },
+      })
+
+      console.log(`[ai-image] ZenMux Pro → model=${ZENMUX_PRO_IMAGE_MODEL}, images=${zenParts.length - 1}`)
       const zenResponse = await fetch(getZenMuxImageUrl(), {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${zenMuxApiKey}` },
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${zenMuxApiKey}`,
+        },
+        body: zenRequestBody,
       })
 
       if (!zenResponse.ok) {
@@ -424,25 +420,21 @@ Flat-lay product showcase requirements:
 
       const zenData = await zenResponse.json()
 
+      // 解析 Vertex AI 格式响应
       let imageBase64: string | null = null
-      if (zenData.data && zenData.data.length > 0) {
-        const item = zenData.data[0]
-        if (item.b64_json) {
-          imageBase64 = `data:image/png;base64,${item.b64_json}`
-        } else if (item.url) {
-          const imgResp = await fetch(item.url)
-          const imgBuffer = await imgResp.arrayBuffer()
-          const imgBytes = new Uint8Array(imgBuffer)
-          let imgBinary = ''
-          const chunkSize = 8192
-          for (let i = 0; i < imgBytes.length; i += chunkSize) {
-            imgBinary += String.fromCharCode(...imgBytes.subarray(i, i + chunkSize))
+      const zenCandidates = zenData.candidates || []
+      for (const candidate of zenCandidates) {
+        for (const part of (candidate.content?.parts || [])) {
+          if (part.inlineData) {
+            imageBase64 = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`
+            break
           }
-          imageBase64 = `data:image/png;base64,${btoa(imgBinary)}`
         }
+        if (imageBase64) break
       }
 
       if (!imageBase64) {
+        console.error(`[ai-image] ZenMux Pro 未找到图片，candidates=${zenCandidates.length}`)
         throw new Error('ZenMux Pro 未能生成图片')
       }
 

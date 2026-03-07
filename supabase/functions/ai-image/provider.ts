@@ -9,9 +9,9 @@ export const FOUR_K_IMAGE_MODEL = "nano-banana-2-4k";
 /** 灵犀Pro（ZenMux）专用模型 */
 export const ZENMUX_PRO_IMAGE_MODEL = "google/gemini-3.1-flash-image-preview";
 
-/** 获取灵犀Pro（ZenMux）图像生成 API URL */
+/** 获取灵犀Pro（ZenMux）generateContent API URL */
 export const getZenMuxImageUrl = (): string =>
-  "https://zenmux.ai/api/v1/images/edits";
+  `https://zenmux.ai/api/vertex-ai/v1/models/${ZENMUX_PRO_IMAGE_MODEL}:generateContent`;
 
 interface ProviderConfig {
   line: ImageLine;
