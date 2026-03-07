@@ -185,6 +185,27 @@ function extractProjectTitle(slides: SlideData[]): string {
   return 'PPT 演示文稿'
 }
 
+function hasNonEmptyText(value: unknown): boolean {
+  return typeof value === 'string' && value.trim().length > 0
+}
+
+function hasUsableOutline(slides: SlideData[]): boolean {
+  return slides.some((slide) =>
+    Array.isArray(slide.outlinePoints) && slide.outlinePoints.some((point) => hasNonEmptyText(point))
+  )
+}
+
+function hasUsableDescription(description: unknown): boolean {
+  return hasNonEmptyText(description)
+}
+
+function hasUsableBatchDescriptions(slides: SlideData[]): boolean {
+  return slides.some((slide) => {
+    if (!hasUsableDescription(slide.description)) return false
+    return !slide.description.trim().startsWith('[生成失败]')
+  })
+}
+
 /**
  * 延迟函数，用于请求间限速
  */
@@ -378,6 +399,10 @@ async function handleGenerateOutline(
 
   const projectTitle = extractProjectTitle(normalizedSlides)
 
+  if (!hasUsableOutline(normalizedSlides)) {
+    throw new Error('PPT 大纲生成失败，未返回有效页面内容')
+  }
+
   return {
     payload: {
       success: true,
@@ -425,11 +450,16 @@ async function handleGenerateDescription(
   console.log(`[ai-ppt] Generating description for slide ${slideIndex}/${totalSlides}: "${slideTitle}"`)
 
   const { text: description, totalTokens } = await callGeminiText(apiKey, prompt)
+  const trimmedDescription = description.trim()
+
+  if (!hasUsableDescription(trimmedDescription)) {
+    throw new Error('PPT 页面描述生成失败，未返回有效内容')
+  }
 
   return {
     payload: {
       success: true,
-      description: description.trim(),
+      description: trimmedDescription,
     },
     totalTokens,
   }
@@ -501,6 +531,10 @@ async function handleBatchGenerateDescriptions(
       })
       processedCount++
     }
+  }
+
+  if (!hasUsableBatchDescriptions(updatedSlides)) {
+    throw new Error('PPT 批量描述生成失败，未返回有效内容')
   }
 
   return {

@@ -164,6 +164,11 @@ async function verifyVideoUrlReachable(videoUrl: string): Promise<{ status: numb
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
+function hasUsableAnalysisResult(value: unknown): boolean {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  return Object.keys(value as Record<string, unknown>).length > 0
+}
+
 serve(async (req) => {
   // 处理 CORS preflight
   if (req.method === 'OPTIONS') {
@@ -507,6 +512,10 @@ serve(async (req) => {
           throw new Error('分析结果解析失败，请重试')
         }
 
+        if (!hasUsableAnalysisResult(analysisResult)) {
+          throw new Error('分析结果为空，请重试')
+        }
+
         console.log('[ai-video-analysis] Doubao analysis completed')
 
         // 2. 不再生成图片，直接保存分析结果到数据库
@@ -536,6 +545,10 @@ serve(async (req) => {
 
         if (updateError) {
           throw new Error(`更新会话失败: ${updateError.message}`)
+        }
+
+        if (!hasUsableAnalysisResult(updatedSession?.analysis_result)) {
+          throw new Error('分析结果保存失败，请重试')
         }
 
         // 标记积分操作成功

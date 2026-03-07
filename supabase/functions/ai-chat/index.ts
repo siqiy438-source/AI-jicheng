@@ -363,6 +363,67 @@ function extractAssistantMessage(payload: Record<string, any>): string {
   return normalizeMessageContent(message?.content).trim()
 }
 
+function requireNonEmptyContent(text: unknown, errorMessage: string): string {
+  const normalized = typeof text === 'string' ? text.trim() : ''
+  if (!normalized) {
+    throw new Error(errorMessage)
+  }
+  return normalized
+}
+
+function extractContentFromSseDataLine(payload: string): string {
+  const normalizedPayload = payload.trim()
+  if (!normalizedPayload || normalizedPayload === '[DONE]') return ''
+
+  try {
+    const parsed = JSON.parse(normalizedPayload)
+    const deltaContent = normalizeMessageContent(parsed?.choices?.[0]?.delta?.content)
+    if (deltaContent.trim()) return deltaContent.trim()
+    const messageContent = normalizeMessageContent(parsed?.choices?.[0]?.message?.content)
+    if (messageContent.trim()) return messageContent.trim()
+    return ''
+  } catch {
+    return normalizedPayload
+  }
+}
+
+async function hasStreamedAssistantContent(stream: ReadableStream<Uint8Array>): Promise<boolean> {
+  const reader = stream.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+
+  try {
+    while (true) {
+      const { value, done } = await reader.read()
+      if (done) break
+
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split(/\r?\n/)
+      buffer = lines.pop() || ''
+
+      for (const rawLine of lines) {
+        if (!rawLine.startsWith('data:')) continue
+        if (extractContentFromSseDataLine(rawLine.slice(5))) {
+          return true
+        }
+      }
+    }
+
+    buffer += decoder.decode()
+    const trailingLines = buffer.split(/\r?\n/)
+    for (const rawLine of trailingLines) {
+      if (!rawLine.startsWith('data:')) continue
+      if (extractContentFromSseDataLine(rawLine.slice(5))) {
+        return true
+      }
+    }
+
+    return false
+  } finally {
+    reader.releaseLock()
+  }
+}
+
 function estimateTokensFromText(parts: Array<string | null | undefined>): number {
   const totalChars = parts
     .map((part) => (typeof part === 'string' ? part : ''))
@@ -422,6 +483,7 @@ serve(async (req) => {
   let tokenCreditsCharged = 0
   let fixedCreditOperationId: string | null = null
   let fixedCreditOperationFeatureCode: string | null = null
+  let manualRefundCompleted = false
 
   const finalizeFixedCreditOperation = async (isSuccess: boolean, errorMessage?: string) => {
     if (!supabaseAdmin || !userId || !fixedCreditOperationId || !fixedCreditOperationFeatureCode) return
@@ -438,6 +500,25 @@ serve(async (req) => {
       }
     } catch (finalizeErr) {
       console.error('[ai-chat] finalize_credit_operation exception:', finalizeErr)
+    }
+  }
+
+  const refundManualCredits = async (description: string) => {
+    if (manualRefundCompleted || !supabaseAdmin || !userId || creditCost <= 0) return
+    try {
+      const { data: refundResult, error: refundError } = await supabaseAdmin.rpc('add_credits', {
+        p_user_id: userId,
+        p_amount: creditCost.toFixed(2),
+        p_description: description,
+      })
+      if (refundError || !refundResult?.success) {
+        console.error('[ai-chat] Refund failed:', refundError || refundResult)
+        return
+      }
+      manualRefundCompleted = true
+      console.log(`[ai-chat] Refunded ${creditCost.toFixed(2)} credits to user ${userId}`)
+    } catch (refundErr) {
+      console.error('[ai-chat] Refund failed:', refundErr)
     }
   }
 
@@ -591,14 +672,14 @@ serve(async (req) => {
     const chargeTokenCredits = async (
       payload: Record<string, any>,
       fallbackTextParts: Array<string | null | undefined>,
-    ): Promise<Response | null> => {
-      if (!isTokenBilledFeature || !userId || !supabaseAdmin || !feature_code) return null
+    ): Promise<void> => {
+      if (!isTokenBilledFeature || !userId || !supabaseAdmin || !feature_code) return
       const totalTokens = parseTotalTokens(payload) || estimateTokensFromText(fallbackTextParts)
       const targetCredits = calculateTokenCreditCost(totalTokens, TEXT_TOKEN_COST_PER_K, TEXT_TOKEN_MULTIPLIER)
       const delta = Number((targetCredits - tokenCreditsCharged).toFixed(2))
       if (delta === 0) {
         console.log(`[ai-chat] Token settled ${feature_code}: tokens=${totalTokens}, charged=${tokenCreditsCharged.toFixed(2)}`)
-        return null
+        return
       }
 
       if (delta > 0) {
@@ -612,9 +693,7 @@ serve(async (req) => {
           const errMsg = deductResult?.error === 'INSUFFICIENT_BALANCE'
             ? `积分不足，需要 ${delta.toFixed(2)} 积分，当前余额 ${currentBalance}`
             : '积分扣减失败'
-          return new Response(JSON.stringify({ error: errMsg }), {
-            status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          })
+          throw new Error(errMsg)
         }
 
         tokenCreditsCharged = Number((tokenCreditsCharged + delta).toFixed(2))
@@ -622,18 +701,20 @@ serve(async (req) => {
       } else {
         const refundAmount = Number(Math.abs(delta).toFixed(2))
         if (refundAmount > 0) {
-          await supabaseAdmin.rpc('add_credits', {
+          const { data: refundResult, error: refundError } = await supabaseAdmin.rpc('add_credits', {
             p_user_id: userId,
             p_amount: refundAmount.toFixed(2),
             p_description: `退款-${feature_code}-结算差额`,
           })
+          if (refundError || !refundResult?.success) {
+            console.error('[ai-chat] Settlement refund failed:', refundError || refundResult)
+          }
           tokenCreditsCharged = Number((tokenCreditsCharged - refundAmount).toFixed(2))
           creditCost = Number((creditCost - refundAmount).toFixed(2))
         }
       }
 
       console.log(`[ai-chat] Token settled ${feature_code}: tokens=${totalTokens}, charged=${tokenCreditsCharged.toFixed(2)}, multiplier=${TEXT_TOKEN_MULTIPLIER}`)
-      return null
     }
 
     // ========== VM 单件衣服识别模式 ==========
@@ -740,8 +821,11 @@ serve(async (req) => {
       }
 
       const vmData = await vmResponse.json()
-      const chargeError = await chargeTokenCredits(vmData, [prompt, extractAssistantMessage(vmData)])
-      if (chargeError) return chargeError
+      const vmText = requireNonEmptyContent(
+        extractAssistantMessage(vmData),
+        'VM Analysis returned empty content',
+      )
+      await chargeTokenCredits(vmData, [prompt, vmText])
       return new Response(JSON.stringify(vmData), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -794,8 +878,11 @@ serve(async (req) => {
       }
 
       const outfitData = await outfitResponse.json()
-      const chargeError = await chargeTokenCredits(outfitData, [prompt, extractAssistantMessage(outfitData)])
-      if (chargeError) return chargeError
+      const outfitText = requireNonEmptyContent(
+        extractAssistantMessage(outfitData),
+        'Outfit Recommend returned empty content',
+      )
+      await chargeTokenCredits(outfitData, [prompt, outfitText])
       return new Response(JSON.stringify(outfitData), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -848,8 +935,11 @@ serve(async (req) => {
       }
 
       const fabricData = await fabricResponse.json()
-      const chargeError = await chargeTokenCredits(fabricData, [prompt, extractAssistantMessage(fabricData)])
-      if (chargeError) return chargeError
+      const fabricText = requireNonEmptyContent(
+        extractAssistantMessage(fabricData),
+        'Fabric Analysis returned empty content',
+      )
+      await chargeTokenCredits(fabricData, [prompt, fabricText])
       return new Response(JSON.stringify(fabricData), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -931,8 +1021,7 @@ serve(async (req) => {
             : undefined,
         }
 
-        const chargeError = await chargeTokenCredits(normalized, [prompt, responseText])
-        if (chargeError) return chargeError
+        await chargeTokenCredits(normalized, [prompt, responseText])
         return new Response(JSON.stringify(normalized), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
@@ -980,8 +1069,11 @@ serve(async (req) => {
       }
 
       const reportData = await reportResponse.json()
-      const chargeError = await chargeTokenCredits(reportData, [prompt, extractAssistantMessage(reportData)])
-      if (chargeError) return chargeError
+      const reportText = requireNonEmptyContent(
+        extractAssistantMessage(reportData),
+        'Generative Report API returned empty content',
+      )
+      await chargeTokenCredits(reportData, [prompt, reportText])
       return new Response(JSON.stringify(reportData), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -1026,30 +1118,51 @@ serve(async (req) => {
 
     // 固定积分/非 token 功能保持透传流式响应
     if (stream && !shouldForceNonStreaming) {
+      if (!response.body) {
+        throw new Error('Text API returned empty stream body')
+      }
+
       const sseHeaders = {
         ...corsHeaders,
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
       }
-      // 有积分操作时，用 TransformStream 拦截流结束事件来 finalize
-      if (fixedCreditOperationId && response.body) {
-        const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>()
-        const pipePromise = response.body.pipeTo(writable).then(
-          () => finalizeFixedCreditOperation(true),
-          (err: unknown) => finalizeFixedCreditOperation(false, String(err))
-        )
-        try { (globalThis as any).EdgeRuntime?.waitUntil?.(pipePromise) } catch (_) { /* ignore */ }
-        return new Response(readable, { headers: sseHeaders })
+      if (fixedCreditOperationId || creditCost > 0) {
+        const [clientBody, auditBody] = response.body.tee()
+        const auditPromise = hasStreamedAssistantContent(auditBody).then(async (hasContent) => {
+          if (!hasContent) {
+            if (fixedCreditOperationId) {
+              await finalizeFixedCreditOperation(false, 'Text API returned empty streamed content')
+            } else {
+              await refundManualCredits('退款-' + (savedFeatureCode || 'ai_chat'))
+            }
+            return
+          }
+
+          if (fixedCreditOperationId) {
+            await finalizeFixedCreditOperation(true)
+          }
+        }).catch(async (err: unknown) => {
+          if (fixedCreditOperationId) {
+            await finalizeFixedCreditOperation(false, String(err))
+          } else {
+            await refundManualCredits('退款-' + (savedFeatureCode || 'ai_chat'))
+          }
+        })
+        try { (globalThis as any).EdgeRuntime?.waitUntil?.(auditPromise) } catch (_) { /* ignore */ }
+        return new Response(clientBody, { headers: sseHeaders })
       }
       return new Response(response.body, { headers: sseHeaders })
     }
 
     // token 计费场景使用非流式上游响应，结算后再返回给前端
     const data = await response.json()
-    const assistantText = extractAssistantMessage(data)
-    const chargeError = await chargeTokenCredits(data, [prompt, assistantText])
-    if (chargeError) return chargeError
+    const assistantText = requireNonEmptyContent(
+      extractAssistantMessage(data),
+      'Text API returned empty content',
+    )
+    await chargeTokenCredits(data, [prompt, assistantText])
 
     await finalizeFixedCreditOperation(true)
 
@@ -1065,14 +1178,7 @@ serve(async (req) => {
     await finalizeFixedCreditOperation(false, error instanceof Error ? error.message : String(error))
 
     // 生成失败时退还积分
-    if (supabaseAdmin && userId && creditCost > 0) {
-      try {
-        await supabaseAdmin.rpc('add_credits', { p_user_id: userId, p_amount: creditCost.toFixed(2), p_description: '退款-' + (savedFeatureCode || 'ai_chat') })
-        console.log(`[ai-chat] Refunded ${creditCost.toFixed(2)} credits to user ${userId}`)
-      } catch (refundErr) {
-        console.error(`[ai-chat] Refund failed:`, refundErr)
-      }
-    }
+    await refundManualCredits('退款-' + (savedFeatureCode || 'ai_chat'))
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : String(error) }),
       {
