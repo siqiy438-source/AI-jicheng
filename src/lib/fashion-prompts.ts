@@ -174,7 +174,7 @@ Skin & Hands: Visible skin on hands and neck must appear smooth, tight, and yout
 --- STANDARD REQUIREMENTS BELOW ---
 Composition (Tight Framing):
 
-Vertical Close-up Mirror Selfie. The model fills 90% of the vertical frame (head near top, feet near bottom).
+Vertical Close-up Mirror Selfie. The model fills 90% of the vertical frame (head near top, lower legs/ankles near bottom). The frame should cut off at or above the ankles - DO NOT show feet or shoes. The bottom of the frame should end around the lower calf or ankle area.
 Pose (Dynamic & Confident):
 
 Natural, fluid fashion stance. A confident, energetic posture with natural body curves. NO stiff, rigid standing. The free hand should be relaxed by the side or gently interacting with the hair/clothing naturally.
@@ -184,15 +184,19 @@ Analyze ALL inputs thoroughly.
 
 Core Layers: Correctly assemble the 3-piece structure ([Outerwear] open over [Inner Top] with [Bottoms]).
 Mandatory Accessories: You MUST include any BELTS, BAGS, or DISTINCT ACCESSORIES visible in the input images. They cannot be missing.
-Background (Simplified Luxury):
+Background (Open & Minimalist):
 
-Clean, minimalist high-end corner. Matte off-white wall. Sleek black modern cabinet behind with 1-2 minimal trendy art objects (e.g., Bearbrick).
+Clean, open minimalist space. Matte off-white wall behind the model with a sleek black modern cabinet and 1-2 minimal trendy art objects (e.g., Bearbrick). The space should feel open and airy - NO corner setup, NO side walls, NO vertical poles/columns/pillars on the left or right sides. The background should only be behind the model, not surrounding her on multiple sides. Keep the left and right sides completely open, clear, and unobstructed - no architectural elements, no furniture, no vertical structures on either side.
+
+MIRROR RULES (CRITICAL):
+The mirror itself should be INVISIBLE and frameless. This is a mirror selfie taken in front of a large, frameless wall mirror. The mirror should NOT appear as a physical object with a frame or border in the image. The viewer should feel the presence of a mirror through the selfie angle and phone-in-hand pose, but the mirror edge/frame must NOT be visible. NO decorative mirror frames, NO mirror borders, NO mirror as a standalone object in the scene.
+
 Lighting:
 
 Premium Cool White Studio Light. Bright, clean light that emphasizes the youthful glow of the skin and the high sheen of the sleek hair.
 --no (Negative Prompt):
 
-matronly look, old age vibe, dated hairstyle, frizzy hair, stiff volume hair, wrinkled skin, stiff pose, missing accessories, warm yellow light, cluttered room.
+matronly look, old age vibe, dated hairstyle, frizzy hair, stiff volume hair, wrinkled skin, stiff pose, missing accessories, warm yellow light, cluttered room, framed mirror, mirror with border, decorative mirror frame, visible mirror edge, corner walls, enclosed space, boxed in, side walls, walls on left or right, vertical poles, columns, pillars, architectural elements on sides, furniture on sides, objects framing the model, feet visible, shoes visible.
 
 User uploaded clothing items: {user_prompt}`;
 
