@@ -11,6 +11,7 @@ import {
   FASHION_PANTS_MEN_SIDE_PREFIX,
   FASHION_PANTS_MEN_HIP_PREFIX,
   PANTS_TYPE_SILHOUETTE_PROMPTS,
+  PANTS_FABRIC_REALISM_PROMPT,
   type PantsType,
 } from "@/lib/fashion-prompts";
 import { cn } from "@/lib/utils";
@@ -361,9 +362,9 @@ const FashionPants = () => {
 
   const promptPrefixBuilder = (_imageCount: number): string => {
     const basePrefix = buildBasePrefix();
-    if (!pantsType) return basePrefix;
+    if (!pantsType) return `${PANTS_FABRIC_REALISM_PROMPT}\n\n${basePrefix}`;
     const silhouetteSpec = PANTS_TYPE_SILHOUETTE_PROMPTS[pantsType];
-    return `${silhouetteSpec}\n\n${basePrefix}`;
+    return `${silhouetteSpec}\n\n${PANTS_FABRIC_REALISM_PROMPT}\n\n${basePrefix}`;
   };
 
   // Side/hip views don't have meaningful background style variations, so hide

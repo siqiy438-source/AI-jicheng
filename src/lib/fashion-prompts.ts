@@ -593,6 +593,22 @@ export const FASHION_PANTS_MEN_SCENE_PROMPT = `生成一张极致照片级真实
 
 export type PantsType = "banana" | "wide-leg" | "straight" | "cropped" | "bootcut" | "barrel";
 
+export const PANTS_FABRIC_REALISM_PROMPT = `━━━ FABRIC & PHOTO REALISM — APPLIES TO ALL PANTS TYPES ━━━
+The final image must look like a real product photograph taken in a studio or on location — NOT like an AI rendering.
+
+FABRIC MUST LOOK REAL:
+- The fabric must show its actual material texture: denim has visible weave grain, canvas has matte surface, silk has subtle sheen, knit has ribbed structure, cotton has soft slight surface fuzz, leather has grain and reflection. Do NOT render any fabric as a flat, uniform, perfectly smooth surface.
+- Natural wrinkles and stress creases MUST be present at joint areas (crotch, behind knee, ankle), matching real-world physics of how that fabric bends and drapes under gravity.
+- Fabric color must show realistic variation — lighter where fabric is raised and catches light, darker in fold recesses and shaded areas. Do NOT use flat uniform color fill.
+- Seams, topstitching, and pocket edges must be clearly visible as construction details with slight fabric tension around them.
+- If the fabric is washed, worn, or treated (e.g. stonewash denim, distressed), those surface marks must be realistic and varied — not repeated patterns or obvious AI textures.
+
+PHOTO MUST LOOK REAL:
+- Lighting must create natural shadows and fabric depth — do NOT use flat, even lighting that makes everything look CG.
+- The garment must have weight and gravity — heavy fabrics (denim, wool, canvas) pull downward and create tension; light fabrics (chiffon, silk) float and drape softly.
+- Small imperfections are welcome and realistic: slight asymmetry in drape, natural variation in fabric thickness, minor crease shadows — these all make the photo look authentic.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+
 export const PANTS_TYPE_SILHOUETTE_PROMPTS: Record<PantsType, string> = {
 
   banana: `━━━ PANTS TYPE — USER OVERRIDE — HIGHEST PRIORITY ━━━
@@ -633,35 +649,67 @@ The user has explicitly selected: WIDE-LEG PANTS (阔腿裤).
 You MUST render the silhouette EXACTLY as described below.
 This overrides any visual inference you may draw from the reference image.
 
-SILHOUETTE: Wide-Leg Pants — vertical straight cylinder, voluminous and uniform from hip to floor.
-Visual analogy: the two legs are two wide rectangular curtains of fabric hanging vertically from the waist to the ground — they have the same width at the top as at the bottom.
+SILHOUETTE: Wide-Leg Pants — each leg is a large, broad column of fabric that drapes away from the body under its own weight. The fabric is heavy, relaxed, and billowing — the legs swing slightly with movement and create generous volume at every section. The overall shape is unmistakably WIDE, not a tube.
+Visual analogy: imagine two wide curtain panels hanging from the hips — each leg is so wide that it completely hides the leg shape inside. Another reference: the classic Japanese street-style wide-leg denim that is obviously baggy from hip all the way to the hem, with the fabric pooling softly over the shoe. The thigh is the widest reference point but the hem is almost equally wide. The pant legs create a strong rectangular silhouette from the front — wide at the top, and equally wide or nearly so at the bottom.
+
+QUANTITATIVE WIDTH — MUST BE FOLLOWED EXACTLY:
+- Each leg panel, measured flat: 48–58cm wide — these are extremely wide legs, noticeably wider than standard wide-leg jeans
+- Thigh circumference: actual thigh + 30–38cm of ease — massively roomy; the thigh area looks like a wide tube with no body shape visible whatsoever; there is a huge air gap between the fabric and the leg
+- Hip circumference: actual hip + 15–18cm of ease
+- Knee circumference: equal to thigh — the full extreme width is maintained from hip all the way to the knee; the leg does NOT narrow at the knee
+- Hem circumference: equal to or no more than 3cm narrower than the knee — the hem is almost as wide as the knee; the lower leg reads as a wide, open column
+- The combined width of both legs fills 92–98% of the frame width — the pant legs nearly touch the frame edge on both sides; barely any background visible
+- The visible width must come from the pant panels themselves, not from a wide stance or split-leg pose
+
+FABRIC TEXTURE — CRITICAL FOR REALISM (if fabric is denim):
+This is real denim fabric shot in a photo studio — NOT a smooth AI-generated surface. Every part of the fabric surface must look tangible and physical:
+- Macro-level: visible diagonal twill weave structure across the entire fabric — you can see the individual yarn interlacing pattern, especially on the outer thigh and lower leg where light hits directly
+- Color variation: a clear gradient from faded light blue at the thigh front and seat, to medium blue across the knee area, to deeper blue-grey in the fold recesses and side panels — the color is NEVER flat or uniform across any section
+- Whisker marks: natural horizontal creasing radiating from the upper inner thigh/crotch area — organic, not symmetrical, like real worn denim
+- Knee creases: horizontal stress lines behind and below the knee where the fabric naturally folds when walking — multiple small parallel lines, NOT a single smooth curve
+- Fabric weight visible in the hang: the fabric sags and pulls slightly under its own weight, creating micro-tension lines along the vertical grain, especially visible on the lower leg
+- Topstitching: contrast-colored stitching (warm white or golden yellow thread) clearly visible along all seam lines with natural thread texture
+- Hem edge: the hem shows slight fraying, wear, or a clean folded edge with a shadow line where it folds over the shoe
+- Side panel depth: the side panels are slightly darker than the front face due to less light exposure — this 3D tonal difference makes the leg look round and real, not flat
+
+FABRIC BEHAVIOR:
+- Below the hip, the fabric hangs away from the body with a clean, composed vertical drape; the thigh shape is not visible
+- At the knee: natural horizontal drape folds and crease lines where the fabric gathers — these should look like real wear creases, NOT smooth curves
+- At the ankle and floor: the hem opening stays broad and relaxed; it falls over the shoe with visible stacking and soft pooling — approximately 2 to 4 layered folds; the stacked hem shows natural crease shadows and fabric depth
+- The fabric has natural three-dimensional drape — viewed from the side, the leg has volume and depth, not a flat panel
+- The outer side seams sit clearly away from the actual leg line; there is visible empty air space between the model's leg and the inside of the pant leg
+- Even when the model stands straight, the pant leg still reads wide from upper thigh to hem; the width must remain visible without relying on pose
 
 SECTION-BY-SECTION SHAPE (waist → floor):
-- Waist/waistband: high waist, snug and fitted at the waistline — the waist is the only fitted point
-- Hip: very roomy — fabric ease of approximately 10–15cm over the actual hip measurement; the silhouette is already dramatically wide at the hip
-- Thigh: the leg panel is very wide — each leg panel is approximately 30–50cm in width measured flat; the thigh does NOT taper inward at all; the width is the same as the hip
-- Knee: IDENTICAL width to the thigh — there is zero narrowing at the knee; the fabric width is perfectly maintained; the transition is invisible
-- Below knee to hem: IDENTICAL width throughout — the leg continues downward with the same uniform width; absolutely no narrowing and no flaring
-- Hem: very wide, the same circumference as the knee and thigh; the hem is FULL-LENGTH and FLOOR-GRAZING — the fabric stacks or lightly pools on top of the shoe; the ankle is completely hidden inside the wide leg and covered by fabric
+- Waist/waistband: the only fitted point — snug and high-waisted; clear contrast with the wide leg below
+- Hip: roomy — 12–15cm ease; the silhouette reads as noticeably wide
+- Thigh: wider than the hip; fabric hangs away from the thigh; leg shape not visible
+- Knee: same width as thigh; soft natural drape folds visible; clean appearance
+- Below knee to hem: broad and continuous with near-equal width; only the slightest inward taper is allowed; the lower leg should still look generous and fluid, ending in a softly pooled hem rather than a clean cropped tube
+- Hem: FULL-LENGTH; visibly wide at the opening; covers the top of the shoe and creates 2–4 soft stacked folds; ankle fully hidden
 
-LENGTH — CRITICAL: These are FULL-LENGTH floor-grazing pants. The hem must reach all the way down to the floor level. The fabric drapes over and rests on top of the shoe. The ankle bone is completely hidden. There is NO exposed ankle skin anywhere. The wide column of fabric reaches the ground.
+POSE REQUIREMENT — CRITICAL:
+- The model should stand in a natural balanced stance, feet only slightly apart, with no exaggerated step-out pose
+- Do NOT create the illusion of width by forcing the feet far apart or by pushing one knee outward
+- The pants must still look unmistakably wide-leg if the feet were moved closer together
+- The crotch opening and the distance between the two legs should look natural; the garment width must come from the side seams and panel width, not from pose manipulation
 
-SIDE SEAM BEHAVIOR: perfectly vertical straight line — the seam runs completely straight from hip to the floor-level hem, with absolutely zero inward or outward curve. This is non-negotiable. Both side seams are parallel to each other and parallel to the body's center axis.
+SIDE SEAM BEHAVIOR: the side seam hangs straight down under gravity from the hip, finishing at a point far outside the actual leg — the outer edge of each pant leg is clearly several centimeters beyond the outer edge of the hip. The overall silhouette from the front looks like a wide rectangle, NOT a fitted tube. The fabric has three-dimensional volume and depth — it is NOT flat or pressed against the body.
 
-FROM THE FRONT VIEW: both legs form wide rectangular blocks of fabric from the waist all the way to the floor; the overall silhouette reads like a wide inverted rectangle; the two legs may visually merge into one wide column of fabric; the hem rests on or touches the floor.
+FROM THE FRONT VIEW: the pants form two broad rectangular columns from waist to floor; the outer edge of each leg extends clearly beyond the hip line, creating an obvious wide silhouette; the lower leg is as broad as the upper leg; the hem gathers softly over the shoe in 2–4 visible stacked folds; there is clear background visible on the far outer sides of both legs; the overall width of the pants is the dominant visual feature of the outfit.
 
-FROM THE SIDE VIEW: a straight vertical drop of fabric reaching the floor; the fabric has strong drape and forms long vertical fold lines running continuously from hip to ground; lots of layered fabric visible; the hem lightly touches the ground or the toe of the shoe.
-
-FABRIC DRAPE: heavy, dramatic vertical drape — the fabric falls in long straight columns under gravity, all the way to the floor; voluminous fabric creates multiple parallel vertical folds; the hem pools or softly stacks at floor level; the fabric has a fluid, curtain-like quality.
+FROM THE SIDE VIEW: the fabric hangs away from the leg with generous depth; the hem breaks over the shoe and shows a soft pooled stack — you can see the pant leg is thick with fabric, not pressed flat against the ankle.
 
 STRICTLY FORBIDDEN — if any of these appear, the output is WRONG:
-× Any taper or narrowing from thigh toward the ankle or hem
-× Narrow hem or fitted ankle opening
-× Any curved side seam (inward OR outward)
-× Barrel shape (outward bulge at knee or mid-thigh)
-× Banana curve or any arc in the leg silhouette
-× Fitted or slim thigh
-× Cropped or ankle-length hemline — the hem MUST reach the floor and fully cover the ankle
+× Pants that look like straight-leg or slim-leg — the legs must be clearly and noticeably wider
+× Thigh area that looks fitted or body-conforming
+× Completely flat hem with no stacking at all — the pants should have a floor-grazing pooled break over the shoe
+× Excessive fabric piling or chaotic bunching at the hem — soft stacking is correct, but a messy heap at the ankle is WRONG
+× Palazzo-style extreme volume — the pants should look like wide-leg jeans, NOT a divided skirt
+× Cropped or ankle-length hem — the ankle must be fully covered
+× Hem that is noticeably narrowed or pinched in at the ankle — the hem must remain broad like a normal wide-leg pant
+× Width created mainly by the model standing with feet very far apart — the pants themselves must be wide
+× Straight-leg pants shown in a split stance to fake a wide-leg silhouette
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
 
   straight: `━━━ PANTS TYPE — USER OVERRIDE — HIGHEST PRIORITY ━━━
