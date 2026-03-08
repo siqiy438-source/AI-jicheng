@@ -55,6 +55,7 @@ interface FashionGeneratorPageProps {
   emptyStateHint?: string;
   promptPrefixBuilder?: (imageCount: number) => string;
   extraCardContent?: React.ReactNode;
+  styleAreaSiblingContent?: React.ReactNode;
 }
 
 const ratioOptions = [
@@ -91,6 +92,7 @@ export const FashionGeneratorPage = ({
   emptyStateHint,
   promptPrefixBuilder,
   extraCardContent,
+  styleAreaSiblingContent,
 }: FashionGeneratorPageProps) => {
   const navigate = useNavigate();
   const { checkCredits, showInsufficientDialog, requiredAmount, featureName, currentBalance, goToRecharge, dismissDialog } = useCreditCheck();
@@ -335,7 +337,7 @@ export const FashionGeneratorPage = ({
             {imagePreviews.length === 0 && (
               <button
                 onClick={() => imageInputRef.current?.click()}
-                className="w-full py-6 md:py-8 rounded-xl border-2 border-dashed border-border hover:border-primary/40 flex flex-col items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+                className="w-full mt-4 py-6 md:py-8 rounded-xl border-2 border-dashed border-border hover:border-primary/40 flex flex-col items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
               >
                 <Image className="w-8 h-8" />
                 <span className="text-sm">点击上传服装照片</span>
@@ -353,72 +355,80 @@ export const FashionGeneratorPage = ({
             className="hidden"
           />
 
-          {shouldShowStyleCards && (
+          {(shouldShowStyleCards || styleAreaSiblingContent) && (
             <div className="mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-muted-foreground">生成模式</span>
-              </div>
-              <div className="relative" onClick={(event) => event.stopPropagation()}>
-                <button
-                  onClick={() => {
-                    setShowStyleMenu(!showStyleMenu);
-                    setShowRatioMenu(false);
-                  }}
-                  className="w-full md:max-w-[340px] flex items-center justify-between gap-2 rounded-xl border border-orange-200 bg-orange-50/80 px-3 py-2.5 text-left hover:bg-orange-100 transition-colors"
-                >
-                  <div className="min-w-0 flex items-center gap-2">
-                    {selectedStyleOption?.iconSrc ? (
-                      <img src={selectedStyleOption.iconSrc} alt={selectedStyleOption.name} className="w-4 h-4 rounded object-cover" />
-                    ) : selectedStyleOption?.icon ? (
-                      <span className="text-sm">{selectedStyleOption.icon}</span>
-                    ) : (
-                      <Palette className="w-4 h-4 text-orange-500" />
-                    )}
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-orange-700 truncate">{selectedStyleOption?.name ?? "选择模式"}</p>
-                      {selectedStyleOption?.description && (
-                        <p className="text-xs text-muted-foreground truncate">{selectedStyleOption.description}</p>
+              <div className="flex gap-2 items-start">
+                {shouldShowStyleCards && (
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground mb-2">生成模式</p>
+                    <div className="relative" onClick={(event) => event.stopPropagation()}>
+                      <button
+                        onClick={() => {
+                          setShowStyleMenu(!showStyleMenu);
+                          setShowRatioMenu(false);
+                        }}
+                        className="w-full flex items-center justify-between gap-2 rounded-xl border border-orange-200 bg-orange-50/80 px-3 py-2.5 text-left hover:bg-orange-100 transition-colors"
+                      >
+                        <div className="min-w-0 flex items-center gap-2">
+                          {selectedStyleOption?.iconSrc ? (
+                            <img src={selectedStyleOption.iconSrc} alt={selectedStyleOption.name} className="w-4 h-4 rounded object-cover" />
+                          ) : selectedStyleOption?.icon ? (
+                            <span className="text-sm">{selectedStyleOption.icon}</span>
+                          ) : (
+                            <Palette className="w-4 h-4 text-orange-500" />
+                          )}
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-orange-700 truncate">{selectedStyleOption?.name ?? "选择模式"}</p>
+                            {selectedStyleOption?.description && (
+                              <p className="text-xs text-muted-foreground truncate">{selectedStyleOption.description}</p>
+                            )}
+                          </div>
+                        </div>
+                        <ChevronDown className={cn("w-4 h-4 text-orange-600 transition-transform duration-200 flex-shrink-0", showStyleMenu && "rotate-180")} />
+                      </button>
+                      {showStyleMenu && (
+                        <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-2 z-20 min-w-full w-max max-w-[calc(100vw-2rem)] max-h-[60vh] overflow-y-auto dropdown-panel">
+                          {styleOptions?.map((style) => (
+                            <button
+                              key={style.id}
+                              onClick={() => {
+                                setSelectedStyleId(style.id);
+                                setShowStyleMenu(false);
+                              }}
+                              className={cn(
+                                "w-full flex items-start gap-2.5 px-3 py-3 md:py-2.5 hover:bg-secondary/50 active:bg-secondary transition-colors text-left touch-target",
+                                selectedStyleId === style.id && "bg-orange-50",
+                              )}
+                            >
+                              {style.iconSrc ? (
+                                <img src={style.iconSrc} alt={style.name} className="w-5 h-5 rounded object-cover mt-0.5" />
+                              ) : style.icon ? (
+                                <span className="text-sm mt-0.5">{style.icon}</span>
+                              ) : null}
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-1.5">
+                                  <p className={cn("text-sm font-medium", selectedStyleId === style.id ? "text-orange-700" : "text-foreground")}>{style.name}</p>
+                                  {style.badge && (
+                                    <span className="px-1.5 py-0.5 text-xs leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded whitespace-nowrap">
+                                      {style.badge}
+                                    </span>
+                                  )}
+                                </div>
+                                {style.description && <p className="text-xs text-muted-foreground leading-relaxed">{style.description}</p>}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
                       )}
                     </div>
                   </div>
-                  <ChevronDown className={cn("w-4 h-4 text-orange-600 transition-transform duration-200 flex-shrink-0", showStyleMenu && "rotate-180")} />
-                </button>
-                {showStyleMenu && (
-                  <div className="absolute top-full left-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-2 z-10 w-full md:w-[340px] max-h-[60vh] overflow-y-auto dropdown-panel">
-                    {styleOptions?.map((style) => (
-                      <button
-                        key={style.id}
-                        onClick={() => {
-                          setSelectedStyleId(style.id);
-                          setShowStyleMenu(false);
-                        }}
-                        className={cn(
-                          "w-full flex items-start gap-2.5 px-3 py-3 md:py-2.5 hover:bg-secondary/50 active:bg-secondary transition-colors text-left touch-target",
-                          selectedStyleId === style.id && "bg-orange-50",
-                        )}
-                      >
-                        {style.iconSrc ? (
-                          <img src={style.iconSrc} alt={style.name} className="w-5 h-5 rounded object-cover mt-0.5" />
-                        ) : style.icon ? (
-                          <span className="text-sm mt-0.5">{style.icon}</span>
-                        ) : null}
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5">
-                            <p className={cn("text-sm font-medium", selectedStyleId === style.id ? "text-orange-700" : "text-foreground")}>{style.name}</p>
-                            {style.badge && (
-                              <span className="px-1.5 py-0.5 text-xs leading-none font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded whitespace-nowrap">
-                                {style.badge}
-                              </span>
-                            )}
-                          </div>
-                          {style.description && <p className="text-xs text-muted-foreground leading-relaxed">{style.description}</p>}
-                        </div>
-                      </button>
-                    ))}
+                )}
+                {styleAreaSiblingContent && (
+                  <div className="flex-1 min-w-0">
+                    {styleAreaSiblingContent}
                   </div>
                 )}
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">点击切换生成模式</p>
             </div>
           )}
 

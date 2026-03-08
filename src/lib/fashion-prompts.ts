@@ -589,6 +589,226 @@ export const FASHION_PANTS_MEN_SCENE_PROMPT = `生成一张极致照片级真实
 - 禁止：颜色过度均匀平整、面料像塑料/橡皮、无任何纹理的光滑AI感、过于对称完美的假质感
 - 无文字、无水印`;
 
+// ─── Pants type silhouette specs (injected at top of prompt prefix) ───────────
+
+export type PantsType = "banana" | "wide-leg" | "straight" | "cropped" | "bootcut" | "barrel";
+
+export const PANTS_TYPE_SILHOUETTE_PROMPTS: Record<PantsType, string> = {
+
+  banana: `━━━ PANTS TYPE — USER OVERRIDE — HIGHEST PRIORITY ━━━
+The user has explicitly selected: BANANA PANTS (香蕉裤).
+You MUST render the silhouette EXACTLY as described below.
+This overrides any visual inference you may draw from the reference image.
+
+SILHOUETTE: Banana Pants — smooth inward-tapering arc from hip all the way to the ankle.
+Visual analogy: viewed from the side, the leg traces the gentle downward curve of a banana — widest at the hip, continuously curving inward toward the ankle.
+
+SECTION-BY-SECTION SHAPE (waist → ankle):
+- Waist/waistband: snug and fitted at the natural waist or high hip; the waistband hugs the body cleanly
+- Hip: moderately fitted — fabric ease of approximately 3–5cm over the actual hip measurement; neither roomy nor tight; the hip is the widest point of the leg
+- Thigh: slightly narrower than the hip — approximately 2–3cm less circumference than the hip; the inward taper begins immediately below the hip; the thigh already reads as slimmer than the hip
+- Knee: the pivotal narrowing point — approximately 4–6cm narrower in circumference than the thigh; the fabric clearly pinches inward at the knee; this is where the banana curve bends most noticeably
+- Below knee to ankle: continuous and progressive narrowing — the leg keeps getting narrower all the way down without any outward flare or pause; there is no reversal of the taper at any point
+- Ankle/hem: narrow fitted cuff — the hem circumference is approximately 60–70% of the thigh circumference; it hugs close to the ankle; the ankle opening is visibly much narrower than the thigh
+
+SIDE SEAM BEHAVIOR: the side seam traces a smooth, gently curving arc that bows INWARD from the hip all the way to the ankle. It is NOT a straight vertical line. It is NOT a barrel-shaped outward bow. The arc is fluid and continuous — like the inner edge of a banana curve — no kinks, no reversals, just a single smooth inward sweep.
+
+FROM THE FRONT VIEW: both legs show a smooth, flowing taper — clearly wider at the thigh, visibly narrowing through the knee, and noticeably slim at the ankle. The outer edges of both legs form gentle inward-curving lines. The silhouette reads as a soft tapering column or elongated teardrop, never a rectangle or cylinder.
+
+FROM THE SIDE VIEW: the leg silhouette traces a natural downward banana-curve — the front edge of the leg is roughly vertical, while the back edge of the leg curves gently inward from hip toward the ankle, forming the characteristic banana shape.
+
+FABRIC DRAPE: the fabric follows the body closely throughout; gravity pulls the side seam inward at each section, reinforcing the arc. The fabric does not pool at the ankle — it terminates cleanly in a slim cuff. The overall impression is of a sleek, elongating silhouette.
+
+STRICTLY FORBIDDEN — if any of these appear, the output is WRONG:
+× Barrel shape (widest at knee or mid-thigh, narrow at top and bottom)
+× Wide or flared hem at the ankle
+× Straight cylindrical leg with uniform width hip-to-ankle
+× Any outward flare below the knee
+× Extremely roomy thigh with no visible taper
+× Pants that look like wide-leg, straight-leg, or bootcut
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+
+  "wide-leg": `━━━ PANTS TYPE — USER OVERRIDE — HIGHEST PRIORITY ━━━
+The user has explicitly selected: WIDE-LEG PANTS (阔腿裤).
+You MUST render the silhouette EXACTLY as described below.
+This overrides any visual inference you may draw from the reference image.
+
+SILHOUETTE: Wide-Leg Pants — vertical straight cylinder, voluminous and uniform from hip to floor.
+Visual analogy: the two legs are two wide rectangular curtains of fabric hanging vertically from the waist to the ground — they have the same width at the top as at the bottom.
+
+SECTION-BY-SECTION SHAPE (waist → floor):
+- Waist/waistband: high waist, snug and fitted at the waistline — the waist is the only fitted point
+- Hip: very roomy — fabric ease of approximately 10–15cm over the actual hip measurement; the silhouette is already dramatically wide at the hip
+- Thigh: the leg panel is very wide — each leg panel is approximately 30–50cm in width measured flat; the thigh does NOT taper inward at all; the width is the same as the hip
+- Knee: IDENTICAL width to the thigh — there is zero narrowing at the knee; the fabric width is perfectly maintained; the transition is invisible
+- Below knee to hem: IDENTICAL width throughout — the leg continues downward with the same uniform width; absolutely no narrowing and no flaring
+- Hem: very wide, the same circumference as the knee and thigh; the hem is FULL-LENGTH and FLOOR-GRAZING — the fabric stacks or lightly pools on top of the shoe; the ankle is completely hidden inside the wide leg and covered by fabric
+
+LENGTH — CRITICAL: These are FULL-LENGTH floor-grazing pants. The hem must reach all the way down to the floor level. The fabric drapes over and rests on top of the shoe. The ankle bone is completely hidden. There is NO exposed ankle skin anywhere. The wide column of fabric reaches the ground.
+
+SIDE SEAM BEHAVIOR: perfectly vertical straight line — the seam runs completely straight from hip to the floor-level hem, with absolutely zero inward or outward curve. This is non-negotiable. Both side seams are parallel to each other and parallel to the body's center axis.
+
+FROM THE FRONT VIEW: both legs form wide rectangular blocks of fabric from the waist all the way to the floor; the overall silhouette reads like a wide inverted rectangle; the two legs may visually merge into one wide column of fabric; the hem rests on or touches the floor.
+
+FROM THE SIDE VIEW: a straight vertical drop of fabric reaching the floor; the fabric has strong drape and forms long vertical fold lines running continuously from hip to ground; lots of layered fabric visible; the hem lightly touches the ground or the toe of the shoe.
+
+FABRIC DRAPE: heavy, dramatic vertical drape — the fabric falls in long straight columns under gravity, all the way to the floor; voluminous fabric creates multiple parallel vertical folds; the hem pools or softly stacks at floor level; the fabric has a fluid, curtain-like quality.
+
+STRICTLY FORBIDDEN — if any of these appear, the output is WRONG:
+× Any taper or narrowing from thigh toward the ankle or hem
+× Narrow hem or fitted ankle opening
+× Any curved side seam (inward OR outward)
+× Barrel shape (outward bulge at knee or mid-thigh)
+× Banana curve or any arc in the leg silhouette
+× Fitted or slim thigh
+× Cropped or ankle-length hemline — the hem MUST reach the floor and fully cover the ankle
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+
+  straight: `━━━ PANTS TYPE — USER OVERRIDE — HIGHEST PRIORITY ━━━
+The user has explicitly selected: STRAIGHT-LEG PANTS (直筒裤).
+You MUST render the silhouette EXACTLY as described below.
+This overrides any visual inference you may draw from the reference image.
+
+SILHOUETTE: Straight-Leg Pants — a perfectly vertical line from thigh to floor; every section has exactly identical width.
+Visual analogy: the leg silhouette is a clean, precise rectangle — like a ruler standing upright from thigh to floor. There is not a single point where it gets wider or narrower.
+
+SECTION-BY-SECTION SHAPE (waist → floor):
+- Waist/waistband: fitted at the natural waist, snug without excess ease
+- Hip: close-fitting — approximately 2–3cm ease over the actual hip measurement; no dramatic roominess; the hip is trim and clean
+- Thigh: fitted and trim — approximately 3–5cm ease over actual thigh circumference; this measurement sets the baseline width for the ENTIRE leg — every section below must match this width exactly
+- Knee: EXACTLY the same width as the thigh — zero narrowing, zero widening; the transition from thigh to knee is completely invisible; measured flat, the knee panel is identical to the thigh panel
+- Below knee: EXACTLY the same width as the knee — the leg continues in a perfect straight column; no change whatsoever in any direction
+- Hem: EXACTLY the same width as the knee and below-knee — the leg terminates at the same width it started; no flare, no taper, no deviation
+
+LENGTH — CRITICAL: These are FULL-LENGTH floor-grazing pants. The hem must reach all the way to the floor level. The fabric lightly stacks or rests on top of the shoe. The ankle is fully covered inside the pant leg. There is NO exposed ankle skin. The straight column of fabric reaches the ground cleanly.
+
+SIDE SEAM BEHAVIOR: an absolutely straight vertical line — the seam runs perfectly parallel to the body's center axis from hip all the way down to the floor-level hem. There is no arc, no curve, no inward bow, no outward bow, no deviation of any kind. If you drew a ruler alongside the side seam, it would match perfectly. This perfect vertical line is the defining visual signature of straight-leg pants.
+
+FROM THE FRONT VIEW: both legs form clean, identical rectangular columns from waist all the way to the floor; the left edge and the right edge of each leg are perfectly parallel vertical lines; the overall silhouette is two neat rectangles from waist to ground; the hem rests on or just above the shoe.
+
+FROM THE SIDE VIEW: an equally straight vertical line reaching the floor; no widening or narrowing visible from any angle; the leg looks identical whether viewed from front, side, or back.
+
+FABRIC DRAPE: moderate, clean drape — the fabric hangs in a straight column all the way to the floor; a subtle vertical center crease line may be present; natural thigh and knee wrinkles form horizontally but do not change the overall straight silhouette; the hem lightly touches or stacks on the shoe.
+
+STRICTLY FORBIDDEN — if any of these appear, the output is WRONG:
+× Any taper from thigh toward ankle (banana pants shape)
+× Any flare or widening below the knee (bootcut/micro-flare shape)
+× Any outward bulge at knee or mid-thigh (barrel shape)
+× Any inward or outward curve in the side seam
+× Wide-leg volume or dramatically roomy thigh
+× Cropped or ankle-length hemline — the hem MUST reach the floor and fully cover the ankle
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+
+  cropped: `━━━ PANTS TYPE — USER OVERRIDE — HIGHEST PRIORITY ━━━
+The user has explicitly selected: CROPPED PANTS / NINE-FEN LENGTH (九分裤).
+You MUST render the LENGTH EXACTLY as described below.
+This overrides any visual inference you may draw from the reference image.
+
+SILHOUETTE: Cropped Pants — the defining feature is SHORT LENGTH; the hem ends visibly above the ankle, exposing the ankle skin.
+The body of the pants follows a straight-leg silhouette (fitted and uniform from hip to the cropped hem).
+
+LENGTH SPECIFICATION — THIS IS THE SINGLE MOST IMPORTANT ELEMENT:
+- The pants are approximately 10–15cm shorter than full-length pants
+- The hem must terminate 2–5cm ABOVE the ankle bone — clearly and visibly above the ankle joint
+- The ankle bone is FULLY VISIBLE, uncovered, and exposed to view
+- A strip of bare ankle skin is clearly visible between the hem edge and the top of the shoe
+- The shoe itself is clearly visible in the frame below the hem
+- There is an obvious visual gap between the hem of the pants and the top of the shoe
+- The exposed ankle is the unmistakable visual signature of nine-fen length — it must be prominent
+
+SECTION-BY-SECTION SHAPE (waist → cropped hem):
+- Waist/waistband: fitted at the natural waist
+- Hip: close-fitting — approximately 2–3cm ease
+- Thigh: fitted and straight — 3–5cm ease; sets the uniform width for the rest of the leg
+- Knee: same width as thigh — straight-leg proportions; no narrowing or widening
+- Below knee to cropped hem: same uniform width maintained all the way to the clean cut-off point
+- Hem edge: a clean, straight horizontal cut; the hem sits at approximately mid-ankle height, clearly above the ankle bone
+
+FROM THE FRONT VIEW: the pants appear visibly shorter than normal full-length pants; a clear strip of bare ankle skin is prominently visible between the hem and the shoe; both ankles are fully exposed; this ankle exposure is THE visual signature of nine-fen cropped length.
+
+SHOES: the shoes must be clearly and fully visible — the entire shoe top, the ankle area, and a portion of the lower calf are all exposed and visible. Feminine ankle-exposing styles (pointed flats, ankle-strap sandals, loafers, kitten heels) complement this length.
+
+STRICTLY FORBIDDEN — if any of these appear, the output is WRONG:
+× Pants that reach all the way to the floor or touch the shoe top
+× Pants that stack or pool on the shoe
+× Any length that hides the ankle bone
+× Full-length pants silhouette — the ankle MUST be visibly exposed
+× Dramatic flare or barrel shape below the knee
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+
+  bootcut: `━━━ PANTS TYPE — USER OVERRIDE — HIGHEST PRIORITY ━━━
+The user has explicitly selected: MICRO-FLARE / BOOTCUT PANTS (微喇裤).
+You MUST render the silhouette EXACTLY as described below.
+This overrides any visual inference you may draw from the reference image.
+
+SILHOUETTE: Micro-Flare Pants — slim from hip to knee, then a small graceful flare opens below the knee.
+Visual analogy: the upper leg is slim and converging, then below the knee an elegant gentle opening appears — like a subtle bell that only begins to ring near the floor.
+
+SECTION-BY-SECTION SHAPE (waist → hem):
+- Waist/waistband: high waist, snugly fitted at the waistline — the waistline hugs the body tightly; the waist is the narrowest point
+- Hip: close-fitting with a gentle curve — approximately 2–3cm ease; the hip reads as clearly shaped and defined, not boxy
+- Thigh: slim and fitted — only 2–3cm ease over actual thigh measurement; the thigh reads as close to the leg; visibly slender from the front
+- Knee: the NARROWEST point of the entire leg — approximately 1–2cm narrower in circumference than the thigh; the leg visibly PINCHES IN slightly at the knee; the knee is the tightest point before the flare opens; this slight pinching at the knee is an important visual detail
+- Transition point: approximately 2–3cm BELOW the knee, the fabric begins to open outward; this is the exact location where the flare starts
+- Below-knee flare: from the 2–3cm point below the knee, the fabric gradually and smoothly widens all the way down to the hem; the widening is continuous and smooth — not abrupt, not sudden
+- Hem: approximately 3–6cm wider in circumference than the knee — the hem is noticeably wider than the narrowest knee point; the hem has a gentle opening
+- Flare angle: subtle and elegant — approximately 5–15 degrees outward from vertical; this is a MICRO-flare, NOT a dramatic full-flare or bell-bottom; if you compare the thigh to the hem, the hem is only slightly wider; the flare is restrained and graceful
+
+SIDE SEAM BEHAVIOR: the seam runs straight and slim from the hip down to the knee. At the knee transition point (approximately 2–3cm below the knee), the seam begins to curve gently outward in a smooth arc that widens toward the hem. Both side seams flare outward symmetrically.
+
+FROM THE FRONT VIEW: the upper leg (thigh to knee) shows two slightly converging lines that narrow toward the knee; below the knee, both outer seam edges diverge outward in a smooth gentle flare; the overall leg shape reads as a slim upper portion with an elegant subtle A-line only in the lower section; the contrast between the slim upper leg and the gentle flare below the knee is clearly visible.
+
+FROM THE SIDE VIEW: the leg is slim and close-fitting from hip to knee, then a graceful gentle flare opens from just below the knee to the hem; both the front and back seams flare outward symmetrically; the flare is visible but subtle.
+
+FABRIC DRAPE: the fabric hugs the thigh and knee closely with minimal excess; below the knee, the flare creates gentle, flowing movement; the hem has a slight swinging drape when in motion; the flare gives a sense of elegance without volume.
+
+STRICTLY FORBIDDEN — if any of these appear, the output is WRONG:
+× Perfectly straight leg with no flare at the hem (straight-leg silhouette)
+× Wide-leg or dramatically wide flare (too much volume — should be micro only)
+× Barrel shape (widest at knee, narrowing both above and below)
+× Banana taper (continuously narrowing from thigh to ankle — opposite of flare)
+× Flare that begins at the thigh or hip rather than below the knee
+× Narrow fitted ankle — the hem must be wider than the knee, not narrower
+× Bell-bottom or exaggerated 70s flare — the angle must stay within 5–15 degrees
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+
+  barrel: `━━━ PANTS TYPE — USER OVERRIDE — HIGHEST PRIORITY ━━━
+The user has explicitly selected: BARREL PANTS (弯刀裤).
+You MUST render the silhouette EXACTLY as described below.
+This overrides any visual inference you may draw from the reference image.
+
+SILHOUETTE: Barrel Pants — narrow at the top AND narrow at the bottom, with maximum width at the KNEE; the leg bows outward in the middle.
+Visual analogy: the leg silhouette forms a parenthesis "( )" shape — both the hip (top) and the ankle area (bottom) are narrower than the knee (middle); like a barrel or a bowed leg; like two crescent moons placed back to back.
+
+SECTION-BY-SECTION SHAPE (waist → floor):
+- Waist/waistband: high waist, cinched and snug — the waistband fits close to the body; the waist is a narrow, fitted anchor point
+- Hip: slightly roomy — approximately 5–8cm ease over actual hip measurement; the silhouette widens slightly but noticeably from the waist down through the hip
+- Thigh: WIDER than the hip — the thigh circumference is approximately 3–5cm LARGER than the hip circumference; the leg actively expands outward from the hip through the thigh; the side seam visibly pushes outward as it travels down from the hip
+- Knee: the WIDEST point of the entire leg — approximately 4–6cm LARGER in circumference than the thigh measurement; this is the maximum outward bulge of the barrel shape; both side seams are at their furthest outward extent at the knee; the knee visually reads as the widest part of the leg
+- Below knee: the fabric begins to NARROW INWARD — progressively tapering from the knee downward; the side seam curves back inward toward the hem
+- Hem: the hem opening is 6–10cm NARROWER than the knee circumference — noticeably narrower than the knee; however, these are FULL-LENGTH FLOOR-GRAZING pants — the hem still reaches all the way down to the floor or rests on top of the shoe despite the narrower opening
+
+LENGTH — CRITICAL: These are FULL-LENGTH floor-grazing pants. The narrowing below the knee describes the SHAPE of the silhouette, NOT a shorter length. The pants are long enough that the hem reaches the floor or drapes over the shoe. The ankle bone is fully covered by the fabric. There is NO exposed ankle skin. The barrel shape (wide at knee, narrower at hem) applies to the silhouette cross-section, while the hem still grazes the floor.
+
+SIDE SEAM BEHAVIOR: an outward-convex CURVED ARC — the seam curves OUTWARD from the waist, progressively expanding through the hip and thigh, reaching maximum outward displacement at the knee, then curves BACK INWARD from the knee all the way down to the floor-level hem. The full seam traces a smooth C-curve (or mirrored reversed-C on the other side). This outward bowing of the side seam is the defining visual feature of barrel pants and must be clearly prominent.
+
+FROM THE FRONT VIEW: both legs show a visible outward bulge at the knee area; the silhouette widens noticeably from hip to knee, then tapers back inward from the knee all the way down to the floor-level hem; the overall leg shape reads like a rounded oval or parenthesis "()" when both legs are together; the widest visual width of the entire garment occurs at the knee, NOT at the hip, NOT at the hem; the hem rests on or near the floor.
+
+FROM THE SIDE VIEW: the leg profile shows a clear outward bow — the leg curves away from the body through the thigh and knee area, then curves back inward at the lower calf; the hem reaches floor level.
+
+FABRIC DRAPE: the fabric is structured enough to hold the barrel shape; horizontal tension folds may radiate outward from the knee area; the knee section is taut and rounded; the lower leg fabric tapers inward but has sufficient length to reach the floor; the hem may lightly stack on the shoe.
+
+STRICTLY FORBIDDEN — if any of these appear, the output is WRONG:
+× Straight leg with uniform width from hip to hem (the barrel bulge at knee MUST be visible)
+× Wide-leg silhouette where the hem is as wide as or wider than the knee
+× Narrow thigh expanding to a wide flare at the hem (micro-flare shape — opposite of barrel)
+× Banana taper (continuously narrowing — barrel MUST widen outward toward the knee first)
+× Hip as the widest point — the knee MUST be wider than the hip
+× Any silhouette where the knee is NOT the single widest point of the entire leg
+× Cropped or ankle-length hemline — the hem MUST reach the floor despite the narrower barrel opening
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+};
+
 export const FASHION_PANTS_SCENE_PROMPT = `生成一张极致照片级真实感的裤子上身效果图，必须看起来完全像真人实拍照片，不能有任何AI生成痕迹。用真实相机拍摄的质感、自然景深（背景楼梯轻微虚化）、真实面料微观纹理。
 
 【拍摄视角与构图 - 最高优先级】

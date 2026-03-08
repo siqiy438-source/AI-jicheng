@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { FashionGeneratorPage, StyleOption } from "@/components/fashion/FashionGeneratorPage";
+import { ChevronDown } from "lucide-react";
 import {
   FASHION_PANTS_STUDIO_PROMPT,
   FASHION_PANTS_SCENE_PROMPT,
@@ -9,6 +10,8 @@ import {
   FASHION_PANTS_WOMEN_HIP_PREFIX,
   FASHION_PANTS_MEN_SIDE_PREFIX,
   FASHION_PANTS_MEN_HIP_PREFIX,
+  PANTS_TYPE_SILHOUETTE_PROMPTS,
+  type PantsType,
 } from "@/lib/fashion-prompts";
 import { cn } from "@/lib/utils";
 
@@ -139,6 +142,116 @@ const VIEW_SUBTITLES: Record<ViewAngle, string> = {
   hip:   "上传裤子图，生成臀围细节特写，突出后口袋工艺和腰头细节",
 };
 
+// ─── Pants type selector ──────────────────────────────────────────────────────
+
+const PANTS_TYPE_OPTIONS: { value: PantsType; label: string; hint: string }[] = [
+  { value: "banana",   label: "香蕉裤", hint: "弧形内收" },
+  { value: "wide-leg", label: "阔腿裤", hint: "垂直直筒" },
+  { value: "straight", label: "直筒裤", hint: "笔直等宽" },
+  { value: "cropped",  label: "九分裤", hint: "露出脚踝" },
+  { value: "bootcut",  label: "微喇裤", hint: "膝下微扩" },
+  { value: "barrel",   label: "弯刀裤", hint: "两头窄中间鼓" },
+];
+
+const PantsTypeSelector = ({
+  value,
+  onChange,
+}: {
+  value: PantsType | null;
+  onChange: (v: PantsType | null) => void;
+}) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    if (open) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
+  const selected = PANTS_TYPE_OPTIONS.find((o) => o.value === value);
+
+  return (
+    <div ref={ref} className="relative" onClick={(e) => e.stopPropagation()}>
+      <p className="text-xs text-muted-foreground mb-2">裤型（可选）</p>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={cn(
+          "w-full flex items-center justify-between gap-1.5 rounded-xl border px-3 py-2.5 text-left transition-colors",
+          selected
+            ? "border-orange-200 bg-orange-50/80 hover:bg-orange-100"
+            : "border-border bg-transparent hover:border-orange-200 hover:bg-orange-50/40"
+        )}
+      >
+        <div className="min-w-0 flex-1">
+          {selected ? (
+            <>
+              <p className="text-sm font-medium text-orange-700 leading-tight truncate">{selected.label}</p>
+              <p className="text-xs text-muted-foreground leading-tight truncate">{selected.hint}</p>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground leading-tight truncate">未选择</p>
+              <p className="text-xs text-muted-foreground leading-tight truncate hidden sm:block">AI 自动识别</p>
+            </>
+          )}
+        </div>
+        <ChevronDown className={cn("w-4 h-4 flex-shrink-0 transition-transform duration-200", selected ? "text-orange-600" : "text-muted-foreground", open && "rotate-180")} />
+      </button>
+
+      {open && (
+        <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-20 min-w-[180px] w-max max-w-[calc(100vw-2rem)] dropdown-panel">
+          {/* 清除选项 */}
+          <button
+            type="button"
+            onClick={() => { onChange(null); setOpen(false); }}
+            className={cn(
+              "w-full flex items-start gap-2.5 px-3 py-3 md:py-2.5 hover:bg-secondary/50 active:bg-secondary transition-colors text-left touch-target",
+              !value && "bg-orange-50"
+            )}
+          >
+            <div className="min-w-0 flex-1">
+              <p className={cn("text-sm font-medium", !value ? "text-orange-700" : "text-foreground")}>
+                自动识别
+              </p>
+              <p className="text-xs text-muted-foreground">AI 根据图片自动判断</p>
+            </div>
+          </button>
+
+          <div className="border-t border-border/50 my-1" />
+
+          {PANTS_TYPE_OPTIONS.map((opt) => {
+            const active = value === opt.value;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => { onChange(opt.value); setOpen(false); }}
+                className={cn(
+                  "w-full flex items-start gap-2.5 px-3 py-3 md:py-2.5 hover:bg-secondary/50 active:bg-secondary transition-colors text-left touch-target",
+                  active && "bg-orange-50"
+                )}
+              >
+                <div className="min-w-0 flex-1">
+                  <p className={cn("text-sm font-medium", active ? "text-orange-700" : "text-foreground")}>
+                    {opt.label}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{opt.hint}</p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ─── UI Components ────────────────────────────────────────────────────────────
 
 const GENDER_OPTIONS: { value: Gender; label: string; emoji: string; hint: string }[] = [
@@ -231,21 +344,27 @@ const ViewAngleSelector = ({
 const FashionPants = () => {
   const [gender, setGender] = useState<Gender>("female");
   const [viewAngle, setViewAngle] = useState<ViewAngle>("front");
+  const [pantsType, setPantsType] = useState<PantsType | null>(null);
 
   const styleOptions = gender === "female" ? womenPantsStyles : menPantsStyles;
   const basePrompt = gender === "female" ? FASHION_PANTS_STUDIO_PROMPT : FASHION_PANTS_MEN_STUDIO_PROMPT;
 
-  const promptPrefixBuilder: (imageCount: number) => string = (() => {
+  const buildBasePrefix = (): string => {
     if (viewAngle === "side") {
-      const prefix = gender === "female" ? FASHION_PANTS_WOMEN_SIDE_PREFIX : FASHION_PANTS_MEN_SIDE_PREFIX;
-      return () => prefix;
+      return gender === "female" ? FASHION_PANTS_WOMEN_SIDE_PREFIX : FASHION_PANTS_MEN_SIDE_PREFIX;
     }
     if (viewAngle === "hip") {
-      const prefix = gender === "female" ? FASHION_PANTS_WOMEN_HIP_PREFIX : FASHION_PANTS_MEN_HIP_PREFIX;
-      return () => prefix;
+      return gender === "female" ? FASHION_PANTS_WOMEN_HIP_PREFIX : FASHION_PANTS_MEN_HIP_PREFIX;
     }
-    return gender === "female" ? buildWomenFrontPrefix : buildMenFrontPrefix;
-  })();
+    return gender === "female" ? buildWomenFrontPrefix(1) : buildMenFrontPrefix(1);
+  };
+
+  const promptPrefixBuilder = (_imageCount: number): string => {
+    const basePrefix = buildBasePrefix();
+    if (!pantsType) return basePrefix;
+    const silhouetteSpec = PANTS_TYPE_SILHOUETTE_PROMPTS[pantsType];
+    return `${silhouetteSpec}\n\n${basePrefix}`;
+  };
 
   // Side/hip views don't have meaningful background style variations, so hide
   // the style selector for those to avoid confusing the user.
@@ -277,6 +396,9 @@ const FashionPants = () => {
           <GenderToggle value={gender} onChange={setGender} />
           <ViewAngleSelector value={viewAngle} onChange={setViewAngle} />
         </div>
+      }
+      styleAreaSiblingContent={
+        <PantsTypeSelector value={pantsType} onChange={setPantsType} />
       }
     />
   );
