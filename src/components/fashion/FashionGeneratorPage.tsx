@@ -54,6 +54,7 @@ interface FashionGeneratorPageProps {
   uploadHint?: string;
   emptyStateHint?: string;
   promptPrefixBuilder?: (imageCount: number) => string;
+  extraCardContent?: React.ReactNode;
 }
 
 const ratioOptions = [
@@ -89,6 +90,7 @@ export const FashionGeneratorPage = ({
   uploadHint,
   emptyStateHint,
   promptPrefixBuilder,
+  extraCardContent,
 }: FashionGeneratorPageProps) => {
   const navigate = useNavigate();
   const { checkCredits, showInsufficientDialog, requiredAmount, featureName, currentBalance, goToRecharge, dismissDialog } = useCreditCheck();
@@ -327,6 +329,8 @@ export const FashionGeneratorPage = ({
             )}
 
             {uploadHint && <p className="mt-2 text-xs text-muted-foreground leading-relaxed">{uploadHint}</p>}
+
+            {extraCardContent && <div className="mt-3">{extraCardContent}</div>}
 
             {imagePreviews.length === 0 && (
               <button
