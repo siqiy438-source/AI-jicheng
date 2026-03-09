@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { toast } from 'sonner';
 import { useNavigate } from "react-router-dom";
 import { CreditCostHint } from "@/components/CreditCostHint";
@@ -56,6 +56,7 @@ interface FashionGeneratorPageProps {
   promptPrefixBuilder?: (imageCount: number) => string;
   extraCardContent?: React.ReactNode;
   styleAreaSiblingContent?: React.ReactNode;
+  onStyleChange?: (styleId: string) => void;
 }
 
 const ratioOptions = [
@@ -93,6 +94,7 @@ export const FashionGeneratorPage = ({
   promptPrefixBuilder,
   extraCardContent,
   styleAreaSiblingContent,
+  onStyleChange,
 }: FashionGeneratorPageProps) => {
   const navigate = useNavigate();
   const { checkCredits, showInsufficientDialog, requiredAmount, featureName, currentBalance, goToRecharge, dismissDialog } = useCreditCheck();
@@ -110,6 +112,13 @@ export const FashionGeneratorPage = ({
   const shouldShowStyleCards = Boolean(styleOptions && styleOptions.length > 1 && styleSelectorVariant === "cards");
   const shouldShowStyleDropdown = Boolean(styleOptions && styleOptions.length > 1 && styleSelectorVariant !== "cards");
   const selectedStyleOption = styleOptions?.find((style) => style.id === selectedStyleId);
+
+  // Notify parent component of initial style selection
+  useEffect(() => {
+    if (selectedStyleId && onStyleChange) {
+      onStyleChange(selectedStyleId);
+    }
+  }, []);
 
   const canGenerate = imagePreviews.length >= minImages && !isGenerating;
 
@@ -393,6 +402,7 @@ export const FashionGeneratorPage = ({
                               key={style.id}
                               onClick={() => {
                                 setSelectedStyleId(style.id);
+                                onStyleChange?.(style.id);
                                 setShowStyleMenu(false);
                               }}
                               className={cn(
@@ -477,6 +487,7 @@ export const FashionGeneratorPage = ({
                           key={style.id}
                           onClick={() => {
                             setSelectedStyleId(style.id);
+                            onStyleChange?.(style.id);
                             setShowStyleMenu(false);
                           }}
                           className={cn(
