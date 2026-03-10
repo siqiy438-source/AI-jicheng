@@ -46,6 +46,45 @@ type WorkCategory = "image" | "copywriting";
 
 const INITIAL_MOBILE_PAGE_SIZE = 12;
 const INITIAL_DESKTOP_PAGE_SIZE = 18;
+const MOBILE_UA_REGEX = /iPhone|iPad|iPod|Android/i;
+
+const sanitizeDownloadFileName = (input: string) => {
+  const cleaned = (input || "")
+    .trim()
+    .replace(/[\\/:*?"<>|]/g, "-")
+    .replace(/\s+/g, " ");
+  return cleaned || "work";
+};
+
+const triggerFileDownload = (url: string, filename: string) => {
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.rel = "noopener";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+const downloadDesktopImage = async (imageSrc: string, filename: string) => {
+  if (imageSrc.startsWith("data:")) {
+    triggerFileDownload(imageSrc, filename);
+    return;
+  }
+
+  const response = await fetch(imageSrc);
+  if (!response.ok) {
+    throw new Error("图片加载失败");
+  }
+
+  const blob = await response.blob();
+  const objectUrl = URL.createObjectURL(blob);
+  try {
+    triggerFileDownload(objectUrl, filename);
+  } finally {
+    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+  }
+};
 
 const getWorkCategory = (workType: string): WorkCategory => {
   return (workType === "copywriting" || workType === "outfit-recommend") ? "copywriting" : "image";
@@ -352,10 +391,10 @@ const ImagePreviewDialog = ({
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center" onClick={onClose}>
       <div className="fixed inset-0 bg-black/70 animate-fade-in" />
       <div
-        className="relative z-10 w-full md:max-w-4xl max-h-[90vh] bg-background rounded-t-2xl md:rounded-2xl overflow-hidden animate-slide-up md:animate-fade-in"
+        className="relative z-10 flex w-full flex-col bg-background rounded-t-2xl md:rounded-2xl overflow-hidden animate-slide-up md:animate-fade-in max-h-[calc(100dvh-12px)] md:max-w-5xl md:max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/30 px-4 py-3 flex items-center justify-between">
+        <div className="shrink-0 bg-background/95 backdrop-blur-sm border-b border-border/30 px-4 py-3 flex items-center justify-between">
           <div className="min-w-0">
             <h2 className="text-base font-semibold text-foreground truncate">{work.title}</h2>
             <p className="text-xs text-muted-foreground">预览使用轻量图，显示尺寸不变；保存下载原图</p>
@@ -385,14 +424,14 @@ const ImagePreviewDialog = ({
           </div>
         </div>
 
-        <div className="p-4 md:p-6 overflow-auto max-h-[calc(90vh-60px)]">
-          <div className="rounded-2xl overflow-hidden bg-secondary/20 border border-border/30">
+        <div className="flex-1 min-h-0 p-3 md:p-6 overflow-hidden">
+          <div className="h-full w-full rounded-2xl overflow-hidden bg-secondary/20 border border-border/30 flex items-center justify-center p-2 md:p-4">
             <ProgressiveImage
               src={previewSrc}
               alt={work.title}
-              containerClassName="w-full"
+              containerClassName="flex h-full w-full items-center justify-center"
               sizes="(max-width: 768px) 100vw, 960px"
-              className="w-full h-auto object-contain max-h-[72vh] bg-secondary/20"
+              className="max-w-full max-h-full w-auto h-auto object-contain bg-secondary/20"
             />
           </div>
         </div>
@@ -514,10 +553,15 @@ const MyWorks = () => {
   const handleDownload = async (work: WorkListItem) => {
     const downloadUrl = work.original || work.thumbnail;
     if (!downloadUrl) return;
+    const filename = `${sanitizeDownloadFileName(work.title || "work")}-${Date.now()}.png`;
     try {
-      await downloadGeneratedImage(downloadUrl, `${work.title || "work"}-${Date.now()}.png`);
+      if (MOBILE_UA_REGEX.test(navigator.userAgent)) {
+        await downloadGeneratedImage(downloadUrl, filename);
+      } else {
+        await downloadDesktopImage(downloadUrl, filename);
+      }
     } catch {
-      window.open(downloadUrl, "_blank");
+      toast.error("保存失败，请稍后重试");
     }
   };
 
