@@ -1,6 +1,6 @@
 /**
  * Supabase Edge Function: AI PPT
- * 使用 Gemini 3 Pro (BLTCY 线路) 生成 PPT 大纲和页面描述
+ * 使用 Gemini 3 Flash Preview (BLTCY 线路) 生成 PPT 大纲和页面描述
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
@@ -13,7 +13,7 @@ const corsHeaders = {
 
 // BLTCY 固定配置
 const BLTCY_BASE_URL = "https://api.bltcy.ai"
-const MODEL = "gemini-3-pro-image-preview"
+const MODEL = "gemini-3-flash-preview"
 const API_URL = `${BLTCY_BASE_URL}/v1beta/models/${MODEL}:generateContent`
 
 // 请求超时时间（毫秒）
