@@ -123,6 +123,85 @@ const extractTextFromDocxXml = (xml: string): string => {
   return lines.join("\n");
 };
 
+const IMAGE_META_LABELS = [
+  "页面目标",
+  "内容展开",
+  "版式与视觉建议",
+  "演讲备注",
+  "说明",
+  "示例",
+  "场景",
+  "PPT短句",
+  "核心观点",
+];
+
+const cleanVisualText = (value: string): string =>
+  value
+    .replace(/\*+/g, "")
+    .replace(/^#{1,6}\s*/, "")
+    .replace(/^[>\-•\s]+/, "")
+    .replace(/[【\[]\s*(?:页面目标|内容展开|版式与视觉建议|演讲备注)\s*[】\]]/g, "")
+    .replace(/^(?:页面目标|内容展开|版式与视觉建议|演讲备注|核心观点|说明|示例|场景|PPT短句)\s*[：:]+\s*/g, "")
+    .replace(/^\d+\s*[.、．：:]\s*/g, "")
+    .replace(/^[（(]?\d+[）)]?\s*/g, "")
+    .replace(/^[一二三四五六七八九十]+\s*[、.．：:]\s*/g, "")
+    .replace(/^[：:、.．\-\s]+/, "")
+    .replace(/[：:、.．\-\s]+$/, "")
+    .trim();
+
+const isStructuralVisualSegment = (value: string): boolean => {
+  const normalized = cleanVisualText(value).replace(/\s+/g, "");
+  if (!normalized) return true;
+  if (IMAGE_META_LABELS.some((label) => normalized.includes(label))) return true;
+  if (/^(?:第\d+页|PPT第?\d+页)$/i.test(normalized)) return true;
+  if (/^(?:渠道|模块|章节)[一二三四五六七八九十0-9]+$/u.test(normalized)) return true;
+  return false;
+};
+
+const sanitizeVisualTitle = (value: string): string => {
+  const cleaned = cleanVisualText(value);
+  const candidates = cleaned
+    .split(/[：:|｜]/)
+    .map((part) => cleanVisualText(part))
+    .filter(Boolean);
+
+  if (candidates.length === 0) return cleaned || "未命名页面";
+
+  if (candidates.length > 1 && !isStructuralVisualSegment(candidates[0]) && cleaned.length <= 22) {
+    return cleaned;
+  }
+
+  const candidatePool = candidates.length > 1 && isStructuralVisualSegment(candidates[0])
+    ? candidates.slice(1)
+    : candidates;
+
+  return [...candidatePool].sort((a, b) => {
+    const aScore = Number(a.length >= 8 && a.length <= 18) * 2 + Number(!IMAGE_META_LABELS.some((label) => a.includes(label)));
+    const bScore = Number(b.length >= 8 && b.length <= 18) * 2 + Number(!IMAGE_META_LABELS.some((label) => b.includes(label)));
+    if (bScore !== aScore) return bScore - aScore;
+    return b.length - a.length;
+  })[0];
+};
+
+const extractVisualBulletCandidates = (slide: SlideData): string[] => {
+  const outlinePoints = slide.outlinePoints
+    .map((point) => cleanVisualText(point))
+    .filter((point) => point && !IMAGE_META_LABELS.some((label) => point.includes(label)));
+
+  if (outlinePoints.length > 0) return outlinePoints.slice(0, 4);
+
+  const descriptionLines = slide.description
+    .split(/\n+/)
+    .map((line) => cleanVisualText(line))
+    .filter((line) => {
+      if (!line) return false;
+      if (IMAGE_META_LABELS.some((label) => line.includes(label))) return false;
+      return line.length >= 6;
+    });
+
+  return Array.from(new Set(descriptionLines)).slice(0, 4);
+};
+
 // ==================== Component ====================
 const AIPPT = () => {
   const navigate = useNavigate();
@@ -384,22 +463,32 @@ const AIPPT = () => {
   };
 
   const buildImageDescriptionFromSlide = (slide: SlideData): string => {
-    const description = slide.description?.trim();
-    if (description) return description;
+    const title = sanitizeVisualTitle(slide.title?.trim() || "未命名页面");
+    const visualBullets = extractVisualBulletCandidates(slide);
+    const bulletText = visualBullets.length > 0
+      ? visualBullets.map((point, index) => `${index + 1}. ${point}`).join("\n")
+      : "1. 基于标题提炼 2-3 条支撑要点，保持简洁有力";
 
-    const title = slide.title?.trim() || "未命名页面";
-    const outlineText = slide.outlinePoints
-      .map((point) => point.trim())
-      .filter(Boolean)
-      .map((point, index) => `${index + 1}. ${point}`)
-      .join("\n");
+    return `请根据以下 PPT 页面信息生成一张演示页面视觉图，只保留真正需要上屏的重点内容。
+页面主标题（只能出现这一行作为最大标题）：${title}
 
-    return `请根据以下 PPT 页面大纲信息生成一张演示页面视觉图。
-页面标题：${title}
 核心要点：
-${outlineText || "暂无要点，请基于标题延展"}
+${bulletText}
+
+禁用文字：
+- 页面目标
+- 内容展开
+- 版式与视觉建议
+- 演讲备注
+- 说明
+- 示例
+- 场景
+- PPT短句
 
 要求：
+- 标题必须短、醒目、聚焦重点，不要把说明句或页面描述当标题
+- 不要把结构标签、章节名前缀、方括号提示词渲染到页面上
+- 正文只保留 3-4 条核心信息，避免整段大段落
 - 强调信息层级与重点结论
 - 将要点转化为清晰可视化布局
 - 画面适合商业演示场景`;

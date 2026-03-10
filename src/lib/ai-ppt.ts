@@ -265,6 +265,9 @@ ${params.description}
 Requirements:
 - Clean, professional layout suitable for a presentation slide
 - Clear visual hierarchy with title and key points
+- Use only the provided main title as the dominant headline
+- Never render instruction labels or meta text such as 页面目标, 内容展开, 版式与视觉建议, 演讲备注, 说明, 示例, 场景, PPT短句
+- Keep on-slide text concise; do not turn long descriptions into title or subtitle
 - Harmonious color scheme
 - Modern design aesthetic
 - Text should be in Chinese (简体中文)
