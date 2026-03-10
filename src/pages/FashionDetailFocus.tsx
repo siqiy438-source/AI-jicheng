@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CreditCostHint } from "@/components/CreditCostHint";
 import {
@@ -16,7 +16,7 @@ import { PageLayout } from "@/components/PageLayout";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { generateImage } from "@/lib/ai-image";
-import { compressImage, downloadGeneratedImage } from "@/lib/image-utils";
+import { compressImage, downloadGeneratedImage, preloadDownloadImage } from "@/lib/image-utils";
 import { saveGeneratedImageWork } from "@/lib/repositories/works";
 import { useCreditCheck } from "@/hooks/use-credit-check";
 import { useLineStatus } from "@/hooks/use-line-status";
@@ -124,6 +124,10 @@ const FashionDetailFocus = () => {
   const canGenerateNext = Boolean(sourceImage && mainFrame && nextSlot && !isGenerating);
   const currentLineOption = LINE_OPTIONS.find((o) => o.id === selectedLine) ?? LINE_OPTIONS[0];
   const featureCode = currentLineOption.line === "premium" ? "ai_detail_premium" : "ai_detail_standard";
+
+  useEffect(() => {
+    preloadDownloadImage(activeFrame?.image);
+  }, [activeFrame?.image]);
 
   const resetFlow = () => {
     setMainFrame(null);

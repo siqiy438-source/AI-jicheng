@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from 'sonner';
 import { PageLayout } from "@/components/PageLayout";
 import { GeneratingLoader } from "@/components/GeneratingLoader";
@@ -28,7 +28,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { generateImage } from "@/lib/ai-image";
-import { compressImage, mergeImagesToGrid, downloadGeneratedImage } from "@/lib/image-utils";
+import { compressImage, mergeImagesToGrid, downloadGeneratedImage, preloadDownloadImage } from "@/lib/image-utils";
 import { analyzeClothingForDisplay, identifyAllGarments, type VMAnalysisResult, type SceneType } from "@/lib/vm-analysis";
 import { buildVMGenerationPrompt } from "@/lib/vm-prompt-builder";
 import { saveGeneratedImageWork } from "@/lib/repositories/works";
@@ -80,6 +80,10 @@ const AIDisplay = () => {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [generationStep, setGenerationStep] = useState("");
   const [showExpertDetail, setShowExpertDetail] = useState(false);
+
+  useEffect(() => {
+    preloadDownloadImage(generatedImage);
+  }, [generatedImage]);
 
   // 处理衣服图片上传（批量，自动压缩）
   const handleClothingUpload = async (files: FileList | null) => {

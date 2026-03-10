@@ -5,6 +5,11 @@
  */
 
 import { getRecommendedImageQuality, getRecommendedImageSize } from './device-detection';
+import { toast } from 'sonner';
+
+const MOBILE_UA_REGEX = /iPhone|iPad|iPod|Android/i;
+const IMAGE_BLOB_CACHE_LIMIT = 6;
+const imageBlobCache = new Map<string, Promise<Blob>>();
 
 export interface CompressOptions {
   maxWidth?: number;      // 最大宽度，默认根据设备性能
@@ -241,32 +246,124 @@ export async function mergeImagesToGrid(
  * 手机端：优先 Web Share API（可直接存相册）→ 回退 <a download> 触发下载
  * 桌面端：直接触发下载
  */
+function isMobileShareSupported(): boolean {
+  return MOBILE_UA_REGEX.test(navigator.userAgent) && Boolean(navigator.share && navigator.canShare);
+}
+
+function dataUrlToBlob(dataUrl: string): Blob {
+  const matches = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+  if (!matches) {
+    throw new Error('图片数据无效');
+  }
+
+  const mimeType = matches[1] || 'application/octet-stream';
+  const binary = atob(matches[2]);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+
+  return new Blob([bytes], { type: mimeType });
+}
+
+async function loadImageBlob(imageSrc: string): Promise<Blob> {
+  if (imageSrc.startsWith('data:')) {
+    return dataUrlToBlob(imageSrc);
+  }
+
+  const response = await fetch(imageSrc);
+  if (!response.ok) {
+    throw new Error('图片加载失败');
+  }
+
+  return response.blob();
+}
+
+function getCachedImageBlob(imageSrc: string): Promise<Blob> {
+  const cached = imageBlobCache.get(imageSrc);
+  if (cached) {
+    return cached;
+  }
+
+  const pending = loadImageBlob(imageSrc).catch((error) => {
+    imageBlobCache.delete(imageSrc);
+    throw error;
+  });
+
+  if (imageBlobCache.size >= IMAGE_BLOB_CACHE_LIMIT) {
+    const oldestKey = imageBlobCache.keys().next().value;
+    if (oldestKey) {
+      imageBlobCache.delete(oldestKey);
+    }
+  }
+
+  imageBlobCache.set(imageSrc, pending);
+  return pending;
+}
+
+export function preloadDownloadImage(imageSrc: string | null | undefined): void {
+  if (!imageSrc || !isMobileShareSupported()) {
+    return;
+  }
+
+  void getCachedImageBlob(imageSrc).catch(() => undefined);
+}
+
 export async function downloadGeneratedImage(
   imageSrc: string,
   filename: string = `ai-image-${Date.now()}.png`,
 ): Promise<void> {
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const isMobile = MOBILE_UA_REGEX.test(navigator.userAgent);
+  const loadingToastId = toast.loading('正在下载中...');
+  let loadingToastDismissed = false;
 
-  const response = await fetch(imageSrc);
-  const blob = await response.blob();
-
-  // 手机端：优先 Web Share API（支持直接保存到相册）
-  if (isMobile && navigator.share && navigator.canShare) {
-    const file = new File([blob], filename, { type: 'image/png' });
-    const shareData = { files: [file] };
-    if (navigator.canShare(shareData)) {
-      await navigator.share(shareData);
+  const dismissLoadingToast = () => {
+    if (loadingToastDismissed) {
       return;
     }
-  }
 
-  // 通用：<a download> 触发下载（手机端弹出下载对话框，桌面端直接下载）
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 5000);
+    toast.dismiss(loadingToastId);
+    loadingToastDismissed = true;
+  };
+
+  const triggerDownload = (url: string) => {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    if (isMobile && url.startsWith('http')) {
+      a.target = '_blank';
+      a.rel = 'noopener';
+    }
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  try {
+    // 手机端：优先 Web Share API（支持直接保存到相册）
+    if (isMobileShareSupported()) {
+      const blob = await getCachedImageBlob(imageSrc);
+      const file = new File([blob], filename, { type: blob.type || 'image/png' });
+      const shareData = { files: [file] };
+
+      if (navigator.canShare(shareData)) {
+        dismissLoadingToast();
+        try {
+          await navigator.share(shareData);
+        } catch (error) {
+          if (error instanceof DOMException && error.name === 'AbortError') {
+            return;
+          }
+          throw error;
+        }
+        return;
+      }
+    }
+
+    // 通用：直接使用原始地址触发下载，避免桌面端下载前再次 fetch 大图
+    triggerDownload(imageSrc);
+  } finally {
+    dismissLoadingToast();
+  }
 }

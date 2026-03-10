@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { generateImage } from "@/lib/ai-image";
 import type { ConversationMessage } from "@/lib/ai-image";
-import { compressImage, downloadGeneratedImage } from "@/lib/image-utils";
+import { compressImage, downloadGeneratedImage, preloadDownloadImage } from "@/lib/image-utils";
 import { saveGeneratedImageWork } from "@/lib/repositories/works";
 import { useCreditCheck } from "@/hooks/use-credit-check";
 import { useLineStatus } from "@/hooks/use-line-status";
@@ -210,6 +210,10 @@ const AIDrawing = () => {
 
   // 风格预设列表（从数据库加载）- 保留用于兼容性
   const [stylePresets, setStylePresets] = useState<PromptPreset[]>([]);
+
+  useEffect(() => {
+    preloadDownloadImage(generatedImage);
+  }, [generatedImage]);
 
   // 从 Supabase 加载提示词（保留用于兼容性）
   useEffect(() => {

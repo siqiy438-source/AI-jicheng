@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState } from "react";import { toast } from 'sonner';
+import { useEffect, useRef, useState } from "react";
+import { toast } from 'sonner';
 import { useNavigate } from "react-router-dom";
 import { PageLayout } from "@/components/PageLayout";
 import { GeneratingLoader } from "@/components/GeneratingLoader";
 import { Button } from "@/components/ui/button";
 import { CreditCostHint } from "@/components/CreditCostHint";
 import { cn } from "@/lib/utils";
-import { compressImage, mergeImagesToGrid, downloadGeneratedImage } from "@/lib/image-utils";
+import { compressImage, mergeImagesToGrid, downloadGeneratedImage, preloadDownloadImage } from "@/lib/image-utils";
 import { generateImage } from "@/lib/ai-image";
 import { saveGeneratedImageWork } from "@/lib/repositories/works";
 import { useCreditCheck } from "@/hooks/use-credit-check";
@@ -49,6 +50,10 @@ const AIOneClickOutfit = () => {
   const [generationStep, setGenerationStep] = useState("");
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const { statuses } = useLineStatus();
+
+  useEffect(() => {
+    preloadDownloadImage(generatedImage);
+  }, [generatedImage]);
 
   const handleUpload = async (files: FileList | null) => {
     if (!files) return;

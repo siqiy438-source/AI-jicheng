@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { GeneratingLoader } from "@/components/GeneratingLoader";
 import { CreditCostHint } from "@/components/CreditCostHint";
@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { compressImage, downloadGeneratedImage } from "@/lib/image-utils";
+import { compressImage, downloadGeneratedImage, preloadDownloadImage } from "@/lib/image-utils";
 import {
   getOutfitRecommendation,
   type OutfitRecommendResult,
@@ -66,6 +66,11 @@ const OutfitRecommend = () => {
   const [selectedStyleTag, setSelectedStyleTag] = useState("");
   const [isGeneratingModel, setIsGeneratingModel] = useState(false);
   const [generatedLookByTag, setGeneratedLookByTag] = useState<Record<string, string>>({});
+  const currentGeneratedLook = selectedStyleTag ? generatedLookByTag[selectedStyleTag] : null;
+
+  useEffect(() => {
+    preloadDownloadImage(currentGeneratedLook);
+  }, [currentGeneratedLook]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -175,7 +180,7 @@ const OutfitRecommend = () => {
   };
 
   const handleDownloadModelImage = async () => {
-    const currentImage = generatedLookByTag[selectedStyleTag];
+    const currentImage = currentGeneratedLook;
     if (!currentImage) return;
     const safeTag = selectedStyleTag.replace(/[^\w\u4e00-\u9fa5-]+/g, "_");
     try {
@@ -194,8 +199,6 @@ const OutfitRecommend = () => {
     setGeneratedLookByTag({});
     setIsGeneratingModel(false);
   };
-
-  const currentGeneratedLook = selectedStyleTag ? generatedLookByTag[selectedStyleTag] : null;
 
   return (
     <PageLayout maxWidth="4xl" className="py-6 md:py-8">

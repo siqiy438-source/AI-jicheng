@@ -20,7 +20,7 @@ import { PageLayout } from "@/components/PageLayout";
 import { GeneratingLoader } from "@/components/GeneratingLoader";
 import { Button } from "@/components/ui/button";
 import { generateImage } from "@/lib/ai-image";
-import { compressImage, downloadGeneratedImage, mergeImagesToGrid } from "@/lib/image-utils";
+import { compressImage, downloadGeneratedImage, mergeImagesToGrid, preloadDownloadImage } from "@/lib/image-utils";
 import { saveGeneratedImageWork } from "@/lib/repositories/works";
 import { cn } from "@/lib/utils";
 import { useCreditCheck } from "@/hooks/use-credit-check";
@@ -119,6 +119,10 @@ export const FashionGeneratorPage = ({
       onStyleChange(selectedStyleId);
     }
   }, []);
+
+  useEffect(() => {
+    preloadDownloadImage(generatedImage);
+  }, [generatedImage]);
 
   const canGenerate = imagePreviews.length >= minImages && !isGenerating;
 
