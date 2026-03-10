@@ -5,7 +5,6 @@
  */
 
 import { getRecommendedImageQuality, getRecommendedImageSize } from './device-detection';
-import { toast } from 'sonner';
 
 const MOBILE_UA_REGEX = /iPhone|iPad|iPod|Android/i;
 const IMAGE_BLOB_CACHE_LIMIT = 6;
@@ -315,17 +314,6 @@ export async function downloadGeneratedImage(
   filename: string = `ai-image-${Date.now()}.png`,
 ): Promise<void> {
   const isMobile = MOBILE_UA_REGEX.test(navigator.userAgent);
-  const loadingToastId = toast.loading('正在下载中...');
-  let loadingToastDismissed = false;
-
-  const dismissLoadingToast = () => {
-    if (loadingToastDismissed) {
-      return;
-    }
-
-    toast.dismiss(loadingToastId);
-    loadingToastDismissed = true;
-  };
 
   const triggerDownload = (url: string) => {
     const a = document.createElement('a');
@@ -340,30 +328,25 @@ export async function downloadGeneratedImage(
     document.body.removeChild(a);
   };
 
-  try {
-    // 手机端：优先 Web Share API（支持直接保存到相册）
-    if (isMobileShareSupported()) {
-      const blob = await getCachedImageBlob(imageSrc);
-      const file = new File([blob], filename, { type: blob.type || 'image/png' });
-      const shareData = { files: [file] };
+  // 手机端：优先 Web Share API（支持直接保存到相册）
+  if (isMobileShareSupported()) {
+    const blob = await getCachedImageBlob(imageSrc);
+    const file = new File([blob], filename, { type: blob.type || 'image/png' });
+    const shareData = { files: [file] };
 
-      if (navigator.canShare(shareData)) {
-        dismissLoadingToast();
-        try {
-          await navigator.share(shareData);
-        } catch (error) {
-          if (error instanceof DOMException && error.name === 'AbortError') {
-            return;
-          }
-          throw error;
+    if (navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData);
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          return;
         }
-        return;
+        throw error;
       }
+      return;
     }
-
-    // 通用：直接使用原始地址触发下载，避免桌面端下载前再次 fetch 大图
-    triggerDownload(imageSrc);
-  } finally {
-    dismissLoadingToast();
   }
+
+  // 通用：直接使用原始地址触发下载，避免桌面端下载前再次 fetch 大图
+  triggerDownload(imageSrc);
 }
