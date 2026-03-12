@@ -168,7 +168,7 @@ const CopywritingDetailDialog = ({ work, open, onClose }: { work: WorkListItem |
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-[70] flex items-end md:items-center justify-center" onClick={onClose}>
       <div className="fixed inset-0 bg-black/50 animate-fade-in" />
       <div
         className="relative z-10 w-full md:max-w-3xl max-h-[85vh] bg-background rounded-t-2xl md:rounded-2xl overflow-hidden animate-slide-up md:animate-fade-in"
@@ -218,7 +218,7 @@ const OutfitDetailDialog = ({ work, open, onClose }: { work: WorkListItem | null
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-[70] flex items-end md:items-center justify-center" onClick={onClose}>
       <div className="fixed inset-0 bg-black/50 animate-fade-in" />
       <div
         className="relative z-10 w-full md:max-w-lg max-h-[85vh] bg-background rounded-t-2xl md:rounded-2xl overflow-hidden animate-slide-up md:animate-fade-in"
@@ -388,51 +388,81 @@ const ImagePreviewDialog = ({
   if (!previewSrc) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center" onClick={onClose}>
-      <div className="fixed inset-0 bg-black/70 animate-fade-in" />
+    <div className="fixed inset-0 z-[80] flex items-stretch md:items-center justify-center" onClick={onClose}>
+      <div className="fixed inset-0 bg-black/82 animate-fade-in" />
       <div
-        className="relative z-10 flex w-full flex-col bg-background rounded-t-2xl md:rounded-2xl overflow-hidden animate-slide-up md:animate-fade-in max-h-[calc(100dvh-12px)] md:max-w-5xl md:max-h-[90vh]"
+        className="relative z-10 flex h-[100dvh] w-full flex-col overflow-hidden bg-[#111111] text-white animate-fade-in md:h-auto md:max-h-[90vh] md:max-w-5xl md:rounded-[28px] md:bg-background md:text-foreground"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="shrink-0 bg-background/95 backdrop-blur-sm border-b border-border/30 px-4 py-3 flex items-center justify-between">
-          <div className="min-w-0">
-            <h2 className="text-base font-semibold text-foreground truncate">{work.title}</h2>
-            <p className="text-xs text-muted-foreground">预览使用轻量图，显示尺寸不变；保存下载原图</p>
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <button
-              onClick={() => onDownload(work)}
-              className="p-2 rounded-lg hover:bg-secondary transition-colors"
-              title="保存原图"
-              aria-label="保存原图"
-            >
-              <Download className="w-4 h-4 text-muted-foreground" />
-            </button>
-            <button
-              onClick={() => {
-                if (originalSrc) window.open(originalSrc, "_blank");
-              }}
-              className="p-2 rounded-lg hover:bg-secondary transition-colors"
-              title="打开原图"
-              aria-label="打开原图"
-            >
-              <Share2 className="w-4 h-4 text-muted-foreground" />
-            </button>
-            <button onClick={onClose} className="p-2 rounded-lg hover:bg-secondary transition-colors" aria-label="关闭">
-              <X className="w-4 h-4 text-muted-foreground" />
-            </button>
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black/60 via-black/25 to-transparent md:hidden" />
+
+        <div className="shrink-0 px-safe pt-[calc(var(--safe-area-top)+0.75rem)] pb-3 md:border-b md:border-border/30 md:bg-background/95 md:px-4 md:py-3 md:backdrop-blur-sm">
+          <div className="flex items-start justify-between gap-3 rounded-[24px] border border-white/10 bg-white/[0.08] px-4 py-3 backdrop-blur-xl md:rounded-none md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
+            <div className="min-w-0">
+              <p className="text-[11px] uppercase tracking-[0.24em] text-white/60 md:hidden">作品预览</p>
+              <h2 className="mt-1 text-lg font-semibold leading-tight text-white md:mt-0 md:text-base md:text-foreground truncate">{work.title}</h2>
+              <p className="mt-1 text-xs text-white/70 md:text-muted-foreground">预览使用轻量图，显示尺寸不变；保存下载原图</p>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                onClick={() => onDownload(work)}
+                className="hidden rounded-lg p-2 transition-colors hover:bg-secondary md:inline-flex"
+                title="保存原图"
+                aria-label="保存原图"
+              >
+                <Download className="w-4 h-4 text-muted-foreground" />
+              </button>
+              <button
+                onClick={() => {
+                  if (originalSrc) window.open(originalSrc, "_blank");
+                }}
+                className="hidden rounded-lg p-2 transition-colors hover:bg-secondary md:inline-flex"
+                title="打开原图"
+                aria-label="打开原图"
+              >
+                <Share2 className="w-4 h-4 text-muted-foreground" />
+              </button>
+              <button
+                onClick={onClose}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/10 transition-colors hover:bg-white/15 md:h-auto md:w-auto md:rounded-lg md:border-0 md:bg-transparent md:p-2 md:hover:bg-secondary"
+                aria-label="关闭"
+              >
+                <X className="w-4 h-4 text-white md:text-muted-foreground" />
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="flex-1 min-h-0 p-3 md:p-6 overflow-hidden">
-          <div className="h-full w-full rounded-2xl overflow-hidden bg-secondary/20 border border-border/30 flex items-center justify-center p-2 md:p-4">
+        <div className="flex-1 min-h-0 overflow-hidden px-3 pb-3 md:p-6">
+          <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.06] px-2 py-3 backdrop-blur-sm md:rounded-2xl md:border-border/30 md:bg-secondary/20 md:p-4">
             <ProgressiveImage
               src={previewSrc}
               alt={work.title}
               containerClassName="flex h-full w-full items-center justify-center"
               sizes="(max-width: 768px) 100vw, 960px"
-              className="max-w-full max-h-full w-auto h-auto object-contain bg-secondary/20"
+              className="max-h-full max-w-full h-auto w-auto object-contain"
             />
+          </div>
+        </div>
+
+        <div className="shrink-0 px-safe pb-[calc(var(--mobile-nav-height)+var(--safe-area-bottom)+0.75rem)] pt-2 md:hidden">
+          <div className="grid grid-cols-2 gap-3 rounded-[28px] border border-white/10 bg-white/[0.08] p-3 backdrop-blur-xl shadow-[0_12px_36px_rgba(0,0,0,0.24)]">
+            <button
+              onClick={() => onDownload(work)}
+              className="flex min-h-[52px] items-center justify-center gap-2 rounded-2xl bg-white text-sm font-medium text-black transition-transform active:scale-[0.98]"
+            >
+              <Download className="w-4 h-4" />
+              保存原图
+            </button>
+            <button
+              onClick={() => {
+                if (originalSrc) window.open(originalSrc, "_blank");
+              }}
+              className="flex min-h-[52px] items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/10 text-sm font-medium text-white transition-transform active:scale-[0.98]"
+            >
+              <Share2 className="w-4 h-4" />
+              打开原图
+            </button>
           </div>
         </div>
       </div>
