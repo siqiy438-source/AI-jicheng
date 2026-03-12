@@ -33,12 +33,12 @@ import {
   type TryOnReferenceMode,
 } from "@/lib/virtual-tryon-prompts";
 
-const SINGLE_GARMENT_MAX_IMAGES = 3;
 const MULTI_PIECE_MAX_IMAGES = 3;
+const SINGLE_GARMENT_MAX_IMAGES = 3;
 
 const ratioOptions = [
-  { id: "3:4", label: "3:4" },
   { id: "9:16", label: "9:16" },
+  { id: "3:4", label: "3:4" },
   { id: "1:1", label: "1:1" },
   { id: "4:3", label: "4:3" },
 ];
@@ -57,27 +57,9 @@ const categoryOptions: Array<{
   hint: string;
 }> = [
   { id: "outfit", name: "整套穿搭", hint: "多件单品一起替换，适合外层 + 内搭 + 下装" },
-  { id: "auto", name: "自动识别", hint: "推荐，AI 自动判断上衣/下装/连衣裙" },
   { id: "top", name: "上衣", hint: "只换上半身衣服，尽量保留原下装" },
   { id: "bottom", name: "下装", hint: "只换裤子/裙子，尽量保留原上衣" },
   { id: "dress", name: "连衣裙", hint: "适合连衣裙或连体款" },
-];
-
-const referenceModeOptions: Array<{
-  id: TryOnReferenceMode;
-  name: string;
-  hint: string;
-}> = [
-  {
-    id: "multi-piece",
-    name: "多件组合",
-    hint: "可自由上传 2-3 件单品，并为每张图指定角色，生成时严格按上传件数输出",
-  },
-  {
-    id: "single-garment",
-    name: "单件多视角",
-    hint: "1-3 张图是同一件衣服的不同角度或细节，只替换这一件",
-  },
 ];
 
 const garmentRoleOptions: Array<{ id: TryOnGarmentRole; label: string }> = [
@@ -130,14 +112,11 @@ const FashionVirtualTryOn = () => {
   const { statuses } = useLineStatus();
 
   const modelInputRef = useRef<HTMLInputElement>(null);
-  const garmentInputRef = useRef<HTMLInputElement>(null);
   const multiPieceInputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   const [modelImage, setModelImage] = useState<string | null>(null);
-  const [singleGarmentImages, setSingleGarmentImages] = useState<string[]>([]);
   const [multiPieceSlots, setMultiPieceSlots] = useState<MultiPieceSlot[]>(createMultiPieceSlots);
   const [multiPieceMode, setMultiPieceMode] = useState<2 | 3>(2);
-  const [referenceMode, setReferenceMode] = useState<TryOnReferenceMode>("multi-piece");
   const [selectedCategory, setSelectedCategory] = useState<TryOnGarmentCategory>("outfit");
   const [selectedRatio, setSelectedRatio] = useState("9:16");
   const [selectedLine, setSelectedLine] = useState("speed");
@@ -146,34 +125,18 @@ const FashionVirtualTryOn = () => {
   const [generationStep, setGenerationStep] = useState("");
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
 
+  const referenceMode: TryOnReferenceMode = "multi-piece";
   const activeMultiPieceSlots = multiPieceSlots.slice(0, multiPieceMode);
-  const garmentImages = referenceMode === "multi-piece"
-    ? activeMultiPieceSlots.filter((slot) => Boolean(slot.image)).map((slot) => slot.image as string)
-    : singleGarmentImages;
-  const garmentRoles: TryOnGarmentRole[] | undefined = referenceMode === "multi-piece"
-    ? activeMultiPieceSlots.filter((slot) => Boolean(slot.image)).map((slot) => slot.role)
-    : undefined;
+  const garmentImages = activeMultiPieceSlots.filter((slot) => Boolean(slot.image)).map((slot) => slot.image as string);
+  const garmentRoles: TryOnGarmentRole[] = activeMultiPieceSlots.filter((slot) => Boolean(slot.image)).map((slot) => slot.role);
 
   useEffect(() => {
     preloadDownloadImage(generatedImage);
   }, [generatedImage]);
 
-  useEffect(() => {
-    if (referenceMode === "multi-piece" && selectedCategory !== "outfit") {
-      setSelectedCategory("outfit");
-      return;
-    }
-
-    if (referenceMode === "single-garment" && selectedCategory === "outfit") {
-      setSelectedCategory("auto");
-    }
-  }, [referenceMode, garmentImages.length, selectedCategory]);
-
   const currentLineOption = lineOptions.find((option) => option.id === selectedLine) ?? lineOptions[0];
   const featureCode = currentLineOption.line === "premium" ? "ai_fashion_premium" : "ai_fashion_standard";
-  const hasRequiredGarments = referenceMode === "multi-piece"
-    ? garmentImages.length === multiPieceMode
-    : garmentImages.length > 0;
+  const hasRequiredGarments = garmentImages.length === multiPieceMode;
   const canGenerate = Boolean(modelImage && hasRequiredGarments && !isGenerating);
 
   const handleModelUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -189,34 +152,7 @@ const FashionVirtualTryOn = () => {
     }
   };
 
-  const handleGarmentUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (referenceMode !== "single-garment") return;
-
-    const files = event.target.files;
-    if (!files) return;
-
-    const remainingSlots = SINGLE_GARMENT_MAX_IMAGES - singleGarmentImages.length;
-    const filesToProcess = Array.from(files)
-      .filter((file) => file.type.startsWith("image/"))
-      .slice(0, remainingSlots);
-
-    if (!filesToProcess.length) return;
-
-    const previews = await Promise.all(
-      filesToProcess.map((file) => fileToPreview(file, 1024, 1024, 0.85)),
-    );
-
-    setSingleGarmentImages((prev) => [...prev, ...previews]);
-    setGeneratedImage(null);
-
-    if (garmentInputRef.current) {
-      garmentInputRef.current.value = "";
-    }
-  };
-
   const handlePieceUpload = async (event: React.ChangeEvent<HTMLInputElement>, slotIndex: number) => {
-    if (referenceMode !== "multi-piece") return;
-
     const file = event.target.files?.[0];
     if (!file || !file.type.startsWith("image/")) return;
 
@@ -231,11 +167,6 @@ const FashionVirtualTryOn = () => {
       inputRef.value = "";
     }
 
-    setGeneratedImage(null);
-  };
-
-  const clearGarmentImage = (index: number) => {
-    setSingleGarmentImages((prev) => prev.filter((_, imageIndex) => imageIndex !== index));
     setGeneratedImage(null);
   };
 
@@ -350,7 +281,7 @@ const FashionVirtualTryOn = () => {
         </div>
         <div className="min-w-0">
           <h1 className="text-lg font-bold text-foreground">AI 定点换衣</h1>
-          <p className="text-xs leading-relaxed text-muted-foreground">默认 9:16，支持 2 件/3 件组合上传，尽量锁定原图动作和构图</p>
+          <p className="text-xs leading-relaxed text-muted-foreground">默认 9:16，上传两件或三件都能直接生成，尽量锁定原图动作和构图</p>
         </div>
       </div>
 
@@ -360,7 +291,7 @@ const FashionVirtualTryOn = () => {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-foreground">AI 定点换衣</h1>
-          <p className="text-muted-foreground text-sm">默认输出 9:16，支持单件多视角，也支持明确上传上衣 + 下装，尽量锁定人物、动作和背景</p>
+          <p className="text-muted-foreground text-sm">默认输出 9:16，上传两件或三件服装图都能直接生成，尽量锁定人物、动作和背景</p>
         </div>
       </div>
 
@@ -371,8 +302,8 @@ const FashionVirtualTryOn = () => {
           </div>
           <div className="space-y-1.5">
             <p className="text-sm font-semibold text-foreground">推荐上传方式</p>
-            <p className="text-xs text-muted-foreground leading-relaxed">多件组合现在支持 2件模式 / 3件模式 切换；你可以按一套衣服的真实件数上传，并分别指定外套、上衣、内搭、下装角色。</p>
-            <p className="text-xs text-muted-foreground leading-relaxed">如果只是同一件衣服的多角度图，再切换到“单件多视角”；此模式下最多可传 3 张同款参考图。</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">直接选 2件模式 或 3件模式，然后上传对应数量的服装图即可生成，不需要再手动切换参考图逻辑。</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">如果需要更稳定的层次效果，可以给每件衣服选外套、上衣、内搭、下装角色。</p>
           </div>
         </div>
       </div>
@@ -437,13 +368,12 @@ const FashionVirtualTryOn = () => {
               <div className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-100 text-xs font-semibold text-orange-700">2</div>
               <div>
                 <p className="text-sm font-medium text-foreground">上传服装参考图</p>
-                <p className="text-xs text-muted-foreground">{referenceMode === "multi-piece" ? `当前为 ${multiPieceMode} 件模式，可为每件指定角色` : "最多 3 张同款多视角参考图"}</p>
+                <p className="text-xs text-muted-foreground">当前为 {multiPieceMode} 件模式，可为每件指定角色</p>
               </div>
-              <span className="ml-auto shrink-0 rounded-full bg-secondary/70 px-2 py-1 text-[11px] text-muted-foreground">{referenceMode === "multi-piece" ? `${garmentImages.length}/${multiPieceMode}` : `${garmentImages.length}/${SINGLE_GARMENT_MAX_IMAGES}`}</span>
+              <span className="ml-auto shrink-0 rounded-full bg-secondary/70 px-2 py-1 text-[11px] text-muted-foreground">{garmentImages.length}/{multiPieceMode}</span>
             </div>
 
-            {referenceMode === "multi-piece" ? (
-              <div className="space-y-3">
+            <div className="space-y-3">
                 <div>
                   <p className="mb-2 text-xs text-muted-foreground">组合件数</p>
                   <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -535,7 +465,6 @@ const FashionVirtualTryOn = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => {
-                        setSingleGarmentImages([]);
                         setMultiPieceSlots(createMultiPieceSlots());
                         setGeneratedImage(null);
                       }}
@@ -545,70 +474,6 @@ const FashionVirtualTryOn = () => {
                   ) : null}
                 </div>
               </div>
-            ) : garmentImages.length > 0 ? (
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                  {garmentImages.map((preview, index) => (
-                    <div key={`${preview.slice(0, 24)}-${index}`} className="relative group">
-                      <img src={preview} alt={`服装参考图 ${index + 1}`} className="h-32 w-full rounded-xl border border-border object-cover bg-card" />
-                      <button
-                        onClick={() => clearGarmentImage(index)}
-                        className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/70 text-white shadow-sm"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                      <span className="absolute left-2 bottom-2 rounded-full bg-black/60 px-2 py-0.5 text-[10px] text-white">
-                        参考 {index + 1}
-                      </span>
-                    </div>
-                  ))}
-                  {garmentImages.length < SINGLE_GARMENT_MAX_IMAGES ? (
-                    <button
-                      onClick={() => garmentInputRef.current?.click()}
-                      className="h-32 rounded-xl border-2 border-dashed border-border hover:border-primary/45 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      <ImagePlus className="w-6 h-6" />
-                      <span className="text-xs">继续上传</span>
-                    </button>
-                  ) : null}
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" size="sm" className="min-h-11 touch-manipulation" onClick={() => garmentInputRef.current?.click()} disabled={garmentImages.length >= SINGLE_GARMENT_MAX_IMAGES}>
-                    <ImagePlus className="w-4 h-4 mr-1.5" />
-                    添加服装图
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setSingleGarmentImages([]);
-                      setGeneratedImage(null);
-                    }}
-                  >
-                    清空服装图
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <button
-                onClick={() => garmentInputRef.current?.click()}
-                className="flex min-h-44 w-full touch-manipulation flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border bg-card/40 px-4 py-8 transition-colors hover:border-primary/45 md:py-10"
-              >
-                <ShirtIcon className="w-8 h-8 text-muted-foreground" />
-                <p className="text-sm font-medium text-foreground">点击上传服装参考图</p>
-                <p className="text-xs text-muted-foreground">建议正面图做主图，侧面/细节图做补充</p>
-              </button>
-            )}
-
-            <input
-              ref={garmentInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              multiple
-              onChange={handleGarmentUpload}
-            />
             {multiPieceSlots.map((piece, index) => (
               <input
                 key={piece.id}
@@ -626,34 +491,6 @@ const FashionVirtualTryOn = () => {
 
         <section className="space-y-3">
           <div>
-            <p className="text-sm font-medium text-foreground mb-2">参考图逻辑</p>
-            <div className="grid gap-2 md:grid-cols-2">
-              {referenceModeOptions.map((option) => {
-                const active = referenceMode === option.id;
-                return (
-                  <button
-                    key={option.id}
-                    type="button"
-                    onClick={() => {
-                      setReferenceMode(option.id);
-                      setGeneratedImage(null);
-                    }}
-                    className={cn(
-                      "min-h-14 rounded-2xl border px-3 py-3 text-left transition-all duration-200 touch-manipulation",
-                      active
-                        ? "border-orange-300 bg-orange-50 shadow-sm"
-                        : "border-border bg-card/40 hover:border-orange-200 hover:bg-orange-50/40",
-                    )}
-                  >
-                    <p className={cn("text-sm font-medium", active ? "text-orange-700" : "text-foreground")}>{option.name}</p>
-                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{option.hint}</p>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div>
             <p className="text-sm font-medium text-foreground mb-2">服装类型</p>
             <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
               {categoryOptions.map((option) => {
@@ -663,10 +500,8 @@ const FashionVirtualTryOn = () => {
                     key={option.id}
                     type="button"
                     onClick={() => setSelectedCategory(option.id)}
-                    disabled={referenceMode === "multi-piece" && option.id !== "outfit"}
                     className={cn(
                       "min-h-14 rounded-2xl border px-3 py-3 text-left transition-all duration-200 touch-manipulation",
-                      referenceMode === "multi-piece" && option.id !== "outfit" ? "cursor-not-allowed opacity-50" : undefined,
                       active
                         ? "border-orange-300 bg-orange-50 shadow-sm"
                         : "border-border bg-card/40 hover:border-orange-200 hover:bg-orange-50/40",
@@ -685,9 +520,7 @@ const FashionVirtualTryOn = () => {
             <textarea
               value={additionalNotes}
               onChange={(event) => setAdditionalNotes(event.target.value)}
-              placeholder={referenceMode === "multi-piece"
-                ? "例如：上衣保持短款版型，下装必须是独立裤子，不要自动加外套、内搭或第三件单品"
-                : "例如：袖口要完整、领型不要变、尽量保留原图头发遮挡关系"}
+              placeholder="例如：外套必须敞开穿、内搭要露出领口、下装保持高腰比例，不要自动增加未上传的衣服"
               rows={3}
               className="w-full rounded-2xl border border-border bg-card/40 px-3 py-3 text-sm text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-2 focus:ring-orange-200"
             />
