@@ -347,6 +347,18 @@ export async function downloadGeneratedImage(
     }
   }
 
-  // 通用：直接使用原始地址触发下载，避免桌面端下载前再次 fetch 大图
+  if (!isMobile) {
+    const blob = await getCachedImageBlob(imageSrc);
+    const objectUrl = URL.createObjectURL(blob);
+
+    try {
+      triggerDownload(objectUrl);
+    } finally {
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+    }
+    return;
+  }
+
+  // 手机端兜底：直接使用原始地址触发下载/打开
   triggerDownload(imageSrc);
 }
