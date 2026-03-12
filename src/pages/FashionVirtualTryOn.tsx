@@ -266,7 +266,7 @@ const FashionVirtualTryOn = () => {
   };
 
   return (
-    <PageLayout className="px-3 pt-4 pb-[calc(env(safe-area-inset-bottom)+88px)] md:px-6 md:pt-6 md:pb-2 md:py-8">
+    <PageLayout className="px-3 pt-4 pb-6 md:px-6 md:pt-6 md:pb-2 md:py-8">
       <button
         onClick={() => navigate("/clothing")}
         className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-3 md:mb-6 transition-colors"
@@ -562,19 +562,24 @@ const FashionVirtualTryOn = () => {
             </div>
           </div>
 
-          <button
-            onClick={handleGenerate}
-            disabled={!canGenerate}
-            className={cn(
-              "fixed bottom-[calc(env(safe-area-inset-bottom)+12px)] left-3 right-3 z-20 flex h-12 items-center justify-center gap-2 rounded-2xl px-5 text-sm font-medium transition-all duration-200 md:static md:left-auto md:right-auto md:h-11 md:w-auto md:rounded-xl",
-              canGenerate
-                ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-[0_14px_34px_-18px_rgba(234,88,12,0.65)] hover:from-orange-600 hover:to-orange-700"
-                : "bg-secondary/95 text-muted-foreground/50 cursor-not-allowed",
-            )}
-          >
-            {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-            <span>{isGenerating ? "生成中..." : "开始换衣"}</span>
-          </button>
+          <div className="rounded-2xl border border-orange-200/70 bg-gradient-to-r from-orange-50/90 to-white p-3 shadow-[0_14px_30px_-24px_rgba(234,88,12,0.5)]">
+            <button
+              onClick={handleGenerate}
+              disabled={!canGenerate}
+              className={cn(
+                "flex h-12 w-full items-center justify-center gap-2 rounded-2xl px-5 text-sm font-medium transition-all duration-200",
+                canGenerate
+                  ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-[0_14px_34px_-18px_rgba(234,88,12,0.65)] hover:from-orange-600 hover:to-orange-700"
+                  : "border border-orange-200 bg-white text-muted-foreground",
+              )}
+            >
+              {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              <span>{isGenerating ? "生成中..." : "开始换衣"}</span>
+            </button>
+            <p className="mt-2 text-center text-xs text-muted-foreground">
+              {canGenerate ? "已满足生成条件，点击开始换衣" : `请先上传 1 张模特图和 ${multiPieceMode} 张服装图`}
+            </p>
+          </div>
         </div>
       </div>
 
