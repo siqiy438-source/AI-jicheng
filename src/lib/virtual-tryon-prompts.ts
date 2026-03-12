@@ -1,10 +1,12 @@
 export type TryOnGarmentCategory = "auto" | "top" | "bottom" | "dress" | "outfit";
 export type TryOnReferenceMode = "single-garment" | "multi-piece";
+export type TryOnGarmentRole = "outer" | "top" | "inner" | "bottom";
 
 interface BuildVirtualTryOnPromptParams {
   garmentCount: number;
   category: TryOnGarmentCategory;
   referenceMode: TryOnReferenceMode;
+  garmentRoles?: TryOnGarmentRole[];
   additionalNotes?: string;
 }
 
@@ -58,16 +60,35 @@ export function buildVirtualTryOnPrompt({
   garmentCount,
   category,
   referenceMode,
+  garmentRoles,
   additionalNotes,
 }: BuildVirtualTryOnPromptParams): string {
   const effectiveCategory = getEffectiveCategory(category, referenceMode);
-  const garmentReferenceLine = garmentCount === 1
+  const hasExplicitPieceRoles = referenceMode === "multi-piece" && garmentRoles?.length === garmentCount && garmentCount > 1;
+
+  const garmentReferenceLine = hasExplicitPieceRoles
+    ? garmentRoles
+      .map((role, index) => `- Image ${index + 2} is the ${role.toUpperCase()} garment reference image.`)
+      .join("\n") + `\n- The final result must contain exactly these ${garmentCount} uploaded garments, each used once only.`
+    : garmentCount === 1
     ? "- Image 2 is the garment reference image."
     : referenceMode === "single-garment"
       ? `- Images 2-${garmentCount + 1} are ${garmentCount} reference views of the SAME garment. Image 2 is the primary view. The remaining images are supporting detail views.`
       : `- Images 2-${garmentCount + 1} are ${garmentCount} DIFFERENT garment pieces that must all be worn together in the final outfit.`;
 
-  const layeringRules = referenceMode === "multi-piece"
+  const layeringRules = hasExplicitPieceRoles
+    ? `
+EXPLICIT PIECE MAPPING RULES:
+- Respect the exact garment role assigned to each uploaded image.
+- OUTER = outermost layer such as jacket, cardigan, coat, shirt-jacket, or vest.
+- TOP = main visible upper-body garment.
+- INNER = inner/base layer that stays underneath outer or top layers when physically natural.
+- BOTTOM = lower-body garment such as pants, skirt, or shorts.
+- Do not add, invent, or hallucinate any third clothing item such as a jacket, cardigan, undershirt, overshirt, belt, skirt layer, or extra pants layer unless it is already visibly present in Image 1 and remains outside the replaced clothing regions.
+- Do not turn the uploaded top and bottom into a dress, jumpsuit, romper, or any fused one-piece garment.
+- Do not duplicate either uploaded garment.
+- Output exactly the uploaded ${garmentCount} garments only, with no extra invented clothing item.`
+    : referenceMode === "multi-piece"
     ? `
 LAYERING RULES:
 - If multiple upper-body garments are uploaded, treat them as distinct layers, not alternatives.
@@ -98,6 +119,7 @@ STRICT PRESERVATION RULES:
 - Do not change the framing, zoom, perspective, lens feel, or composition.
 - Do not add or remove people, props, accessories, furniture, text, or scenery.
 - Keep natural occlusion relationships: if hair, arms, hands, or accessories overlap the clothing area, preserve those overlaps realistically.
+- Preserve the original limb positions and body silhouette from Image 1, and warp the garments to that pose instead of altering the pose to fit the garments.
 
 GARMENT MAPPING RULES:
 ${REFERENCE_MODE_FOCUS[referenceMode]}
@@ -112,6 +134,7 @@ ${layeringRules}
 
 REALISM RULES:
 - The new garment must follow the model's exact pose and body geometry from Image 1.
+- Garment fitting must adapt to the locked pose from Image 1; never change the arm angle, leg angle, torso direction, or hand placement to accommodate the new clothes.
 - Add realistic folds, tension, drape, seams, and shadows so the garment looks naturally worn in the original photo.
 - Match the lighting and color temperature of Image 1 exactly.
 - Preserve all visible skin, hair strands, fingers, and background edges cleanly.
@@ -139,6 +162,9 @@ export function buildVirtualTryOnNegativePrompt(category: TryOnGarmentCategory, 
     "different crop",
     "different lighting",
     "different body shape",
+    "different limb position",
+    "changed leg position",
+    "changed arm position",
     "extra clothing",
     "invented accessories",
     "hat",
@@ -166,7 +192,7 @@ export function buildVirtualTryOnNegativePrompt(category: TryOnGarmentCategory, 
     "wrong sleeve length",
     "wrong hem",
     "wrong color",
-    referenceMode === "multi-piece" ? "missing inner layer, missing undershirt, single-layer top when multiple tops were uploaded, fused outfit" : "split one garment into multiple pieces",
+    referenceMode === "multi-piece" ? "missing garment, missing inner layer, missing undershirt, extra third garment, extra fourth garment, single-layer top when multiple tops were uploaded, fused outfit" : "split one garment into multiple pieces",
     CATEGORY_NEGATIVE[effectiveCategory],
   ].join(", ");
 }
