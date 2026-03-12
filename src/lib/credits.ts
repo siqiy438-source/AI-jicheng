@@ -30,6 +30,8 @@ export const FEATURE_PRICES: Record<string, FeaturePriceConfig> = {
   ai_outfit_premium: { name: '挂搭图(Pro)', cost: 100, billing: 'fixed' },
   ai_fashion_standard: { name: '模特图(标准)', cost: 50, billing: 'fixed' },
   ai_fashion_premium: { name: '模特图(Pro)', cost: 100, billing: 'fixed' },
+  ai_virtual_tryon_standard: { name: '定点换衣(标准)', cost: 50, billing: 'fixed' },
+  ai_virtual_tryon_premium: { name: '定点换衣(Pro)', cost: 100, billing: 'fixed' },
   ai_detail_standard: { name: '细节特写(标准)', cost: 50, billing: 'fixed' },
   ai_detail_premium: { name: '细节特写(Pro)', cost: 100, billing: 'fixed' },
   ai_flatlay_standard: { name: '平铺摆拍(标准)', cost: 50, billing: 'fixed' },

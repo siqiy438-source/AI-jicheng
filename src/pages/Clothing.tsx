@@ -38,6 +38,12 @@ const tools: ToolItem[] = [
     to: "/fashion-model-outfit",
   },
   {
+    title: "AI 定点换衣",
+    description: "上传 1 张模特图 + 1-3 张同款服装图，尽量只替换衣服不改人和背景。",
+    iconSrc: "/icons/style-coordinator.png",
+    to: "/fashion-virtual-tryon",
+  },
+  {
     title: "裤子上身效果",
     description: "上传裤子图，AI 自动配上衣，生成腰到脚模特上身图。",
     iconSrc: "/icons/fashion-pants-custom.png",

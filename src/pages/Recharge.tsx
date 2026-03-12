@@ -39,6 +39,7 @@ const FEATURE_LABELS: Record<string, string> = {
   ai_display_standard: "陈列图(标准)", ai_display_premium: "陈列图(Pro)",
   ai_outfit_standard: "挂搭图(标准)", ai_outfit_premium: "挂搭图(Pro)",
   ai_fashion_standard: "模特图(标准)", ai_fashion_premium: "模特图(Pro)",
+  ai_virtual_tryon_standard: "定点换衣(标准)", ai_virtual_tryon_premium: "定点换衣(Pro)",
   ai_detail_standard: "细节特写(标准)", ai_detail_premium: "细节特写(Pro)",
   ai_flatlay_standard: "平铺摆拍(标准)", ai_flatlay_premium: "平铺摆拍(Pro)",
   ai_copywriting: "AI文案生成", ai_ppt_outline: "PPT大纲",
