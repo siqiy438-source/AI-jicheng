@@ -21,19 +21,21 @@ const CATEGORY_FOCUS: Record<TryOnGarmentCategory, string> = {
 - Replace only the lower-body clothing region.
 - Keep the model's original top, jacket, face, hair, hands, shoes, and background unchanged unless natural occlusion requires overlap handling.`,
   dress: `- The target garment is a DRESS or one-piece garment.
-- Replace the model's existing main outfit with the uploaded dress while keeping the same person, pose, hair, hands, background, lighting, and framing.
+- Remove ALL existing clothing currently worn by the model — including any inner layers, undershirts, base layers, tank tops, or tops — before applying the new dress.
+- Replace the model's entire outfit region with the uploaded dress while keeping the same person, pose, hair, hands, background, lighting, and framing.
 - Keep shoes and visible accessories only if they remain naturally compatible and do not conflict with the uploaded dress.`,
   outfit: `- The target is a MULTI-PIECE OUTFIT built from the uploaded garment references.
-- Replace every relevant clothing region needed to wear all uploaded garment pieces together.
-- Keep the same person, pose, hair, hands, body shape, background, framing, and lighting while changing only the clothes.`,
+- Remove ALL existing clothing currently worn by the model — including any inner layers, undershirts, base layers, tank tops, white tops, or any garment not in the uploaded references — before applying the new garments.
+- Apply ONLY the uploaded garment pieces. Do not preserve or blend in any of the model's original clothing.
+- Keep the same person, pose, hair, hands, body shape, background, framing, and lighting while replacing all clothing.`,
 };
 
 const CATEGORY_NEGATIVE: Record<TryOnGarmentCategory, string> = {
   auto: "wrong garment category, mismatched garment type, partial garment replacement",
   top: "changed pants, changed skirt, changed shorts, changed shoes",
   bottom: "changed shirt, changed blouse, changed sweater, changed jacket",
-  dress: "two-piece outfit, separate top and skirt, separate top and pants",
-  outfit: "missing garment piece, dropped inner layer, dropped outer layer, dropped bottom, merged garments into one",
+  dress: "two-piece outfit, separate top and skirt, separate top and pants, original model clothing visible, original inner layer bleeding through",
+  outfit: "missing garment piece, dropped uploaded outer layer, dropped uploaded bottom, merged garments into one, original model clothing preserved, original inner layer visible, original white top visible, original undershirt bleeding through, model's original clothing under new garments",
 };
 
 const REFERENCE_MODE_FOCUS: Record<TryOnReferenceMode, string> = {
@@ -84,7 +86,7 @@ EXPLICIT PIECE MAPPING RULES:
 - TOP = main visible upper-body garment.
 - INNER = inner/base layer that stays underneath outer or top layers when physically natural.
 - BOTTOM = lower-body garment such as pants, skirt, or shorts.
-- Do not add, invent, or hallucinate any third clothing item such as a jacket, cardigan, undershirt, overshirt, belt, skirt layer, or extra pants layer unless it is already visibly present in Image 1 and remains outside the replaced clothing regions.
+- Do not add, invent, or hallucinate any extra clothing item that is not in the uploaded garment references, including jackets, cardigans, undershirts, overshirts, belts, skirt layers, or extra pants layers. The model's original clothing in Image 1 must be completely replaced — do not preserve any of it.
 - Do not turn the uploaded top and bottom into a dress, jumpsuit, romper, or any fused one-piece garment.
 - Do not duplicate either uploaded garment.
 - Output exactly the uploaded ${garmentCount} garments only, with no extra invented clothing item.`

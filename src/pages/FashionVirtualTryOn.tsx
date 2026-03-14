@@ -56,9 +56,7 @@ const categoryOptions: Array<{
   name: string;
   hint: string;
 }> = [
-  { id: "outfit", name: "整套穿搭", hint: "多件单品一起替换，适合外层 + 内搭 + 下装" },
-  { id: "top", name: "上衣", hint: "只换上半身衣服，尽量保留原下装" },
-  { id: "bottom", name: "下装", hint: "只换裤子/裙子，尽量保留原上衣" },
+  { id: "outfit", name: "整套穿搭", hint: "完整替换所有原有衣物，换上上传的服装" },
   { id: "dress", name: "连衣裙", hint: "适合连衣裙或连体款" },
 ];
 
