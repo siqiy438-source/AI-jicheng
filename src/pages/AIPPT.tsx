@@ -77,6 +77,7 @@ const PPT_TEMPLATES = [
 
 const PPT_RATIOS = [
   { id: "16:9", name: "16:9" },
+  { id: "9:16", name: "9:16" },
   { id: "4:3", name: "4:3" },
   { id: "3:4", name: "3:4" },
   { id: "1:1", name: "1:1" },
@@ -97,6 +98,7 @@ const PLACEHOLDERS: Record<string, string> = {
   sentence: "输入主题，例如：《高效能人士的七个习惯》读书笔记",
   outline: "输入大纲内容，每行一个要点...",
   description: "输入详细描述内容...",
+  voiceover: "粘贴口播文案，AI 将按语义切分并为每段自动生成配图...",
 };
 
 const WORD_EXTENSIONS = [".docx"];
@@ -211,7 +213,7 @@ const AIPPT = () => {
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
 
   // Step 1 states
-  const [generationMode, setGenerationMode] = useState<"sentence" | "outline" | "description">("sentence");
+  const [generationMode, setGenerationMode] = useState<"sentence" | "outline" | "description" | "voiceover">("sentence");
   const [inputContent, setInputContent] = useState("");
   const [pageCount, setPageCount] = useState(8);
   const [style, setStyle] = useState("free");
@@ -356,23 +358,22 @@ const AIPPT = () => {
       style,
     });
 
-    setIsGeneratingOutline(false);
-
-    if (result.success && result.slides) {
-      const nextTitle = result.projectTitle || inputContent.trim().slice(0, 30);
-      setSlides(result.slides);
-      setProjectTitle(nextTitle);
-      setSelectedSlideIndex(0);
-      setCurrentStep(2);
-      void refreshBalance();
-      void persistPptWork({
-        nextSlides: result.slides,
-        nextProjectTitle: nextTitle,
-        forceCreate: true,
-      });
-    } else {
+    if (!result.success || !result.slides) {
+      setIsGeneratingOutline(false);
       toast({ title: "生成失败", description: result.error || "请稍后重试", variant: "destructive" });
+      return;
     }
+
+    const nextTitle = result.projectTitle || inputContent.trim().slice(0, 30);
+    const generatedSlides = result.slides;
+    setSlides(generatedSlides);
+    setProjectTitle(nextTitle);
+    setSelectedSlideIndex(0);
+
+    setIsGeneratingOutline(false);
+    setCurrentStep(2);
+    void refreshBalance();
+    void persistPptWork({ nextSlides: generatedSlides, nextProjectTitle: nextTitle, forceCreate: true });
   };
 
   const handleGenerateDescription = async (slideIndex: number) => {
@@ -504,6 +505,7 @@ ${bulletText}
     if (!checkCredits('ai_ppt_image_standard')) return;
     setIsGeneratingImage(true);
 
+    const isVoiceover = generationMode === 'voiceover';
     const imageDescription = buildImageDescriptionFromSlide(slide);
     const selectedLineOption = PPT_LINE_OPTIONS.find(l => l.id === selectedLine) || PPT_LINE_OPTIONS[0];
     const result = await generateSlideImage({
@@ -514,6 +516,11 @@ ${bulletText}
       line: selectedLineOption.line,
       resolution: selectedLineOption.resolution,
       featureCode: "ai_ppt_image_standard",
+      isVoiceover,
+      voiceoverTitle: isVoiceover ? slide.title : undefined,
+      voiceoverBullets: isVoiceover
+        ? slide.outlinePoints.filter(p => p?.trim()).map((p, i) => `${i + 1}. ${p}`).join('\n')
+        : undefined,
     });
 
     setIsGeneratingImage(false);
@@ -538,11 +545,13 @@ ${bulletText}
     if (!checkCredits('ai_ppt_image_standard')) return;
     setIsGeneratingImage(true);
 
+    const isVoiceover = generationMode === 'voiceover';
     const selectedLineOption2 = PPT_LINE_OPTIONS.find(l => l.id === selectedLine) || PPT_LINE_OPTIONS[0];
     const newSlides = [...slides];
     for (let i = 0; i < newSlides.length; i++) {
       if (newSlides[i].generatedImage || !canGenerateImageFromSlide(newSlides[i])) continue;
-      const imageDescription = buildImageDescriptionFromSlide(newSlides[i]);
+      const slide = newSlides[i];
+      const imageDescription = buildImageDescriptionFromSlide(slide);
       const result = await generateSlideImage({
         description: imageDescription,
         style,
@@ -551,6 +560,11 @@ ${bulletText}
         line: selectedLineOption2.line,
         resolution: selectedLineOption2.resolution,
         featureCode: "ai_ppt_image_standard",
+        isVoiceover,
+        voiceoverTitle: isVoiceover ? slide.title : undefined,
+        voiceoverBullets: isVoiceover
+          ? slide.outlinePoints.filter(p => p?.trim()).map((p, idx) => `${idx + 1}. ${p}`).join('\n')
+          : undefined,
       });
       if (result.success && (result.imageUrl || result.imageBase64)) {
         newSlides[i] = { ...newSlides[i], generatedImage: result.imageUrl || result.imageBase64 };
@@ -567,11 +581,11 @@ ${bulletText}
   const handleExport = async (format: "pptx" | "pdf" | "images" = "pptx") => {
     try {
       if (format === "pdf") {
-        await exportToPDF(slides, projectTitle);
+        await exportToPDF(slides, projectTitle, aspectRatio);
       } else if (format === "images") {
         await exportToImages(slides, projectTitle);
       } else {
-        await exportToPPTX(slides, projectTitle);
+        await exportToPPTX(slides, projectTitle, aspectRatio);
       }
       void persistPptWork({ format });
 
@@ -634,10 +648,17 @@ ${bulletText}
             { key: "sentence" as const, label: "一句话生成" },
             { key: "outline" as const, label: "从大纲生成" },
             { key: "description" as const, label: "从描述生成" },
+            { key: "voiceover" as const, label: "口播配图" },
           ]).map((tab) => (
             <button
               key={tab.key}
-              onClick={() => setGenerationMode(tab.key)}
+              onClick={() => {
+                setGenerationMode(tab.key);
+                if (tab.key === "voiceover") {
+                  setAspectRatio("9:16");
+                  setPageCount(5);
+                }
+              }}
               className={cn(
                 "px-3 md:px-4 py-2.5 text-xs md:text-sm font-medium transition-all duration-200 border-b-2 whitespace-nowrap",
                 generationMode === tab.key
@@ -687,7 +708,7 @@ ${bulletText}
             value={inputContent}
             onChange={(e) => setInputContent(e.target.value)}
             placeholder={PLACEHOLDERS[generationMode]}
-            rows={generationMode === "sentence" ? 4 : 8}
+            rows={generationMode === "sentence" ? 4 : generationMode === "voiceover" ? 10 : 8}
             className="w-full bg-transparent text-foreground placeholder:text-muted-foreground resize-none focus:outline-none text-base leading-relaxed"
           />
           <div className="flex justify-end mt-1">
@@ -826,7 +847,7 @@ ${bulletText}
             ) : (
               <Zap className="w-5 h-5" />
             )}
-            {isGeneratingOutline ? "生成中..." : "开始生成"}
+            {isGeneratingOutline ? "生成中..." : (generationMode === "voiceover" ? "一键生成配图" : "开始生成")}
           </button>
           <CreditCostHint featureCode="ai_ppt_outline" />
         </div>

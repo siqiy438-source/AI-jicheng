@@ -220,6 +220,9 @@ export async function generateSlideImage(params: {
   line?: "standard" | "premium";
   resolution?: "default" | "2k" | "4k" | "speed";
   featureCode?: string;
+  isVoiceover?: boolean;
+  voiceoverTitle?: string;
+  voiceoverBullets?: string;
 }): Promise<{ success: boolean; imageBase64?: string; imageUrl?: string; error?: string }> {
   try {
     const imageUrl = `${supabaseUrl}/functions/v1/ai-image`;
@@ -257,7 +260,32 @@ export async function generateSlideImage(params: {
     const templatePrompt = templatePrompts[params.template] || '';
     const stylePrompt = stylePrompts[params.style] || '';
 
-    const fullPrompt = `Create a professional presentation slide image.
+    // 取第一个视觉关键词作为主场景焦点，避免 AI 多场景分栏
+    const firstKeyword = (params.voiceoverBullets || '')
+      .split('\n')
+      .map(line => line.replace(/^\d+\.\s*/, '').trim())
+      .filter(Boolean)[0] || '';
+
+    const voiceoverAspectRatio = '9:16';
+
+    const fullPrompt = params.isVoiceover
+      ? `Create a cinematic movie-poster style illustration. ${templatePrompt}${stylePrompt}
+ABSOLUTELY FORBIDDEN: panels, grids, comic strips, multi-section layouts, split screens, storyboards.
+ONE single full-bleed scene filling the entire canvas.
+
+Poster headline — display as large, bold, dramatic Chinese typography, integrated into the composition:
+「${params.voiceoverTitle || ''}」
+
+Paint this scene as the background: ${firstKeyword}
+
+Rules:
+- ONE image, ONE scene — no splitting, no panels
+- ONLY the headline above may appear as text. Nothing else — no subtitles, no captions, no labels, no bullet points, no numbers
+- The headline should feel like a movie title: big, bold, visually striking
+- Cinematic atmosphere, emotional depth, high visual impact
+- Vertical portrait composition
+- Aspect ratio: ${voiceoverAspectRatio} (9:16)`
+      : `Create a professional presentation slide image.
 ${templatePrompt}${stylePrompt}
 Content description:
 ${params.description}
@@ -278,7 +306,7 @@ Requirements:
       headers: await getHeaders(),
       body: JSON.stringify({
         prompt: fullPrompt,
-        aspectRatio: params.aspectRatio,
+        aspectRatio: params.isVoiceover ? voiceoverAspectRatio : params.aspectRatio,
         line: params.line || 'standard',
         resolution: params.resolution || 'default',
         feature_code: featureCode,
@@ -369,14 +397,22 @@ async function downloadBlobFile(blob: Blob, filename: string): Promise<void> {
 /**
  * 导出为 PDF
  */
-export async function exportToPDF(slides: SlideData[], projectTitle: string): Promise<void> {
+export async function exportToPDF(slides: SlideData[], projectTitle: string, aspectRatio = '16:9'): Promise<void> {
   const { default: jsPDF } = await import('jspdf');
 
-  // 确定页面方向和尺寸
+  const dimMap: Record<string, [number, number, 'landscape' | 'portrait']> = {
+    '16:9': [1920, 1080, 'landscape'],
+    '9:16': [1080, 1920, 'portrait'],
+    '4:3':  [1440, 1080, 'landscape'],
+    '3:4':  [1080, 1440, 'portrait'],
+    '1:1':  [1080, 1080, 'portrait'],
+  };
+  const [pw, ph, orient] = dimMap[aspectRatio] ?? dimMap['16:9'];
+
   const doc = new jsPDF({
-    orientation: 'landscape',
+    orientation: orient,
     unit: 'px',
-    format: [1920, 1080], // 16:9
+    format: [pw, ph],
   });
 
   for (let i = 0; i < slides.length; i++) {
@@ -387,15 +423,15 @@ export async function exportToPDF(slides: SlideData[], projectTitle: string): Pr
       try {
         const imageDataUrl = await ensureImageDataUrl(slide.generatedImage);
         const imageType = imageDataUrl.startsWith('data:image/jpeg') ? 'JPEG' : 'PNG';
-        doc.addImage(imageDataUrl, imageType, 0, 0, 1920, 1080);
+        doc.addImage(imageDataUrl, imageType, 0, 0, pw, ph);
       } catch {
         doc.setFontSize(48);
-        doc.text(slide.title, 960, 540, { align: 'center' });
+        doc.text(slide.title, pw / 2, ph / 2, { align: 'center' });
       }
     } else {
       // 没有图片时显示标题
       doc.setFontSize(48);
-      doc.text(slide.title, 960, 540, { align: 'center' });
+      doc.text(slide.title, pw / 2, ph / 2, { align: 'center' });
     }
   }
 
@@ -406,12 +442,27 @@ export async function exportToPDF(slides: SlideData[], projectTitle: string): Pr
 /**
  * 导出为 PPT
  */
-export async function exportToPPTX(slides: SlideData[], projectTitle: string): Promise<void> {
+export async function exportToPPTX(slides: SlideData[], projectTitle: string, aspectRatio = '16:9'): Promise<void> {
   const PptxGenJS = (await import('pptxgenjs')).default;
   const pptx = new PptxGenJS();
 
   pptx.title = projectTitle || 'AI PPT';
-  pptx.layout = 'LAYOUT_WIDE'; // 16:9
+
+  // pptxgenjs 单位：英寸
+  const layoutMap: Record<string, { name: string; w: number; h: number }> = {
+    '16:9': { name: 'LAYOUT_WIDE', w: 13.33, h: 7.5 },
+    '9:16': { name: 'PORTRAIT_916', w: 7.5,  h: 13.33 },
+    '4:3':  { name: 'LAYOUT_4x3',  w: 10,   h: 7.5 },
+    '3:4':  { name: 'PORTRAIT_3x4', w: 7.5,  h: 10 },
+    '1:1':  { name: 'SQUARE_1x1',  w: 7.5,  h: 7.5 },
+  };
+  const layout = layoutMap[aspectRatio] ?? layoutMap['16:9'];
+  if (['LAYOUT_WIDE', 'LAYOUT_4x3'].includes(layout.name)) {
+    pptx.layout = layout.name;
+  } else {
+    pptx.defineLayout({ name: layout.name, width: layout.w, height: layout.h });
+    pptx.layout = layout.name;
+  }
 
   for (const slide of slides) {
     const pptSlide = pptx.addSlide();

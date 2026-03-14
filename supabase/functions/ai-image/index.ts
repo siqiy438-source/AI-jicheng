@@ -1,6 +1,6 @@
 /**
  * Supabase Edge Function: AI Image Generation
- * 使用 BLTCY API 生成图像（普通线路走 Gemini generateContent，优质/2K/4K 走 images/edits）
+ * 使用 BLTCY API 生成图像（标准/极速/2K/4K 线路走 Gemini generateContent，支持多图参考）
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
@@ -181,6 +181,7 @@ serve(async (req) => {
       ai_display_standard: 50, ai_display_premium: 100,
       ai_outfit_standard: 50, ai_outfit_premium: 100,
       ai_fashion_standard: 50, ai_fashion_premium: 100,
+      ai_virtual_tryon_standard: 50, ai_virtual_tryon_premium: 100,
       ai_detail_standard: 50, ai_detail_premium: 100,
       ai_flatlay_standard: 50, ai_flatlay_premium: 100,
       ai_outfit_visual_standard: 50,
@@ -250,14 +251,20 @@ serve(async (req) => {
     // 优质线路走 ZenMux 专属分支，不需要强制 2K
     const resolvedResolution = resolution || "default"
     const providerConfig = getProviderConfig(resolvedLine)
+
     // 像素块生成使用专用模型
     if (isPixelArt) {
       providerConfig.model = PIXEL_ART_MODEL
     }
     // 极速线路使用 BLTCY 的 Gemini 3.1 Flash Image Preview 兼容别名
-    if (!isPixelArt && resolvedResolution === 'speed') {
+    else if (!isPixelArt && resolvedResolution === 'speed') {
       providerConfig.model = SPEED_IMAGE_MODEL
     }
+    // 2K/4K 高清线路使用对应的高清模型（改为走 generateContent 接口以支持多图参考）
+    else if (isHDResolution(resolvedResolution)) {
+      providerConfig.model = getHDModel(resolvedResolution)
+    }
+
     const providerApiKey = Deno.env.get(providerConfig.apiKeyEnv)
     const providerName = "BLTCY"
 
@@ -402,8 +409,9 @@ Flat-lay product showcase requirements:
         },
       })
 
+      const zenApiUrl = `https://zenmux.ai/api/vertex-ai/v1/models/${ZENMUX_PRO_IMAGE_MODEL}:generateContent`
       console.log(`[ai-image] ZenMux Pro → model=${ZENMUX_PRO_IMAGE_MODEL}, images=${zenParts.length - 1}`)
-      const zenResponse = await fetch(getZenMuxImageUrl(), {
+      const zenResponse = await fetch(zenApiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -458,119 +466,8 @@ Flat-lay product showcase requirements:
       })
     }
 
-    // ========== 2K/4K 高清线路：走 images/edits 接口 ==========
-    if (isHDResolution(resolvedResolution)) {
-      const hdApiKey = providerApiKey
-      if (!hdApiKey) {
-        throw new Error(`图像服务配置错误：${providerConfig.apiKeyEnv} 未配置，请联系管理员`)
-      }
 
-      const hdModel = getHDModel(resolvedResolution)
-      const hdUrl = getHDApiUrl()
-
-      // 构建 FormData（images/edits 接口使用 multipart/form-data）
-      const formData = new FormData()
-      formData.append('model', hdModel)
-      formData.append('prompt', fullPrompt)
-      formData.append('n', '1')
-      formData.append('response_format', 'b64_json')
-
-      // images/edits 接口要求 image 参数
-      // 如果用户上传了参考图片，使用第一张；否则发送一个 1x1 透明占位图
-      if (images && Array.isArray(images) && images.length > 0) {
-        const firstImage = await resolveImageToDataUrl(images[0], allowedImageHosts)
-        const matches = firstImage.match(/^data:([^;]+);base64,(.+)$/)
-        if (matches) {
-          const binaryStr = atob(matches[2])
-          const bytes = new Uint8Array(binaryStr.length)
-          for (let i = 0; i < binaryStr.length; i++) {
-            bytes[i] = binaryStr.charCodeAt(i)
-          }
-          const blob = new Blob([bytes], { type: matches[1] })
-          formData.append('image', blob, 'image.png')
-        }
-      } else {
-        // 1x1 透明 PNG 占位图
-        const placeholderB64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
-        const binaryStr = atob(placeholderB64)
-        const bytes = new Uint8Array(binaryStr.length)
-        for (let i = 0; i < binaryStr.length; i++) {
-          bytes[i] = binaryStr.charCodeAt(i)
-        }
-        const blob = new Blob([bytes], { type: 'image/png' })
-        formData.append('image', blob, 'placeholder.png')
-      }
-
-      const hdResponse = await fetch(hdUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${hdApiKey}`,
-        },
-        body: formData,
-      })
-
-      if (!hdResponse.ok) {
-        const errorText = await hdResponse.text()
-        console.error(`[ai-image] BLTCY HD (${hdModel}) API error: ${hdResponse.status} - ${errorText}`)
-        throw new Error(`BLTCY ${resolvedResolution.toUpperCase()} API 错误: ${hdResponse.status} - ${errorText}`)
-      }
-
-      const hdData = await hdResponse.json()
-
-      // 解析 OpenAI 格式响应
-      let imageBase64: string | null = null
-      if (hdData.data && hdData.data.length > 0) {
-        const item = hdData.data[0]
-        if (item.b64_json) {
-          imageBase64 = `data:image/png;base64,${item.b64_json}`
-        } else if (item.url) {
-          // 如果返回的是 URL，需要下载图片
-          const imgResp = await fetch(item.url)
-          const imgBuffer = await imgResp.arrayBuffer()
-          const imgBytes = new Uint8Array(imgBuffer)
-          let imgBinary = ''
-          const chunkSize = 8192
-          for (let i = 0; i < imgBytes.length; i += chunkSize) {
-            imgBinary += String.fromCharCode(...imgBytes.subarray(i, i + chunkSize))
-          }
-          const base64 = btoa(imgBinary)
-          imageBase64 = `data:image/png;base64,${base64}`
-        }
-      }
-
-      if (!imageBase64) {
-        throw new Error('未能生成高清图片')
-      }
-
-      // 尝试上传到 Storage 返回 URL（减小响应体积，优化手机端）
-      let imageUrl: string | null = null
-      if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
-        imageUrl = await uploadImageToStorage(SUPABASE_URL, SUPABASE_SERVICE_KEY, imageBase64)
-      }
-
-      if (imageUrl) {
-        await finalizeCreditOperation(true)
-        console.log(`[ai-image] HD 图片已上传 Storage，返回 URL`)
-        return new Response(JSON.stringify({
-          success: true,
-          imageUrl,
-        }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        })
-      }
-
-      // Storage 上传失败时回退到 base64
-      await finalizeCreditOperation(true)
-      console.log(`[ai-image] HD Storage 上传失败，回退 base64`)
-      return new Response(JSON.stringify({
-        success: true,
-        imageBase64,
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
-
-    // ========== 普通线路：走 Gemini generateContent 接口 ==========
+    // ========== 标准/极速/2K/4K 线路：走 BLTCY generateContent 接口（支持多图参考）==========
 
     // 构建 Vertex AI 格式的请求内容
     type PartType = { text: string } | { inlineData: { mimeType: string; data: string } }
@@ -611,8 +508,8 @@ Flat-lay product showcase requirements:
     // 调用对应线路 API 生成图像（546 自动重试，最多 2 次）
     const apiUrl = buildGenerateContentUrl(providerConfig)
     const generationConfig = {
-      responseModalities: ['IMAGE'],
-      imageConfig: aspectRatio ? { aspectRatio } : undefined,
+      responseModalities: ['IMAGE', 'TEXT'],
+      ...(aspectRatio ? { imageConfig: { aspectRatio } } : {}),
     }
     const requestBody = JSON.stringify({ contents, generationConfig })
 

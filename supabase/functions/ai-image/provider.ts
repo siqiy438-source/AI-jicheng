@@ -3,8 +3,8 @@ export type ImageResolution = "default" | "2k" | "4k" | "speed";
 
 export const NORMAL_IMAGE_MODEL = "nano-banana-2";
 export const FLASH_IMAGE_MODEL = "gemini-3.1-flash-image-preview";
-export const TWO_K_IMAGE_MODEL = "nano-banana-2-2k";
-export const FOUR_K_IMAGE_MODEL = "nano-banana-2-4k";
+export const TWO_K_IMAGE_MODEL = "gemini-3.1-flash-image-preview-2k";
+export const FOUR_K_IMAGE_MODEL = "gemini-3.1-flash-image-preview-4k";
 
 /** 灵犀Pro（ZenMux）专用模型 */
 export const ZENMUX_PRO_IMAGE_MODEL = "google/gemini-3.1-flash-image-preview";
