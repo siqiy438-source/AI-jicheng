@@ -371,13 +371,17 @@ const Recharge = () => {
               <span className="text-xs font-semibold text-foreground">图片生成</span>
               <span className="text-xs text-muted-foreground">（绘图 / 陈列 / 挂搭 / 模特 / 细节特写 / 平铺摆拍）</span>
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-secondary/40">
-                <span className="text-xs text-muted-foreground">标准模式</span>
+                <span className="text-xs text-muted-foreground">极速模式</span>
                 <span className="text-xs font-bold text-foreground">50 积分/次</span>
               </div>
               <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-secondary/40">
                 <span className="text-xs text-muted-foreground">Pro 模式</span>
+                <span className="text-xs font-bold text-foreground">100 积分/次</span>
+              </div>
+              <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-secondary/40">
+                <span className="text-xs text-muted-foreground">2K / 4K 模式</span>
                 <span className="text-xs font-bold text-foreground">100 积分/次</span>
               </div>
             </div>

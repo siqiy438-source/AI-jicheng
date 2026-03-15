@@ -69,7 +69,6 @@ const ratioOptions = [
 const lineOptions = [
   { id: "speed", name: "灵犀极速版", line: "standard" as const, resolution: "speed" as const },
   { id: "premium", name: "灵犀 Pro", line: "premium" as const, resolution: "2k" as const, badge: "优质" },
-  { id: "standard", name: "灵犀标准", line: "standard" as const, resolution: "default" as const },
   { id: "standard_2k", name: "灵犀 2K", line: "standard" as const, resolution: "2k" as const },
   { id: "standard_4k", name: "灵犀 4K", line: "standard" as const, resolution: "4k" as const },
 ];
@@ -195,7 +194,7 @@ export const FashionGeneratorPage = ({
 
     const selectedLineOption = lineOptions.find((lineOption) => lineOption.id === selectedLine) || lineOptions[0];
     const featureCode = featureCodePrefix
-      ? (selectedLineOption.line === 'premium' ? `${featureCodePrefix}_premium` : `${featureCodePrefix}_standard`)
+      ? (selectedLineOption.line === 'premium' ? `${featureCodePrefix}_premium` : (selectedLineOption.resolution === '2k' || selectedLineOption.resolution === '4k') ? `${featureCodePrefix}_hd` : `${featureCodePrefix}_standard`)
       : undefined;
 
     if (featureCode && !checkCredits(featureCode)) return;
@@ -562,7 +561,7 @@ export const FashionGeneratorPage = ({
             <div className="flex items-center gap-1.5 flex-shrink-0">
               {featureCodePrefix && (
                 <CreditCostHint
-                  featureCode={lineOptions.find(o => o.id === selectedLine)?.line === 'premium' ? `${featureCodePrefix}_premium` : `${featureCodePrefix}_standard`}
+                  featureCode={lineOptions.find(o => o.id === selectedLine)?.line === 'premium' ? `${featureCodePrefix}_premium` : (lineOptions.find(o => o.id === selectedLine)?.resolution === '2k' || lineOptions.find(o => o.id === selectedLine)?.resolution === '4k') ? `${featureCodePrefix}_hd` : `${featureCodePrefix}_standard`}
                 />
               )}
               <button

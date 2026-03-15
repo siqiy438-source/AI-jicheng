@@ -177,15 +177,15 @@ serve(async (req) => {
 
     // ========== 积分扣减 ==========
     const CREDIT_COSTS: Record<string, number> = {
-      ai_image_standard: 50, ai_image_premium: 100,
-      ai_display_standard: 50, ai_display_premium: 100,
-      ai_outfit_standard: 50, ai_outfit_premium: 100,
-      ai_fashion_standard: 50, ai_fashion_premium: 100,
-      ai_virtual_tryon_standard: 50, ai_virtual_tryon_premium: 100,
-      ai_detail_standard: 50, ai_detail_premium: 100,
-      ai_flatlay_standard: 50, ai_flatlay_premium: 100,
+      ai_image_standard: 50, ai_image_premium: 100, ai_image_hd: 100,
+      ai_display_standard: 50, ai_display_premium: 100, ai_display_hd: 100,
+      ai_outfit_standard: 50, ai_outfit_premium: 100, ai_outfit_hd: 100,
+      ai_fashion_standard: 50, ai_fashion_premium: 100, ai_fashion_hd: 100,
+      ai_virtual_tryon_standard: 50, ai_virtual_tryon_premium: 100, ai_virtual_tryon_hd: 100,
+      ai_detail_standard: 50, ai_detail_premium: 100, ai_detail_hd: 100,
+      ai_flatlay_standard: 50, ai_flatlay_premium: 100, ai_flatlay_hd: 100,
       ai_outfit_visual_standard: 50,
-      ai_ppt_image_standard: 50,
+      ai_ppt_image_standard: 50, ai_ppt_image_hd: 100,
       ai_pixel_art: 50,
     }
 

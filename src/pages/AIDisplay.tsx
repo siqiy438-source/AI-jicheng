@@ -44,7 +44,6 @@ type DisplayPhase = "upload" | "identifying" | "analyzing" | "review" | "generat
 const lineOptions = [
   { id: "speed", name: "灵犀极速版", line: "standard" as const, resolution: "speed" as const },
   { id: "premium", name: "灵犀 Pro", line: "premium" as const, resolution: "2k" as const, badge: "优质" },
-  { id: "standard", name: "灵犀标准", line: "standard" as const, resolution: "default" as const },
   { id: "standard_2k", name: "灵犀 2K", line: "standard" as const, resolution: "2k" as const },
 ];
 
@@ -166,7 +165,7 @@ const AIDisplay = () => {
   const handleGenerate = async () => {
     if (!analysis || clothingImages.length === 0) return;
     const selectedLineOption = lineOptions.find(l => l.id === selectedLine) || lineOptions[0];
-    const featureCode = selectedLineOption.line === 'premium' ? 'ai_display_premium' : 'ai_display_standard';
+    const featureCode = selectedLineOption.line === 'premium' ? 'ai_display_premium' : (selectedLineOption.resolution === '2k' || selectedLineOption.resolution === '4k') ? 'ai_display_hd' : 'ai_display_standard';
     if (!checkCredits(featureCode)) return;
     setPhase("generating");
     setGeneratedImage(null);
@@ -429,7 +428,7 @@ const AIDisplay = () => {
                     <span>开始分析</span>
                   </button>
                   <CreditCostHint
-                    featureCode={lineOptions.find(o => o.id === selectedLine)?.line === 'premium' ? 'ai_display_premium' : 'ai_display_standard'}
+                    featureCode={lineOptions.find(o => o.id === selectedLine)?.line === 'premium' ? 'ai_display_premium' : (lineOptions.find(o => o.id === selectedLine)?.resolution === '2k' || lineOptions.find(o => o.id === selectedLine)?.resolution === '4k') ? 'ai_display_hd' : 'ai_display_standard'}
                   />
                 </div>
               </div>

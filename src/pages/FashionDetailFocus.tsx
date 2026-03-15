@@ -63,7 +63,6 @@ const DEFAULT_RATIO = "3:4";
 const LINE_OPTIONS = [
   { id: "speed", name: "灵犀极速版", line: "standard" as const, resolution: "speed" as const },
   { id: "premium", name: "灵犀 Pro", line: "premium" as const, resolution: "2k" as const, badge: "优质" },
-  { id: "standard", name: "灵犀标准", line: "standard" as const, resolution: "default" as const },
   { id: "standard_2k", name: "灵犀 2K", line: "standard" as const, resolution: "2k" as const },
   { id: "standard_4k", name: "灵犀 4K", line: "standard" as const, resolution: "4k" as const },
 ];
@@ -123,7 +122,7 @@ const FashionDetailFocus = () => {
   const canGenerateMain = Boolean(sourceImage && !mainFrame && !isGenerating);
   const canGenerateNext = Boolean(sourceImage && mainFrame && nextSlot && !isGenerating);
   const currentLineOption = LINE_OPTIONS.find((o) => o.id === selectedLine) ?? LINE_OPTIONS[0];
-  const featureCode = currentLineOption.line === "premium" ? "ai_detail_premium" : "ai_detail_standard";
+  const featureCode = currentLineOption.line === "premium" ? "ai_detail_premium" : (currentLineOption.resolution === "2k" || currentLineOption.resolution === "4k") ? "ai_detail_hd" : "ai_detail_standard";
 
   useEffect(() => {
     preloadDownloadImage(activeFrame?.image);

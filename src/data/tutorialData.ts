@@ -29,7 +29,7 @@ export const tutorials: ToolTutorial[] = [
     steps: [
       { stepNumber: 1, title: "上传服装图片", description: "点击上传区域，选择 1-3 张服装单品图片。支持 JPG、PNG、WebP 格式。" },
       { stepNumber: 2, title: "选择展示风格", description: "在风格选项中选择「平铺展示」或「人形摆拍」，两种风格呈现不同的展示效果。" },
-      { stepNumber: 3, title: "选择画质与比例", description: "选择输出线路（灵犀标准/Pro）和画面比例（推荐 9:16 竖版，适合电商详情页）。" },
+      { stepNumber: 3, title: "选择画质与比例", description: "选择输出线路（灵犀极速版/Pro/2K/4K）和画面比例（推荐 9:16 竖版，适合电商详情页）。" },
       { stepNumber: 4, title: "生成并下载", description: "点击「开始生成」按钮，等待 AI 生成完成后，点击下载按钮保存图片到本地。" },
     ],
   },

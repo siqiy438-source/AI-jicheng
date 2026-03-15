@@ -88,7 +88,6 @@ const PAGE_COUNTS = [3, 5, 8, 10, 12];
 // 线路选项
 const PPT_LINE_OPTIONS = [
   { id: "speed", name: "灵犀极速版", line: "standard" as const, resolution: "speed" as const },
-  { id: "standard", name: "灵犀标准", line: "standard" as const, resolution: "default" as const },
   { id: "standard_2k", name: "灵犀 2K", line: "standard" as const, resolution: "2k" as const },
   { id: "standard_4k", name: "灵犀 4K", line: "standard" as const, resolution: "4k" as const },
 ];
@@ -502,12 +501,13 @@ ${bulletText}
       toast({ title: "内容不足", description: "请至少补充页面标题、大纲要点或内容描述后再出图", variant: "destructive" });
       return;
     }
-    if (!checkCredits('ai_ppt_image_standard')) return;
+    const selectedLineOption = PPT_LINE_OPTIONS.find(l => l.id === selectedLine) || PPT_LINE_OPTIONS[0];
+    const pptFeatureCode = (selectedLineOption.resolution === '2k' || selectedLineOption.resolution === '4k') ? 'ai_ppt_image_hd' : 'ai_ppt_image_standard';
+    if (!checkCredits(pptFeatureCode)) return;
     setIsGeneratingImage(true);
 
     const isVoiceover = generationMode === 'voiceover';
     const imageDescription = buildImageDescriptionFromSlide(slide);
-    const selectedLineOption = PPT_LINE_OPTIONS.find(l => l.id === selectedLine) || PPT_LINE_OPTIONS[0];
     const result = await generateSlideImage({
       description: imageDescription,
       style,
@@ -515,7 +515,7 @@ ${bulletText}
       aspectRatio,
       line: selectedLineOption.line,
       resolution: selectedLineOption.resolution,
-      featureCode: "ai_ppt_image_standard",
+      featureCode: pptFeatureCode,
       isVoiceover,
       voiceoverTitle: isVoiceover ? slide.title : undefined,
       voiceoverBullets: isVoiceover
@@ -542,11 +542,12 @@ ${bulletText}
       toast({ title: "无需生成", description: "没有可出图的页面（请先补充标题/要点/描述）" });
       return;
     }
-    if (!checkCredits('ai_ppt_image_standard')) return;
+    const selectedLineOption2 = PPT_LINE_OPTIONS.find(l => l.id === selectedLine) || PPT_LINE_OPTIONS[0];
+    const pptFeatureCode2 = (selectedLineOption2.resolution === '2k' || selectedLineOption2.resolution === '4k') ? 'ai_ppt_image_hd' : 'ai_ppt_image_standard';
+    if (!checkCredits(pptFeatureCode2)) return;
     setIsGeneratingImage(true);
 
     const isVoiceover = generationMode === 'voiceover';
-    const selectedLineOption2 = PPT_LINE_OPTIONS.find(l => l.id === selectedLine) || PPT_LINE_OPTIONS[0];
     const newSlides = [...slides];
     for (let i = 0; i < newSlides.length; i++) {
       if (newSlides[i].generatedImage || !canGenerateImageFromSlide(newSlides[i])) continue;
@@ -559,7 +560,7 @@ ${bulletText}
         aspectRatio,
         line: selectedLineOption2.line,
         resolution: selectedLineOption2.resolution,
-        featureCode: "ai_ppt_image_standard",
+        featureCode: pptFeatureCode2,
         isVoiceover,
         voiceoverTitle: isVoiceover ? slide.title : undefined,
         voiceoverBullets: isVoiceover

@@ -85,7 +85,7 @@ describe("AIDrawing 线路选择", () => {
   test("切换到优质线路后传给后端", async () => {
     renderPage();
 
-    await userEvent.click(screen.getByRole("button", { name: /灵犀标准/ }));
+    await userEvent.click(screen.getByRole("button", { name: /灵犀极速版/ }));
     await userEvent.click(screen.getByRole("button", { name: /灵犀 Pro/ }));
     await userEvent.type(
       screen.getByPlaceholderText("输入你想要可视化的内容..."),

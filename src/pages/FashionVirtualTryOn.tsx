@@ -46,7 +46,6 @@ const ratioOptions = [
 const lineOptions = [
   { id: "speed", name: "灵犀极速版", line: "standard" as const, resolution: "speed" as const },
   { id: "premium", name: "灵犀 Pro", line: "premium" as const, resolution: "2k" as const, badge: "优质" },
-  { id: "standard", name: "灵犀标准", line: "standard" as const, resolution: "default" as const },
   { id: "standard_2k", name: "灵犀 2K", line: "standard" as const, resolution: "2k" as const },
   { id: "standard_4k", name: "灵犀 4K", line: "standard" as const, resolution: "4k" as const },
 ];
@@ -133,7 +132,7 @@ const FashionVirtualTryOn = () => {
   }, [generatedImage]);
 
   const currentLineOption = lineOptions.find((option) => option.id === selectedLine) ?? lineOptions[0];
-  const featureCode = currentLineOption.line === "premium" ? "ai_fashion_premium" : "ai_fashion_standard";
+  const featureCode = currentLineOption.line === "premium" ? "ai_fashion_premium" : (currentLineOption.resolution === "2k" || currentLineOption.resolution === "4k") ? "ai_fashion_hd" : "ai_fashion_standard";
   const hasRequiredGarments = garmentImages.length === multiPieceMode;
   const canGenerate = Boolean(modelImage && hasRequiredGarments && !isGenerating);
 
