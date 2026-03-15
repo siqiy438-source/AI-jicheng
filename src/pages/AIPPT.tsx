@@ -1162,6 +1162,29 @@ ${bulletText}
               </div>
             )}
           </div>
+          {/* Ratio selector (step 3) */}
+          <div className="relative" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => { setShowRatioMenu(!showRatioMenu); setShowStyleMenu(false); setShowTemplateMenu(false); }}
+              className="flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-lg text-xs bg-secondary/50 hover:bg-secondary border border-border/50 transition-all"
+            >
+              <span>{aspectRatio}</span>
+              <ChevronDown className={cn("w-3 h-3 transition-transform", showRatioMenu && "rotate-180")} />
+            </button>
+            {showRatioMenu && (
+              <div className="absolute top-full right-0 sm:left-0 sm:right-auto mt-2 bg-card border border-border rounded-xl shadow-lg py-1 z-10 w-[90px] max-w-[calc(100vw-2rem)] max-h-[168px] overflow-y-auto scrollbar-thin dropdown-panel">
+                {PPT_RATIOS.map((r) => (
+                  <button
+                    key={r.id}
+                    onClick={() => { setAspectRatio(r.id); setShowRatioMenu(false); }}
+                    className={cn("w-full px-3 py-2 text-sm hover:bg-secondary/50 text-left", aspectRatio === r.id && "bg-orange-50 text-orange-700")}
+                  >
+                    {r.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           {/* Resolution dropdown */}
           <LineStatusSelector
             selectedLine={selectedLine}
