@@ -1,3 +1,5 @@
+import { FASHION_EXPOSURE_SAFETY_RULES_EN } from "@/lib/fashion-safety";
+
 export type TryOnGarmentCategory = "auto" | "top" | "bottom" | "dress" | "outfit";
 export type TryOnReferenceMode = "single-garment" | "multi-piece";
 export type TryOnGarmentRole = "outer" | "top" | "inner" | "bottom";
@@ -141,6 +143,8 @@ REALISM RULES:
 - Match the lighting and color temperature of Image 1 exactly.
 - Preserve all visible skin, hair strands, fingers, and background edges cleanly.
 
+${FASHION_EXPOSURE_SAFETY_RULES_EN}
+
 OUTPUT RULES:
 - Output one final edited fashion photograph only.
 - No collage, no split screen, no before/after layout, no extra panels.
@@ -169,6 +173,19 @@ export function buildVirtualTryOnNegativePrompt(category: TryOnGarmentCategory, 
     "changed arm position",
     "extra clothing",
     "invented accessories",
+    "nudity",
+    "near-nudity",
+    "topless",
+    "bottomless",
+    "exposed nipples",
+    "exposed areola",
+    "exposed underbust",
+    "exposed genital area",
+    "exposed pubic area",
+    "butt crack",
+    "see-through private parts",
+    "transparent private parts",
+    "bare skin replacing clothing",
     "hat",
     "sunglasses",
     "bag",

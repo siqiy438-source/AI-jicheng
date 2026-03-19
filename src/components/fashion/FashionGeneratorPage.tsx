@@ -57,6 +57,7 @@ interface FashionGeneratorPageProps {
   extraCardContent?: React.ReactNode;
   styleAreaSiblingContent?: React.ReactNode;
   onStyleChange?: (styleId: string) => void;
+  validatePrompt?: (prompt: string) => string | null;
 }
 
 const ratioOptions = [
@@ -94,6 +95,7 @@ export const FashionGeneratorPage = ({
   extraCardContent,
   styleAreaSiblingContent,
   onStyleChange,
+  validatePrompt,
 }: FashionGeneratorPageProps) => {
   const navigate = useNavigate();
   const { checkCredits, showInsufficientDialog, requiredAmount, featureName, currentBalance, goToRecharge, dismissDialog } = useCreditCheck();
@@ -191,6 +193,11 @@ export const FashionGeneratorPage = ({
 
   const handleGenerate = async () => {
     if (!canGenerate) return;
+    const promptError = validatePrompt?.(prompt) ?? null;
+    if (promptError) {
+      toast.error("补充说明不支持", { description: promptError });
+      return;
+    }
 
     const selectedLineOption = lineOptions.find((lineOption) => lineOption.id === selectedLine) || lineOptions[0];
     const featureCode = featureCodePrefix

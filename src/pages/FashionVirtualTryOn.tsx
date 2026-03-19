@@ -25,6 +25,7 @@ import { generateImage } from "@/lib/ai-image";
 import { compressImage, downloadGeneratedImage, preloadDownloadImage } from "@/lib/image-utils";
 import { saveGeneratedImageWork } from "@/lib/repositories/works";
 import { cn } from "@/lib/utils";
+import { findExposurePolicyViolation } from "@/lib/fashion-safety";
 import {
   buildVirtualTryOnNegativePrompt,
   buildVirtualTryOnPrompt,
@@ -183,6 +184,11 @@ const FashionVirtualTryOn = () => {
 
   const handleGenerate = async () => {
     if (!modelImage || !hasRequiredGarments || !canGenerate) return;
+    const promptError = findExposurePolicyViolation(additionalNotes);
+    if (promptError) {
+      toast.error("补充说明不支持", { description: promptError });
+      return;
+    }
     if (!checkCredits(featureCode)) return;
 
     setIsGenerating(true);
@@ -517,10 +523,13 @@ const FashionVirtualTryOn = () => {
             <textarea
               value={additionalNotes}
               onChange={(event) => setAdditionalNotes(event.target.value)}
-              placeholder="例如：外套必须敞开穿、内搭要露出领口、下装保持高腰比例，不要自动增加未上传的衣服"
+              placeholder="例如：外套必须敞开穿、内搭要露出领口、下装保持高腰比例。支持正常露肤设计，不支持裸体化或敏感部位裸露"
               rows={3}
               className="w-full rounded-2xl border border-border bg-card/40 px-3 py-3 text-sm text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-2 focus:ring-orange-200"
             />
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+              支持露腰、露肩、露手臂等正常时装露肤；不支持裸体化、近似裸体或敏感部位裸露。
+            </p>
           </div>
         </section>
 

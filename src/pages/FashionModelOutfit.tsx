@@ -13,6 +13,7 @@ import {
   type Age,
   type Scene,
 } from "@/lib/fashion-prompts";
+import { FASHION_EXPOSURE_SAFETY_RULES_EN, findExposurePolicyViolation } from "@/lib/fashion-safety";
 import { cn } from "@/lib/utils";
 
 const buildModelPromptPrefix = (imageCount: number) => `STRICT MODEL RULES:
@@ -26,7 +27,9 @@ const buildModelPromptPrefix = (imageCount: number) => `STRICT MODEL RULES:
 - The model must be an East Asian / Chinese woman only, with realistic East Asian features and natural East Asian skin tone.
 - Do not depict Black, White, mixed-race, or other non-East-Asian model features.
 - Keep the original default face identity and the original camera angle / framing style of the selected mode. Do not change the established face template or viewpoint.
-- Hair can be adjusted to match the outfit style, such as a neat bun, ponytail, straight hair, or soft waves, but the face identity should remain stable.`;
+- Hair can be adjusted to match the outfit style, such as a neat bun, ponytail, straight hair, or soft waves, but the face identity should remain stable.
+
+${FASHION_EXPOSURE_SAFETY_RULES_EN}`;
 
 // ─── Age Selector Component ───────────────────────────────────────────────────
 
@@ -256,6 +259,7 @@ const FashionModelOutfit = () => {
       emptyStateHint="先上传服装照片，再添加补充说明（可选）开始创作"
       promptPrefixBuilder={buildModelPromptPrefix}
       onStyleChange={(styleId) => setSelectedStyleId(styleId)}
+      validatePrompt={findExposurePolicyViolation}
       extraCardContent={
         showSelectors ? (
           <div className="flex flex-col gap-3 mt-3 pt-3 border-t border-border">
