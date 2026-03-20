@@ -142,6 +142,7 @@ export function getBase64Size(base64: string): number {
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
+    img.crossOrigin = 'anonymous';
     img.onload = () => resolve(img);
     img.onerror = () => reject(new Error('图片加载失败'));
     img.src = src;
@@ -238,6 +239,122 @@ export async function mergeImagesToGrid(
   }
 
   return canvas.toDataURL('image/jpeg', 0.85);
+}
+
+export async function buildHangoutfitReferenceBoard({
+  garmentImages,
+  sceneReferenceSrc,
+}: {
+  garmentImages: string[];
+  sceneReferenceSrc: string;
+}): Promise<string> {
+  if (garmentImages.length === 0) {
+    throw new Error('没有服装图片可合并');
+  }
+
+  const [sceneImage, ...loadedGarments] = await Promise.all([
+    loadImage(sceneReferenceSrc),
+    ...garmentImages.map((image) => loadImage(image)),
+  ]);
+
+  const canvasW = 1600;
+  const canvasH = 1200;
+  const outer = 42;
+  const panelGap = 30;
+  const garmentPanelW = 780;
+  const panelH = canvasH - outer * 2;
+  const scenePanelW = canvasW - outer * 2 - panelGap - garmentPanelW;
+  const panelRadius = 30;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = canvasW;
+  canvas.height = canvasH;
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    throw new Error('无法创建 canvas context');
+  }
+
+  ctx.fillStyle = '#efe9e1';
+  ctx.fillRect(0, 0, canvasW, canvasH);
+
+  const garmentPanelX = outer;
+  const garmentPanelY = outer;
+  const scenePanelX = garmentPanelX + garmentPanelW + panelGap;
+  const scenePanelY = outer;
+
+  const drawRoundedPanel = (x: number, y: number, width: number, height: number) => {
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x + panelRadius, y);
+    ctx.arcTo(x + width, y, x + width, y + height, panelRadius);
+    ctx.arcTo(x + width, y + height, x, y + height, panelRadius);
+    ctx.arcTo(x, y + height, x, y, panelRadius);
+    ctx.arcTo(x, y, x + width, y, panelRadius);
+    ctx.closePath();
+    ctx.fillStyle = '#fbf9f6';
+    ctx.fill();
+    ctx.strokeStyle = '#d8cec2';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.restore();
+  };
+
+  drawRoundedPanel(garmentPanelX, garmentPanelY, garmentPanelW, panelH);
+  drawRoundedPanel(scenePanelX, scenePanelY, scenePanelW, panelH);
+
+  const garmentInnerPadding = 28;
+  const garmentGap = 18;
+  const garmentCount = loadedGarments.length;
+  const columns = garmentCount === 1 ? 1 : 2;
+  const rows = Math.ceil(garmentCount / columns);
+  const cellW = (garmentPanelW - garmentInnerPadding * 2 - garmentGap * (columns - 1)) / columns;
+  const cellH = (panelH - garmentInnerPadding * 2 - garmentGap * (rows - 1)) / rows;
+
+  loadedGarments.forEach((img, index) => {
+    const col = index % columns;
+    const row = Math.floor(index / columns);
+    const cellX = garmentPanelX + garmentInnerPadding + col * (cellW + garmentGap);
+    const cellY = garmentPanelY + garmentInnerPadding + row * (cellH + garmentGap);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(cellX, cellY, cellW, cellH);
+    ctx.strokeStyle = '#e4dbcf';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(cellX, cellY, cellW, cellH);
+
+    const scale = Math.min(cellW / img.width, cellH / img.height);
+    const drawW = img.width * scale;
+    const drawH = img.height * scale;
+    const dx = cellX + (cellW - drawW) / 2;
+    const dy = cellY + (cellH - drawH) / 2;
+    ctx.drawImage(img, 0, 0, img.width, img.height, dx, dy, drawW, drawH);
+
+    const badgeR = 22;
+    const badgeX = cellX + 34;
+    const badgeY = cellY + 34;
+    ctx.beginPath();
+    ctx.arc(badgeX, badgeY, badgeR, 0, Math.PI * 2);
+    ctx.fillStyle = '#2c2c2c';
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 22px Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(index + 1), badgeX, badgeY + 1);
+  });
+
+  const availableSceneW = scenePanelW - garmentInnerPadding * 2;
+  const availableSceneH = panelH - garmentInnerPadding * 2;
+  const sceneScale = Math.min(availableSceneW / sceneImage.width, availableSceneH / sceneImage.height);
+  const sceneDrawW = sceneImage.width * sceneScale;
+  const sceneDrawH = sceneImage.height * sceneScale;
+  const sceneDx = scenePanelX + (scenePanelW - sceneDrawW) / 2;
+  const sceneDy = scenePanelY + (panelH - sceneDrawH) / 2;
+
+  ctx.drawImage(sceneImage, 0, 0, sceneImage.width, sceneImage.height, sceneDx, sceneDy, sceneDrawW, sceneDrawH);
+
+  return canvas.toDataURL('image/jpeg', 0.9);
 }
 
 /**
