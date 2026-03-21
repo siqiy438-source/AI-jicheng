@@ -27,7 +27,7 @@ describe("ai-image provider resolution", () => {
     expect(premium.baseUrl).toBe("https://api.bltcy.ai");
     expect(premium.pathPrefix).toBe("v1beta");
     expect(premium.model).toBe(NORMAL_IMAGE_MODEL);
-    expect(premium.apiKeyEnv).toBe("BLTCY_PRO_API_KEY");
+    expect(premium.apiKeyEnv).toBe("ZENMUX_API_KEY");
   });
 
   test("极速线路使用 BLTCY 兼容别名，2K 使用专用高清模型", () => {

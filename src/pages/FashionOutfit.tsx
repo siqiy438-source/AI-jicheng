@@ -1,5 +1,5 @@
 import { FashionGeneratorPage, StyleOption } from "@/components/fashion/FashionGeneratorPage";
-import { FASHION_OUTFIT_FLATLAY_PROMPT, FASHION_OUTFIT_OOTD_PROMPT } from "@/lib/fashion-prompts";
+import { FASHION_OUTFIT_FLATLAY_PROMPT, FASHION_OUTFIT_OOTD_PROMPT, FASHION_OUTFIT_COMBO_PROMPT } from "@/lib/fashion-prompts";
 
 const outfitStyles: StyleOption[] = [
   {
@@ -15,6 +15,13 @@ const outfitStyles: StyleOption[] = [
     prompt: FASHION_OUTFIT_OOTD_PROMPT,
     iconSrc: "/icons/outfit-ootd-vintage.png",
     description: "模拟穿着姿态的人形摆盘，适合日常穿搭氛围图",
+  },
+  {
+    id: "outfit-combo",
+    name: "穿搭组合",
+    prompt: FASHION_OUTFIT_COMBO_PROMPT,
+    iconSrc: "/icons/outfit-combo-vintage.png",
+    description: "完整穿搭方案展示，多件单品分区排列，适合展示搭配灵感",
   },
 ];
 

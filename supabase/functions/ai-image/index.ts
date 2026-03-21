@@ -467,7 +467,121 @@ Flat-lay product showcase requirements:
     }
 
 
-    // ========== 标准/极速/2K/4K 线路：走 BLTCY generateContent 接口（支持多图参考）==========
+    // ========== 2K/4K 高清线路：走 BLTCY images/edits 接口 ==========
+    if (isHDResolution(resolvedResolution)) {
+      const hdModel = getHDModel(resolvedResolution)
+      const hdUrl = getHDApiUrl()
+
+      const formData = new FormData()
+      formData.append('model', hdModel)
+      formData.append('prompt', fullPrompt)
+      formData.append('n', '1')
+      formData.append('response_format', 'b64_json')
+
+      // BLTCY 的高清编辑接口要求始终传 image 字段。
+      // 有参考图时使用第一张；纯文生图时回退到 1x1 占位图。
+      if (images && Array.isArray(images) && images.length > 0) {
+        const firstImage = await resolveImageToDataUrl(images[0], allowedImageHosts)
+        const matches = firstImage.match(/^data:([^;]+);base64,(.+)$/)
+        if (matches) {
+          const binaryStr = atob(matches[2])
+          const bytes = new Uint8Array(binaryStr.length)
+          for (let i = 0; i < binaryStr.length; i++) {
+            bytes[i] = binaryStr.charCodeAt(i)
+          }
+          const blob = new Blob([bytes], { type: matches[1] })
+          formData.append('image', blob, 'image.png')
+        }
+      } else {
+        const placeholderB64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
+        const binaryStr = atob(placeholderB64)
+        const bytes = new Uint8Array(binaryStr.length)
+        for (let i = 0; i < binaryStr.length; i++) {
+          bytes[i] = binaryStr.charCodeAt(i)
+        }
+        const blob = new Blob([bytes], { type: 'image/png' })
+        formData.append('image', blob, 'placeholder.png')
+      }
+
+      const hdResponse = await fetch(hdUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${providerApiKey}`,
+        },
+        body: formData,
+      })
+
+      if (!hdResponse.ok) {
+        const errorText = await hdResponse.text()
+        console.error(`[ai-image] BLTCY HD (${hdModel}) API error: ${hdResponse.status} - ${errorText}`)
+        throw new Error(`BLTCY ${resolvedResolution.toUpperCase()} API 错误: ${hdResponse.status} - ${errorText}`)
+      }
+
+      const hdData = await hdResponse.json()
+      console.log(`[ai-image] BLTCY HD 响应结构 model=${hdModel}:`, JSON.stringify({
+        ...hdData,
+        data: Array.isArray(hdData?.data)
+          ? hdData.data.map((item: Record<string, unknown>) => (
+              item?.b64_json
+                ? { ...item, b64_json: '[BASE64_OMITTED]' }
+                : item
+            ))
+          : hdData?.data,
+      }))
+
+      let imageBase64: string | null = null
+      if (Array.isArray(hdData?.data) && hdData.data.length > 0) {
+        const item = hdData.data[0]
+        if (item?.b64_json) {
+          imageBase64 = `data:image/png;base64,${item.b64_json}`
+        } else if (item?.url) {
+          const imgResp = await fetch(item.url)
+          if (!imgResp.ok) {
+            throw new Error(`高清图片下载失败: ${imgResp.status}`)
+          }
+          const imgBuffer = await imgResp.arrayBuffer()
+          const imgBytes = new Uint8Array(imgBuffer)
+          let imgBinary = ''
+          const chunkSize = 8192
+          for (let i = 0; i < imgBytes.length; i += chunkSize) {
+            imgBinary += String.fromCharCode(...imgBytes.subarray(i, i + chunkSize))
+          }
+          imageBase64 = `data:image/png;base64,${btoa(imgBinary)}`
+        }
+      }
+
+      if (!imageBase64) {
+        console.error(`[ai-image] BLTCY HD 未找到图片数据，model=${hdModel}`)
+        throw new Error('未能生成高清图片')
+      }
+
+      let imageUrl: string | null = null
+      if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
+        imageUrl = await uploadImageToStorage(SUPABASE_URL, SUPABASE_SERVICE_KEY, imageBase64)
+      }
+
+      if (imageUrl) {
+        await finalizeCreditOperation(true)
+        console.log(`[ai-image] HD 图片已上传 Storage，返回 URL`)
+        return new Response(JSON.stringify({
+          success: true,
+          imageUrl,
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      await finalizeCreditOperation(true)
+      console.log(`[ai-image] HD Storage 上传失败，回退 base64`)
+      return new Response(JSON.stringify({
+        success: true,
+        imageBase64,
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    // ========== 标准/极速线路：走 BLTCY generateContent 接口 ==========
 
     // 构建 Vertex AI 格式的请求内容
     type PartType = { text: string } | { inlineData: { mimeType: string; data: string } }
