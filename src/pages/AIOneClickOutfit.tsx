@@ -10,7 +10,7 @@ import {
   buildHangoutfitReferenceBoard,
   compressImage,
   downloadGeneratedImage,
-  mergeImagesToGrid,
+  mergeImagesToGridWithAccessories,
   preloadDownloadImage,
 } from "@/lib/image-utils";
 import { generateImage } from "@/lib/ai-image";
@@ -28,9 +28,11 @@ import {
   getHangoutfitTemplateById,
   HANGOUTFIT_TEMPLATES,
 } from "@/lib/hangoutfit";
+import type { AccessoryUploadInfo } from "@/lib/hangoutfit";
 import {
   ArrowLeft,
   Download,
+  Footprints,
   Image,
   Loader2,
   RefreshCw,
@@ -64,8 +66,12 @@ const AIOneClickOutfit = () => {
     refreshBalance,
   } = useCreditCheck();
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const shoesInputRef = useRef<HTMLInputElement>(null);
+  const bagInputRef = useRef<HTMLInputElement>(null);
 
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [shoesImage, setShoesImage] = useState<string | null>(null);
+  const [bagImage, setBagImage] = useState<string | null>(null);
   const [selectedLine, setSelectedLine] = useState("speed");
   const [selectedTemplateId, setSelectedTemplateId] = useState(DEFAULT_TEMPLATE_ID);
   const [additionalNotes, setAdditionalNotes] = useState("");
@@ -73,6 +79,11 @@ const AIOneClickOutfit = () => {
   const [generationStep, setGenerationStep] = useState("");
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const { statuses } = useLineStatus();
+
+  const accessories: AccessoryUploadInfo = {
+    hasShoesImage: Boolean(shoesImage),
+    hasBagImage: Boolean(bagImage),
+  };
 
   const selectedTemplate = useMemo(
     () => getHangoutfitTemplateById(selectedTemplateId) ?? HANGOUTFIT_TEMPLATES[0],
@@ -131,6 +142,37 @@ const AIOneClickOutfit = () => {
     }
   };
 
+  const handleAccessoryUpload = async (
+    files: FileList | null,
+    setter: (value: string | null) => void,
+    inputRef: React.RefObject<HTMLInputElement | null>,
+  ) => {
+    if (!files || files.length === 0) return;
+    const file = Array.from(files).find((f) => f.type.startsWith("image/"));
+    if (!file) return;
+
+    try {
+      const compressed = await compressImage(file, {
+        maxWidth: 1024,
+        maxHeight: 1024,
+        quality: 0.85,
+      });
+      setter(compressed);
+      setGeneratedImage(null);
+    } catch {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setter(event.target?.result as string);
+        setGeneratedImage(null);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
+  };
+
   const handleGenerate = async () => {
     if (imagePreviews.length < 2 || imagePreviews.length > maxImages) return;
     const selectedLineOption = lineOptions.find((option) => option.id === selectedLine) || lineOptions[0];
@@ -152,36 +194,47 @@ const AIOneClickOutfit = () => {
 
       if (isDefaultTemplate) {
         setGenerationStep("正在整理服装与模板参考...");
-        referenceImage = await mergeImagesToGrid(imagePreviews, 380, 1, {
-          cellHeight: Math.round((380 * 16) / 9),
-          fit: "contain",
-        });
+        referenceImage = await mergeImagesToGridWithAccessories(
+          imagePreviews,
+          380,
+          1,
+          { cellHeight: Math.round((380 * 16) / 9), fit: "contain" },
+          { shoesImage: shoesImage ?? undefined, bagImage: bagImage ?? undefined },
+        );
         prompt = buildDefaultHangoutfitPrompt({
           uploadedCount,
           notes: additionalNotes,
+          accessories,
         });
-        negativePrompt = buildDefaultHangoutfitNegativePrompt(uploadedCount);
+        negativePrompt = buildDefaultHangoutfitNegativePrompt(uploadedCount, accessories);
       } else {
         setGenerationStep("正在整理服装与模板参考...");
         referenceImage = await buildHangoutfitReferenceBoard({
           garmentImages: imagePreviews,
           sceneReferenceSrc: selectedTemplate.sceneReferenceSrc,
           boardMode: selectedTemplate.referenceBoardMode,
+          shoesImage: shoesImage ?? undefined,
+          bagImage: bagImage ?? undefined,
         });
         prompt = buildHangoutfitPrompt({
           template: selectedTemplate,
           uploadedCount,
           notes: additionalNotes,
+          accessories,
         });
-        negativePrompt = buildHangoutfitNegativePrompt(selectedTemplate, uploadedCount);
+        negativePrompt = buildHangoutfitNegativePrompt(selectedTemplate, uploadedCount, accessories);
       }
+
+      const imagesToSend: string[] = [referenceImage];
+      if (shoesImage) imagesToSend.push(shoesImage);
+      if (bagImage) imagesToSend.push(bagImage);
 
       setGenerationStep("AI 正在生成挂搭图...");
       const response = await generateImage({
         prompt,
         negativePrompt,
         aspectRatio: "3:4",
-        images: [referenceImage],
+        images: imagesToSend,
         line: selectedLineOption.line,
         resolution: selectedLineOption.resolution,
         hasFrameworkPrompt: true,
@@ -216,6 +269,8 @@ const AIOneClickOutfit = () => {
           uploadedImageCount: uploadedCount,
           selectedTemplateId: selectedTemplate.id,
           referenceBoardMode: selectedTemplate.referenceBoardMode,
+          hasShoesImage: accessories.hasShoesImage,
+          hasBagImage: accessories.hasBagImage,
         }),
       }).catch((error) => {
         console.error("自动保存挂搭图失败", error);
@@ -345,10 +400,113 @@ const AIOneClickOutfit = () => {
         </div>
       </div>
 
+      <div className="glass-card rounded-xl md:rounded-2xl p-3 md:p-5 mb-3 md:mb-4 shadow-lg">
+        <div className="flex items-center gap-2 mb-3">
+          <ShoppingBag className="w-4 h-4 text-primary" />
+          <span className="text-sm font-medium text-foreground">第二步：上传配饰（可选）</span>
+        </div>
+
+        <p className="mb-3 text-xs text-muted-foreground">
+          可以上传你自己的鞋子或包包。不上传则系统自动搭配。
+        </p>
+
+        <div className="grid grid-cols-2 gap-3">
+          {/* 鞋子上传槽 */}
+          <div className="rounded-xl border border-border bg-card/60 p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <Footprints className="w-4 h-4 text-primary" />
+              <span className="text-xs font-medium text-foreground">鞋子</span>
+            </div>
+
+            {shoesImage ? (
+              <div className="relative group">
+                <img
+                  src={shoesImage}
+                  alt="鞋子参考"
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-28 md:h-36 object-cover rounded-lg border border-border bg-background"
+                />
+                <button
+                  onClick={() => {
+                    setShoesImage(null);
+                    setGeneratedImage(null);
+                  }}
+                  className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => shoesInputRef.current?.click()}
+                className="w-full h-28 md:h-36 rounded-lg border-2 border-dashed border-border hover:border-primary/40 flex flex-col items-center justify-center gap-1.5 text-muted-foreground hover:text-primary transition-colors"
+              >
+                <Upload className="w-5 h-5" />
+                <span className="text-xs">上传鞋子</span>
+              </button>
+            )}
+
+            <input
+              ref={shoesInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(event) => handleAccessoryUpload(event.target.files, setShoesImage, shoesInputRef)}
+            />
+          </div>
+
+          {/* 包包上传槽 */}
+          <div className="rounded-xl border border-border bg-card/60 p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <ShoppingBag className="w-4 h-4 text-primary" />
+              <span className="text-xs font-medium text-foreground">包包</span>
+            </div>
+
+            {bagImage ? (
+              <div className="relative group">
+                <img
+                  src={bagImage}
+                  alt="包包参考"
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-28 md:h-36 object-cover rounded-lg border border-border bg-background"
+                />
+                <button
+                  onClick={() => {
+                    setBagImage(null);
+                    setGeneratedImage(null);
+                  }}
+                  className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => bagInputRef.current?.click()}
+                className="w-full h-28 md:h-36 rounded-lg border-2 border-dashed border-border hover:border-primary/40 flex flex-col items-center justify-center gap-1.5 text-muted-foreground hover:text-primary transition-colors"
+              >
+                <Upload className="w-5 h-5" />
+                <span className="text-xs">上传包包</span>
+              </button>
+            )}
+
+            <input
+              ref={bagInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(event) => handleAccessoryUpload(event.target.files, setBagImage, bagInputRef)}
+            />
+          </div>
+        </div>
+      </div>
+
       <div className="glass-card rounded-xl md:rounded-2xl p-3 md:p-5 mb-4 shadow-lg">
         <div className="flex items-center gap-2 mb-3">
           <Sparkles className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium text-foreground">第二步：选择画画模板</span>
+          <span className="text-sm font-medium text-foreground">第三步：选择画面模板</span>
         </div>
 
         <div className="space-y-2.5">
@@ -402,7 +560,7 @@ const AIOneClickOutfit = () => {
       <div className="glass-card rounded-xl md:rounded-2xl p-3 md:p-5 mb-4 md:mb-6 shadow-lg">
         <div className="flex items-center gap-2 mb-3">
           <Sparkles className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium text-foreground">第三步：选择清晰度并生成</span>
+          <span className="text-sm font-medium text-foreground">第四步：选择清晰度并生成</span>
         </div>
 
         <div className="mb-3">

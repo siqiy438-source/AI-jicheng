@@ -258,30 +258,174 @@ export async function mergeImagesToGrid(
   return canvas.toDataURL('image/jpeg', 0.85);
 }
 
+export async function mergeImagesToGridWithAccessories(
+  garmentImages: string[],
+  cellSize: number,
+  columns: number,
+  options: { cellHeight?: number; fit?: 'cover' | 'contain' },
+  accessoryOptions?: { shoesImage?: string; bagImage?: string },
+): Promise<string> {
+  const hasShoes = Boolean(accessoryOptions?.shoesImage);
+  const hasBag = Boolean(accessoryOptions?.bagImage);
+  if (!hasShoes && !hasBag) {
+    return mergeImagesToGrid(garmentImages, cellSize, columns, options);
+  }
+
+  const accessoryEntries: { label: string; src: string }[] = [];
+  if (accessoryOptions?.shoesImage) accessoryEntries.push({ label: 'SHOES', src: accessoryOptions.shoesImage });
+  if (accessoryOptions?.bagImage) accessoryEntries.push({ label: 'BAG', src: accessoryOptions.bagImage });
+
+  const actualColumns = Math.min(columns, garmentImages.length);
+  const garmentRows = Math.ceil(garmentImages.length / actualColumns);
+  const gap = 6;
+  const labelH = 22;
+  const cellW = cellSize;
+  const cellH = options.cellHeight ?? cellSize;
+  const fit = options.fit ?? 'cover';
+
+  const accStripH = 160;
+  const dividerH = 20;
+
+  const canvasW = actualColumns * cellW + (actualColumns + 1) * gap;
+  const garmentAreaH = garmentRows * (cellH + labelH) + (garmentRows + 1) * gap;
+  const canvasH = garmentAreaH + dividerH + accStripH;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = canvasW;
+  canvas.height = canvasH;
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('无法创建 canvas context');
+
+  ctx.fillStyle = '#f5f5f5';
+  ctx.fillRect(0, 0, canvasW, canvasH);
+
+  for (let i = 0; i < garmentImages.length; i++) {
+    const col = i % actualColumns;
+    const row = Math.floor(i / actualColumns);
+    const x = gap + col * (cellW + gap);
+    const y = gap + row * (cellH + labelH + gap);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(x, y, cellW, cellH + labelH);
+    ctx.fillStyle = '#666666';
+    ctx.font = 'bold 13px Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`#${i + 1}`, x + cellW / 2, y + 15);
+
+    try {
+      const img = await loadImage(garmentImages[i]);
+      if (fit === 'contain') {
+        const scale = Math.min(cellW / img.width, cellH / img.height);
+        const drawW = img.width * scale;
+        const drawH = img.height * scale;
+        const dx = x + (cellW - drawW) / 2;
+        const dy = y + labelH + (cellH - drawH) / 2;
+        ctx.drawImage(img, 0, 0, img.width, img.height, dx, dy, drawW, drawH);
+      } else {
+        const size = Math.min(img.width, img.height);
+        const sx = (img.width - size) / 2;
+        const sy = (img.height - size) / 2;
+        ctx.drawImage(img, sx, sy, size, size, x, y + labelH, cellW, cellH);
+      }
+    } catch {
+      ctx.fillStyle = '#eeeeee';
+      ctx.fillRect(x, y + labelH, cellW, cellH);
+      ctx.fillStyle = '#999999';
+      ctx.font = '12px Arial';
+      ctx.fillText('加载失败', x + cellW / 2, y + labelH + cellH / 2);
+    }
+
+    ctx.strokeStyle = '#e0e0e0';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x, y, cellW, cellH + labelH);
+  }
+
+  const accY = garmentAreaH + dividerH;
+  const accGap = 8;
+  const accLabelH = 20;
+  const accCols = accessoryEntries.length;
+  const accCellW = (canvasW - (accCols + 1) * accGap) / accCols;
+  const accCellH = accStripH - accLabelH - accGap;
+
+  for (let i = 0; i < accessoryEntries.length; i++) {
+    const entry = accessoryEntries[i];
+    const ax = accGap + i * (accCellW + accGap);
+    const ay = accY;
+
+    ctx.fillStyle = '#a07850';
+    ctx.font = 'bold 12px Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText(entry.label, ax + accCellW / 2, ay);
+
+    const imgY = ay + accLabelH;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(ax, imgY, accCellW, accCellH);
+    ctx.strokeStyle = '#e0e0e0';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(ax, imgY, accCellW, accCellH);
+
+    try {
+      const img = await loadImage(entry.src);
+      drawImageContain(ctx, img, ax, imgY, accCellW, accCellH);
+    } catch {
+      ctx.fillStyle = '#eeeeee';
+      ctx.fillRect(ax, imgY, accCellW, accCellH);
+      ctx.fillStyle = '#999999';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('加载失败', ax + accCellW / 2, imgY + accCellH / 2);
+    }
+  }
+
+  return canvas.toDataURL('image/jpeg', 0.85);
+}
+
 export async function buildHangoutfitReferenceBoard({
   garmentImages,
   sceneReferenceSrc,
   boardMode = 'garments-plus-scene-template',
+  shoesImage,
+  bagImage,
 }: {
   garmentImages: string[];
   sceneReferenceSrc: string;
   boardMode?: HangoutfitReferenceBoardMode;
+  shoesImage?: string;
+  bagImage?: string;
 }): Promise<string> {
   if (garmentImages.length === 0) {
     throw new Error('没有服装图片可合并');
   }
+
+  const accessoryEntries: { label: string; src: string }[] = [];
+  if (shoesImage) accessoryEntries.push({ label: 'SHOES', src: shoesImage });
+  if (bagImage) accessoryEntries.push({ label: 'BAG', src: bagImage });
+  const hasAccessories = accessoryEntries.length > 0;
 
   const [sceneImage, ...loadedGarments] = await Promise.all([
     loadImage(sceneReferenceSrc),
     ...garmentImages.map((image) => loadImage(image)),
   ]);
 
+  const loadedAccessories = await Promise.all(
+    accessoryEntries.map(async (entry) => ({
+      label: entry.label,
+      img: await loadImage(entry.src),
+    })),
+  );
+
+  const accessoryStripH = hasAccessories ? 200 : 0;
+  const accessoryStripGap = hasAccessories ? 18 : 0;
+
   const canvasW = 1600;
-  const canvasH = 1200;
+  const canvasH = 1200 + accessoryStripH + accessoryStripGap;
   const outer = 42;
   const panelGap = 30;
   const garmentPanelW = 780;
-  const panelH = canvasH - outer * 2;
+  const panelH = 1200 - outer * 2;
   const scenePanelW = canvasW - outer * 2 - panelGap - garmentPanelW;
   const panelRadius = 30;
 
@@ -363,6 +507,39 @@ export async function buildHangoutfitReferenceBoard({
   const sceneDx = scenePanelX + (scenePanelW - availableSceneW) / 2;
   const sceneDy = scenePanelY + (panelH - availableSceneH) / 2;
   drawImageContain(ctx, sceneImage, sceneDx, sceneDy, availableSceneW, availableSceneH);
+
+  if (hasAccessories) {
+    const stripY = outer + panelH + accessoryStripGap;
+    const stripW = canvasW - outer * 2;
+    drawRoundedPanel(outer, stripY, stripW, accessoryStripH);
+
+    const accPadding = 20;
+    const accGap = 24;
+    const accCols = loadedAccessories.length;
+    const accCellW = (stripW - accPadding * 2 - accGap * (accCols - 1)) / accCols;
+    const labelH = 28;
+    const accCellH = accessoryStripH - accPadding * 2 - labelH;
+
+    loadedAccessories.forEach(({ label, img }, i) => {
+      const cx = outer + accPadding + i * (accCellW + accGap);
+      const cy = stripY + accPadding;
+
+      ctx.fillStyle = '#a07850';
+      ctx.font = 'bold 16px Arial, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText(label, cx + accCellW / 2, cy);
+
+      const imgY = cy + labelH;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(cx, imgY, accCellW, accCellH);
+      ctx.strokeStyle = '#e4dbcf';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(cx, imgY, accCellW, accCellH);
+
+      drawImageContain(ctx, img, cx, imgY, accCellW, accCellH);
+    });
+  }
 
   return canvas.toDataURL('image/jpeg', 0.9);
 }

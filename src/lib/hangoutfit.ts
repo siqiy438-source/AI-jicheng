@@ -13,15 +13,22 @@ export type HangoutfitReferenceBoardMode =
   | "garments-grid"
   | "garments-plus-scene-template";
 
+export interface AccessoryUploadInfo {
+  hasShoesImage: boolean;
+  hasBagImage: boolean;
+}
+
 export interface BuildHangoutfitPromptParams {
   template: HangoutfitTemplate;
   uploadedCount: number;
   notes?: string;
+  accessories?: AccessoryUploadInfo;
 }
 
 export interface BuildDefaultHangoutfitPromptParams {
   uploadedCount: number;
   notes?: string;
+  accessories?: AccessoryUploadInfo;
 }
 
 export interface BuildHangoutfitWorkMetadataParams {
@@ -30,11 +37,48 @@ export interface BuildHangoutfitWorkMetadataParams {
   hasAdditionalNotes: boolean;
   selectedTemplateId: string;
   referenceBoardMode: HangoutfitReferenceBoardMode;
+  hasShoesImage: boolean;
+  hasBagImage: boolean;
+}
+
+function buildAccessorySection(accessories?: AccessoryUploadInfo): string {
+  const hasShoes = accessories?.hasShoesImage ?? false;
+  const hasBag = accessories?.hasBagImage ?? false;
+
+  let imageIndexNote = "";
+  if (hasShoes && hasBag) {
+    imageIndexNote = "\n\n[IMPORTANT: Accessory Reference Images]\nYou are given additional separate reference images alongside the main garment reference board:\n- The 2nd image is a close-up photo of the SHOES to use. Reproduce this exact pair of shoes.\n- The 3rd image is a close-up photo of the BAG to use. Reproduce this exact handbag.\nThese are high-resolution accessory references. Copy them exactly.";
+  } else if (hasShoes) {
+    imageIndexNote = "\n\n[IMPORTANT: Accessory Reference Image]\nYou are given an additional separate reference image alongside the main garment reference board:\n- The 2nd image is a close-up photo of the SHOES to use. Reproduce this exact pair of shoes.\nThis is a high-resolution accessory reference. Copy it exactly.";
+  } else if (hasBag) {
+    imageIndexNote = "\n\n[IMPORTANT: Accessory Reference Image]\nYou are given an additional separate reference image alongside the main garment reference board:\n- The 2nd image is a close-up photo of the BAG to use. Reproduce this exact handbag.\nThis is a high-resolution accessory reference. Copy it exactly.";
+  }
+
+  const shoesLine = hasShoes
+    ? "Use the SHOES from the separate reference image provided. Reproduce their EXACT design, color, pattern, material, heel height, and silhouette with maximum fidelity. Place them casually on a small metal stool or directly on the floor beneath the rack."
+    : "Add a pair of women's shoes (heels, ballet flats, Mary Janes, or ankle boots) placed casually on a small metal stool or directly on the floor beneath the rack. Choose a style that complements the uploaded garments.";
+
+  const bagLine = hasBag
+    ? "Use the BAG from the separate reference image provided. Reproduce its EXACT design, color, material, shape, hardware (zippers, clasps, buckles), and strap style with maximum fidelity. Hang it on the rod or place it near the garments."
+    : "Add a delicate women's handbag or crossbody bag hanging on the rod. Choose a style that complements the uploaded garments.";
+
+  const fidelityReminder =
+    hasShoes || hasBag
+      ? "\n\n[CRITICAL: Accessory Fidelity — Highest Priority]\nThe user has provided their own accessory photos. These accessories MUST be reproduced with the SAME strict fidelity as the garments:\n- Exact color (do not change hue or saturation)\n- Exact material and texture (leather, suede, canvas, patent, snake-print, etc.)\n- Exact shape and silhouette\n- All hardware details (buckles, zippers, clasps, chains, studs)\n- Exact brand-specific design features\nDo NOT substitute, simplify, reinterpret, or replace them with a generic item. The output accessories must be visually identical to the uploaded reference photos."
+      : "";
+
+  return `[Instruction: Styling & Accessories]
+This is a women's fashion display. Add small feminine accessories to complete the scene:
+- ${shoesLine}
+- ${bagLine}
+- Include one visible editorial poster or magazine page clipped to the rod and hanging beside the garments as a premium boutique styling detail.
+The clipped paper accent should be clearly visible, slightly angled, lightweight, and secondary to the garments, not a big framed artwork. Place it near the upper-right side of the garment group, similar to a boutique magazine tear sheet loosely clipped onto the display rod. Keep the scene minimal and curated: at most one bag, one pair of women's footwear, and one clipped paper accent or one restrained green plant branch. Do not add extra props beyond these.${fidelityReminder}${imageIndexNote}`;
 }
 
 export function buildDefaultHangoutfitPrompt({
   uploadedCount,
   notes,
+  accessories,
 }: BuildDefaultHangoutfitPromptParams): string {
   return `[Core Setup: Minimal Hanging Rod]
 A real photograph of garments displayed on a slim, simple horizontal metal rod that spans across the frame. The rod is thin and understated — plain silver or light chrome, not thick or heavy. The garments hang on natural wooden hangers, giving a warm, authentic boutique feel.
@@ -50,9 +94,7 @@ Each garment MUST be an exact reproduction of the input reference image. Strictl
 - The exact fabric texture and material appearance (knit, woven, denim, silk, linen, etc.)
 Do NOT reinterpret, simplify, or creatively modify any garment. The output garments must look identical to the input photos.
 
-[Instruction: Styling & Accessories]
-This is a women's fashion display. Add small feminine accessories to complete the scene: a delicate women's handbag or crossbody bag hanging on the rod, and a pair of women's shoes (heels, ballet flats, Mary Janes, or ankle boots) placed casually on a small metal stool or directly on the floor beneath the rack. Include one visible editorial poster or magazine page clipped to the rod and hanging beside the garments as a premium boutique styling detail.
-The clipped paper accent should be clearly visible, slightly angled, lightweight, and secondary to the garments, not a big framed artwork. Place it near the upper-right side of the garment group, similar to a boutique magazine tear sheet loosely clipped onto the display rod. Keep the scene minimal and curated: at most one bag, one pair of women's footwear, and one clipped paper accent or one restrained green plant branch. Do not add extra props beyond these.
+${buildAccessorySection(accessories)}
 
 [Photography & Lighting]
 Shot from a near-frontal angle with a very slight offset. Soft, even, natural diffused daylight — as if coming from a large window nearby. The lighting is flat and gentle with minimal shadows. No dramatic side lighting, no strong directional light, no visible light source. Shadows are extremely subtle and soft.
@@ -77,13 +119,27 @@ Keep the camera slightly pulled back compared with a tight close-up, while still
 - Use only the uploaded garments. Do not add any extra clothing item that was not uploaded.
 - Each garment must be shown as fully and clearly as possible: complete silhouette, neckline, sleeves, hem, closures, pockets, trims, labels, embroidery, and other visible details.
 - Prioritize garment fidelity over styling creativity. When uncertain, copy the uploaded garment details conservatively instead of inventing missing parts.
+- The shoes and bag in the scene are styling props only and do NOT count as uploaded garments.
 - Generate exactly one final image only.
 
 ${notes?.trim() ? `[Additional Notes]\n${notes.trim()}` : ""}`;
 }
 
-export function buildDefaultHangoutfitNegativePrompt(uploadedCount: number): string {
+export function buildDefaultHangoutfitNegativePrompt(
+  uploadedCount: number,
+  accessories?: AccessoryUploadInfo,
+): string {
   const hasBottoms = uploadedCount === 3;
+  const hasShoes = accessories?.hasShoesImage ?? false;
+  const hasBag = accessories?.hasBagImage ?? false;
+
+  const accessoryNegatives: string[] = [];
+  if (hasShoes) {
+    accessoryNegatives.push("wrong shoes design", "different shoes than reference", "shoes color mismatch");
+  }
+  if (hasBag) {
+    accessoryNegatives.push("wrong bag design", "different bag than reference", "bag color mismatch");
+  }
 
   return `[Crucial Removal]
 studio equipment, light stands, softboxes, lighting gear, umbrella reflector, cables, behind the scenes elements, visible edge of softbox in frame, messy environment, cluttered background, dirty lower wall, stained baseboard, messy floor, dusty floor edge, clutter at bottom of frame, plant pot clutter.
@@ -92,10 +148,10 @@ studio equipment, light stands, softboxes, lighting gear, umbrella reflector, ca
 harsh shadows, dramatic side lighting, cinematic lighting, strong directional light, deep shadows, high contrast lighting, studio flash, HDR effect, specular highlights on metal, glossy reflections.
 
 [Quality Control]
-cropped garments, partial view, missing hem, missing sleeves, missing collar details, wrong buttons, wrong zipper, wrong pockets, wrong labels, wrong embroidery, flat lay, low quality, blurry, distorted fabric, CGI artifacts, CGI rendering, plastic texture, overly sharp, over-processed, merged garments, layered on same hanger, one complete worn outfit look, two garments fused together, color mixing between garments, same-style garments merged into one, too many props, overly busy composition, invented pants, invented skirt, invented extra garment${hasBottoms ? "" : ", three garments when only two were uploaded"}, camera too near, tight crop, garments too large in frame, wide empty foreground, cheap lower-frame styling, missing clipped editorial poster, oversized framed wall art, giant poster, readable poster text, gibberish poster text.`;
+cropped garments, partial view, missing hem, missing sleeves, missing collar details, wrong buttons, wrong zipper, wrong pockets, wrong labels, wrong embroidery, flat lay, low quality, blurry, distorted fabric, CGI artifacts, CGI rendering, plastic texture, overly sharp, over-processed, merged garments, layered on same hanger, one complete worn outfit look, two garments fused together, color mixing between garments, same-style garments merged into one, too many props, overly busy composition, invented pants, invented skirt, invented extra garment${hasBottoms ? "" : ", three garments when only two were uploaded"}, camera too near, tight crop, garments too large in frame, wide empty foreground, cheap lower-frame styling, missing clipped editorial poster, oversized framed wall art, giant poster, readable poster text, gibberish poster text${accessoryNegatives.length > 0 ? `, ${accessoryNegatives.join(", ")}` : ""}.`;
 }
 
-const COMMON_PROMPT_INTRO = `A real photograph of garments displayed on a slim, simple horizontal metal rod that spans across the frame. The rod is thin and understated — plain silver or light chrome, not thick or heavy. The garments hang on natural wooden hangers, giving a warm, authentic boutique feel.
+const COMMON_PROMPT_INTRO_BASE = `A real photograph of garments displayed on a slim, simple horizontal metal rod that spans across the frame. The rod is thin and understated — plain silver or light chrome, not thick or heavy. The garments hang on natural wooden hangers, giving a warm, authentic boutique feel.
 
 [Input Garment & Realism Patch]
 Using the uploaded garments from the reference board, display them with natural gravity and relaxed drape. Show realistic fabric weight, gentle natural wrinkles, and true-to-life textile textures. The clothes should look like they were casually hung up in a real store, not perfectly arranged for a catalog.
@@ -117,30 +173,71 @@ Do NOT reinterpret, simplify, or creatively modify any garment. The output garme
 - Sleeves should taper and hang with soft folds, not stick out like hollow tubes
 - Denim should feel heavier with realistic vertical drag and mild stacking, while blouses and lighter fabrics should feel softer and more fluid
 - Preserve structure where the real garment is tailored, but even structured garments must still show thickness, weight, and 3D fabric body
-- Avoid the appearance of a flattened front panel pasted onto the scene
+- Avoid the appearance of a flattened front panel pasted onto the scene`;
 
-[Reference Board Mapping]
-You are given one split reference board:
+function buildReferenceBoardMapping(accessories?: AccessoryUploadInfo): string {
+  const hasShoes = accessories?.hasShoesImage ?? false;
+  const hasBag = accessories?.hasBagImage ?? false;
+
+  let accessoryImageNote = "";
+  if (hasShoes && hasBag) {
+    accessoryImageNote = `\n\n[IMPORTANT: Separate Accessory Reference Images]\nIn addition to the reference board (1st image), you are given two more separate high-resolution images:\n- 2nd image: the exact SHOES to use in the scene. Reproduce them faithfully.\n- 3rd image: the exact BAG to use in the scene. Reproduce it faithfully.\nThese separate images show the accessories in full detail. Use them as the primary fidelity source for shoes and bag.`;
+  } else if (hasShoes) {
+    accessoryImageNote = `\n\n[IMPORTANT: Separate Accessory Reference Image]\nIn addition to the reference board (1st image), you are given one more separate high-resolution image:\n- 2nd image: the exact SHOES to use in the scene. Reproduce them faithfully.\nThis separate image shows the shoes in full detail. Use it as the primary fidelity source for shoes.`;
+  } else if (hasBag) {
+    accessoryImageNote = `\n\n[IMPORTANT: Separate Accessory Reference Image]\nIn addition to the reference board (1st image), you are given one more separate high-resolution image:\n- 2nd image: the exact BAG to use in the scene. Reproduce it faithfully.\nThis separate image shows the bag in full detail. Use it as the primary fidelity source for the bag.`;
+  }
+
+  return `[Reference Board Mapping]
+You are given one split reference board (the 1st image):
 - LEFT panel: uploaded garment references only. Each numbered tile is one independent garment item.
 - RIGHT panel: the target boutique scene template only.
 - Copy garment identity, color, details, and fabric ONLY from the LEFT panel.
 - Copy scene layout, wall/floor design, camera angle, lighting, furniture, props, and atmosphere ONLY from the RIGHT panel.
 - The RIGHT panel may contain placeholder hanging guides. These are scene guides only and must NOT remain in the final image.
 - Keep the boutique scene from the RIGHT panel, but replace any placeholder hanging guides with the uploaded garments from the LEFT panel.
-- The numbered markers, panel borders, and any guide graphics in the reference board are instruction aids only and must NEVER appear in the final image.
+- The numbered markers, panel borders, and any guide graphics in the reference board are instruction aids only and must NEVER appear in the final image.${accessoryImageNote}`;
+}
 
-[Styling & Accessories]
-This is a women's fashion display. Accessories are NOT fidelity-locked to the template.
-- If the scene needs accessories, choose at most one handbag and at most one pair of shoes that match the uploaded garments in style, color mood, and season.
-- The bag and shoes do NOT need to match the template reference exactly.
+function buildTemplateStylingSection(accessories?: AccessoryUploadInfo): string {
+  const hasShoes = accessories?.hasShoesImage ?? false;
+  const hasBag = accessories?.hasBagImage ?? false;
+
+  const shoesLine = hasShoes
+    ? "- The user has provided a separate high-resolution SHOES reference image. Use that EXACT pair of shoes in the scene. Reproduce their exact design, color, pattern, material, heel height, and silhouette. Place them in the natural template position for shoes."
+    : "- If the scene needs shoes, choose at most one pair of shoes that match the uploaded garments in style, color mood, and season.";
+
+  const bagLine = hasBag
+    ? "- The user has provided a separate high-resolution BAG reference image. Use that EXACT handbag in the scene. Reproduce its exact design, color, material, shape, hardware (zippers, clasps, buckles), and strap style. Place it in the natural template position for a bag."
+    : "- If the scene needs a handbag, choose at most one handbag that matches the uploaded garments in style, color mood, and season.";
+
+  const fidelityReminder =
+    hasShoes || hasBag
+      ? "\n- [CRITICAL: Accessory Fidelity — Highest Priority] The user-provided accessory references MUST be reproduced with the SAME strict fidelity as the garments: exact color, material, texture, shape, hardware, and brand-specific design. Do NOT substitute, reinterpret, or replace them with a generic item."
+      : "- The bag and shoes do NOT need to match the template reference exactly.";
+
+  return `[Styling & Accessories]
+This is a women's fashion display.
+${shoesLine}
+${bagLine}
+${fidelityReminder}
 - Include one visible clipped editorial poster or magazine page hanging beside the garments as a premium boutique styling accent.
 - The paper accent should be lightly clipped to the rod or hanger area, slightly angled, visually refined, clearly secondary to the garments, and preferably positioned near the upper-right side of the composition.
 - Treat the poster as atmosphere only, not as fidelity content. Do not try to reproduce exact text or exact cover art from any reference.
-- Prioritize a coherent boutique styling result over copying accessory shapes or colors.
-- Keep the scene curated and restrained. Do not add extra props beyond the template cues.
+- Prioritize a coherent boutique styling result over copying accessory shapes or colors (except for user-uploaded accessories which must be faithful).
+- Keep the scene curated and restrained. Do not add extra props beyond the template cues.`;
+}
+
+function buildCommonPromptIntro(accessories?: AccessoryUploadInfo): string {
+  return `${COMMON_PROMPT_INTRO_BASE}
+
+${buildReferenceBoardMapping(accessories)}
+
+${buildTemplateStylingSection(accessories)}
 
 [Output Goal]
 Create a boutique-ready hanging display photo that looks like it was shot in a real clothing store with an iPhone or mirrorless camera, not in a CGI studio.`;
+}
 
 const buildCommonConstraints = (uploadedCount: number) => `[Hard Constraints: Separation Is Mandatory]
 - You receive exactly ${uploadedCount} uploaded garments.
@@ -158,6 +255,7 @@ const buildCommonConstraints = (uploadedCount: number) => `[Hard Constraints: Se
 - Use only the uploaded garments. Do not add any extra clothing item that was not uploaded.
 - Each garment must be shown as fully and clearly as possible: complete silhouette, neckline, sleeves, hem, closures, pockets, trims, labels, embroidery, and other visible details.
 - Prioritize garment fidelity over styling creativity. When uncertain, copy the uploaded garment details conservatively instead of inventing missing parts.
+- The shoes and bag in the scene are styling props only and do NOT count as uploaded garments.
 - Generate exactly one final image only.`;
 
 const COMMON_NEGATIVE_PROMPT = `[Crucial Removal]
@@ -293,10 +391,11 @@ export function buildHangoutfitPrompt({
   template,
   uploadedCount,
   notes,
+  accessories,
 }: BuildHangoutfitPromptParams): string {
   const sections = [
     `[Core Setup: Boutique Hanging Display]`,
-    COMMON_PROMPT_INTRO,
+    buildCommonPromptIntro(accessories),
     template.prompt,
     buildCommonConstraints(uploadedCount),
   ];
@@ -311,13 +410,24 @@ export function buildHangoutfitPrompt({
 export function buildHangoutfitNegativePrompt(
   template: HangoutfitTemplate,
   uploadedCount: number,
+  accessories?: AccessoryUploadInfo,
 ): string {
   const conditional =
     uploadedCount === 2
       ? "three garments when only two were uploaded"
       : "two garments when three were uploaded, fewer garments than uploaded";
 
-  return `${COMMON_NEGATIVE_PROMPT}, ${conditional}, ${template.negativePrompt}`;
+  const hasShoes = accessories?.hasShoesImage ?? false;
+  const hasBag = accessories?.hasBagImage ?? false;
+  const accessoryNegatives: string[] = [];
+  if (hasShoes) {
+    accessoryNegatives.push("wrong shoes design", "different shoes than reference", "shoes color mismatch");
+  }
+  if (hasBag) {
+    accessoryNegatives.push("wrong bag design", "different bag than reference", "bag color mismatch");
+  }
+
+  return `${COMMON_NEGATIVE_PROMPT}, ${conditional}, ${template.negativePrompt}${accessoryNegatives.length > 0 ? `, ${accessoryNegatives.join(", ")}` : ""}`;
 }
 
 export function buildHangoutfitWorkMetadata({
@@ -326,6 +436,8 @@ export function buildHangoutfitWorkMetadata({
   hasAdditionalNotes,
   selectedTemplateId,
   referenceBoardMode,
+  hasShoesImage,
+  hasBagImage,
 }: BuildHangoutfitWorkMetadataParams) {
   return {
     line,
@@ -333,5 +445,7 @@ export function buildHangoutfitWorkMetadata({
     uploadedImageCount,
     selectedTemplateId,
     referenceBoardMode,
+    hasShoesImage,
+    hasBagImage,
   };
 }
