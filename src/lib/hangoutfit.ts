@@ -103,7 +103,7 @@ Shot from a near-frontal angle with a very slight offset. Soft, even, natural di
 Set in a cozy, minimalist clothing boutique. The background is a clean, plain off-white or light gray wall. The overall mood is warm, natural, and inviting — like a real indie fashion store, not a luxury showroom. The image should look like a casual iPhone photo taken in a well-lit shop.
 
 [Framing & Lower Scene Refinement]
-Keep the camera slightly pulled back compared with a tight close-up, while still preserving a composed boutique framing. Show a little more breathing room around the garments, but do not turn it into a wide or empty shot. The lower part of the wall and floor should feel neat, premium, and visually quiet: clean baseboard line, tidy floor area, no stains, no dust, no messy plant pot clutter, and no distracting objects near the bottom edge of frame. Keep the styling subtle so the garments still feel like the hero, while the overall lower frame reads cleaner and more elevated.
+Keep the camera slightly pulled back compared with a tight close-up, while still preserving a composed boutique framing. Show a little more breathing room around the garments, but do not turn it into a wide or empty shot. The wall-to-floor transition must look premium and seamless: either a flush invisible joint, a thin recessed shadow gap, or a very slim flat metal strip — absolutely NO cheap curved plastic baseboard, no bulky rounded skirting, no visible PVC trim. The floor should be clean polished concrete, micro-cement, or refined light stone. Keep the lower frame tidy, premium, and visually quiet: no stains, no dust, no messy plant pot clutter, and no distracting objects near the bottom edge of frame.
 
 [Hard Constraints: Separation Is Mandatory]
 - You receive exactly ${uploadedCount} uploaded garments.
@@ -148,7 +148,7 @@ studio equipment, light stands, softboxes, lighting gear, umbrella reflector, ca
 harsh shadows, dramatic side lighting, cinematic lighting, strong directional light, deep shadows, high contrast lighting, studio flash, HDR effect, specular highlights on metal, glossy reflections.
 
 [Quality Control]
-cropped garments, partial view, missing hem, missing sleeves, missing collar details, wrong buttons, wrong zipper, wrong pockets, wrong labels, wrong embroidery, flat lay, low quality, blurry, distorted fabric, CGI artifacts, CGI rendering, plastic texture, overly sharp, over-processed, merged garments, layered on same hanger, one complete worn outfit look, two garments fused together, color mixing between garments, same-style garments merged into one, too many props, overly busy composition, invented pants, invented skirt, invented extra garment${hasBottoms ? "" : ", three garments when only two were uploaded"}, camera too near, tight crop, garments too large in frame, wide empty foreground, cheap lower-frame styling, missing clipped editorial poster, oversized framed wall art, giant poster, readable poster text, gibberish poster text${accessoryNegatives.length > 0 ? `, ${accessoryNegatives.join(", ")}` : ""}.`;
+cropped garments, partial view, missing hem, missing sleeves, missing collar details, wrong buttons, wrong zipper, wrong pockets, wrong labels, wrong embroidery, flat lay, low quality, blurry, distorted fabric, CGI artifacts, CGI rendering, plastic texture, overly sharp, over-processed, merged garments, layered on same hanger, one complete worn outfit look, two garments fused together, color mixing between garments, same-style garments merged into one, too many props, overly busy composition, invented pants, invented skirt, invented extra garment${hasBottoms ? "" : ", three garments when only two were uploaded"}, camera too near, tight crop, garments too large in frame, wide empty foreground, cheap lower-frame styling, missing clipped editorial poster, oversized framed wall art, giant poster, readable poster text, gibberish poster text, cheap curved baseboard, bulky rounded skirting, PVC baseboard trim, plastic baseboard, thick white baseboard, visible baseboard molding${accessoryNegatives.length > 0 ? `, ${accessoryNegatives.join(", ")}` : ""}.`;
 }
 
 const COMMON_PROMPT_INTRO_BASE = `A real photograph of garments displayed on a slim, simple horizontal metal rod that spans across the frame. The rod is thin and understated — plain silver or light chrome, not thick or heavy. The garments hang on natural wooden hangers, giving a warm, authentic boutique feel.
@@ -265,7 +265,7 @@ studio equipment, light stands, softboxes, lighting gear, umbrella reflector, ca
 harsh shadows, dramatic side lighting, cinematic lighting, strong directional light, deep shadows, high contrast lighting, studio flash, HDR effect, specular highlights on metal, glossy reflections.
 
 [Quality Control]
-cropped garments, partial view, missing hem, missing sleeves, missing collar details, wrong buttons, wrong zipper, wrong pockets, wrong labels, wrong embroidery, flat lay, low quality, blurry, distorted fabric, CGI artifacts, CGI rendering, plastic texture, overly sharp, over-processed, merged garments, layered on same hanger, one complete worn outfit look, two garments fused together, color mixing between garments, same-style garments merged into one, too many props, overcrowded retail store, packed clothing rails, shelving full of merchandise, signage, missing clipped editorial poster, oversized poster, giant framed artwork, watermarks, readable text, gibberish letters, invented extra furniture, invented extra garments, paper-flat clothing, cardboard clothing, stiff fabric sheet, flat front panel, zero drape, frozen folds, hollow tube sleeves, ruler-straight hem, pasted-on garment look, extra empty hangers, spare hangers, decorative hangers, more hangers than garments`;
+cropped garments, partial view, missing hem, missing sleeves, missing collar details, wrong buttons, wrong zipper, wrong pockets, wrong labels, wrong embroidery, flat lay, low quality, blurry, distorted fabric, CGI artifacts, CGI rendering, plastic texture, overly sharp, over-processed, merged garments, layered on same hanger, one complete worn outfit look, two garments fused together, color mixing between garments, same-style garments merged into one, too many props, overcrowded retail store, packed clothing rails, shelving full of merchandise, signage, missing clipped editorial poster, oversized poster, giant framed artwork, watermarks, readable text, gibberish letters, invented extra furniture, invented extra garments, paper-flat clothing, cardboard clothing, stiff fabric sheet, flat front panel, zero drape, frozen folds, hollow tube sleeves, ruler-straight hem, pasted-on garment look, extra empty hangers, spare hangers, decorative hangers, more hangers than garments, cheap curved baseboard, bulky rounded skirting, PVC baseboard trim, plastic baseboard, thick white baseboard, visible baseboard molding`;
 
 export const HANGOUTFIT_TEMPLATES: HangoutfitTemplate[] = [
   {
@@ -276,7 +276,7 @@ export const HANGOUTFIT_TEMPLATES: HangoutfitTemplate[] = [
     sceneReferenceSrc: "/hangoutfit/default-template.svg",
     referenceBoardMode: "garments-grid",
     prompt: `[Template Scene: Minimal Boutique Default]
-Set the scene as a cozy, minimalist clothing boutique corner with a clean white wall and a subtle light gray floor. Keep the composition airy and uncluttered.
+Set the scene as a cozy, minimalist clothing boutique corner with a clean white wall and a refined polished concrete or micro-cement floor in light warm gray. The wall-to-floor transition must be premium and seamless: a flush invisible joint, a thin recessed shadow gap, or a very slim flat metal strip. Absolutely NO cheap curved plastic baseboard, no bulky rounded skirting, no PVC trim. Keep the composition airy and uncluttered.
 
 [Template Props]
 - One slim silver hanging rod across the frame
@@ -291,7 +291,7 @@ Shot from a left-front three-quarter angle, about 30-45 degrees toward the right
 
 [Environment & Vibe]
 Warm, natural, inviting, and realistic — like a real indie fashion store, not a luxury showroom. The image should feel like a casual but tasteful phone photo taken in a well-lit shop.`,
-    negativePrompt: `oversized furniture, loud decor, colorful signage, busy shop displays, visible shelving, checkout counter, oversized plant pots, green chair, branch installation, straight-on frontal view, symmetrical head-on shot, yellow wall, warm yellow cast, beige wall tint`,
+    negativePrompt: `oversized furniture, loud decor, colorful signage, busy shop displays, visible shelving, checkout counter, oversized plant pots, green chair, branch installation, straight-on frontal view, symmetrical head-on shot, yellow wall, warm yellow cast, beige wall tint, cheap curved baseboard, bulky rounded skirting, PVC baseboard, plastic baseboard molding, thick white baseboard`,
   },
   {
     id: "boutique-olive",
@@ -304,6 +304,7 @@ Warm, natural, inviting, and realistic — like a real indie fashion store, not 
 Recreate the right-side boutique template scene with high fidelity:
 - Clean matte white wall with only a faint cool-gray tonal variation
 - Refined light beige-gray stone floor with subtle seam lines and soft natural texture
+- The wall-to-floor transition must be premium and seamless: a flush invisible joint, a thin recessed shadow gap, or a very slim flat metal strip — absolutely NO cheap curved plastic baseboard, no bulky rounded skirting
 - One slim silver/chrome horizontal rod across the upper-middle composition, seen from a left-front three-quarter view so the rod recedes slightly toward the right
 - Use only the exact number of wooden hangers needed for the uploaded garments in the final result
 - One refined floral styling corner on the right side instead of a chair
@@ -334,7 +335,7 @@ Boutique phone-photo perspective from the left front at roughly 45 degrees, with
 
     [Visual Goal]
 The final result should feel like a premium seasonal boutique display: quiet, editorial, realistic, highly composed, and slightly brighter/cleaner than a moody autumn editorial, while still looking like a real store photo rather than a studio set.`,
-    negativePrompt: `missing floral styling corner, missing bare branches, missing birch-like trunk, missing clipped editorial poster, crowded showroom, mirrored wall, visible racks full of inventory, fashion model, mannequin torso, bright commercial signage, handwriting on the wall, unreadable text, hard spotlight, luxury marble showroom, purple tones, saturated colors, copying the exact same handbag from the template, copying the exact same boots from the template, straight-on frontal view, symmetrical head-on shot, yellow wall, warm yellow cast, beige wall tint, cheap plastic chair, chunky casual chair, oversized chair, too much empty floor, empty foreground void, wide vacant floor area, office chair, dining chair, stool, gaming chair, extreme close-up framing, camera too near, garments too large in frame, tight crop, camera too far away, distant wide shot, tiny garments in frame, bag and shoes scattered too far away, underexposed scene, dim lighting, moody darkness, crushed blacks, muddy shadows, gray dingy wall, dulled garment colors, extra empty hangers, spare hangers, decorative hangers, more hangers than garments`,
+    negativePrompt: `missing floral styling corner, missing bare branches, missing birch-like trunk, missing clipped editorial poster, crowded showroom, mirrored wall, visible racks full of inventory, fashion model, mannequin torso, bright commercial signage, handwriting on the wall, unreadable text, hard spotlight, luxury marble showroom, purple tones, saturated colors, copying the exact same handbag from the template, copying the exact same boots from the template, straight-on frontal view, symmetrical head-on shot, yellow wall, warm yellow cast, beige wall tint, cheap plastic chair, chunky casual chair, oversized chair, too much empty floor, empty foreground void, wide vacant floor area, office chair, dining chair, stool, gaming chair, extreme close-up framing, camera too near, garments too large in frame, tight crop, camera too far away, distant wide shot, tiny garments in frame, bag and shoes scattered too far away, underexposed scene, dim lighting, moody darkness, crushed blacks, muddy shadows, gray dingy wall, dulled garment colors, extra empty hangers, spare hangers, decorative hangers, more hangers than garments, cheap curved baseboard, bulky rounded skirting, PVC baseboard, plastic baseboard molding`,
   },
   {
     id: "editorial-round-table",
@@ -345,7 +346,7 @@ The final result should feel like a premium seasonal boutique display: quiet, ed
     referenceBoardMode: "garments-plus-scene-template",
     prompt: `[Template Scene: Editorial Round Table Boutique]
 Recreate the right-side boutique template scene with high fidelity:
-- A warm off-white matte wall with a subtle creamy tone and a clean curved baseboard line near the floor
+- A warm off-white matte wall with a subtle creamy tone and a seamless premium wall-to-floor transition (flush joint, thin recessed shadow gap, or slim flat metal strip — NO cheap curved plastic baseboard)
 - One slim silver horizontal rod spanning almost the full width of the composition across the upper section
 - Use only the exact number of wooden hangers needed for the uploaded garments in the final result
 - One hanging handbag anchor on the left side of the rod area, visually separate from the garments
@@ -379,7 +380,7 @@ Shoot from a near-frontal boutique phone-photo angle with only a very slight off
 
 [Visual Goal]
 The final result should feel like a tasteful boutique display directly inspired by the template image: warm, airy, realistic, neatly styled, and highly suitable for product presentation while still looking like a real in-store photo.`,
-    negativePrompt: `missing hanging handbag anchor, handbag replaced by garment, missing clipped editorial magazine page, missing round pedestal table, missing women's shoes on the table, missing jewelry bust, large empty wall, luxury showroom gloss, busy department store, visible shelves full of merchandise, stacked product boxes, mannequin body, human model, retail signage, cashier desk, oversized furniture, giant decor sculpture, floor mirror, sofa, armchair, bench, stool as main prop, bag and shoes too far from the garment group, round table moved to the center, garments not hanging on the rod, garment count mismatch, extra fourth garment, invented outerwear not uploaded, empty hangers, spare hangers, harsh yellow lighting, dim scene, moody darkness, dramatic spotlight, camera too close, distant wide shot`,
+    negativePrompt: `missing hanging handbag anchor, handbag replaced by garment, missing clipped editorial magazine page, missing round pedestal table, missing women's shoes on the table, missing jewelry bust, large empty wall, luxury showroom gloss, busy department store, visible shelves full of merchandise, stacked product boxes, mannequin body, human model, retail signage, cashier desk, oversized furniture, giant decor sculpture, floor mirror, sofa, armchair, bench, stool as main prop, bag and shoes too far from the garment group, round table moved to the center, garments not hanging on the rod, garment count mismatch, extra fourth garment, invented outerwear not uploaded, empty hangers, spare hangers, harsh yellow lighting, dim scene, moody darkness, dramatic spotlight, camera too close, distant wide shot, cheap curved baseboard, bulky rounded skirting, PVC baseboard, plastic baseboard molding`,
   },
 ];
 
