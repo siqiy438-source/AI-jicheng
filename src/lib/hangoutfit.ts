@@ -103,7 +103,7 @@ Shot from a near-frontal angle with a very slight offset. Soft, even, natural di
 Set in a cozy, minimalist clothing boutique. The background is a clean, plain off-white or light gray wall. The overall mood is warm, natural, and inviting — like a real indie fashion store, not a luxury showroom. The image should look like a casual iPhone photo taken in a well-lit shop.
 
 [Framing & Lower Scene Refinement]
-Keep the camera slightly pulled back compared with a tight close-up, while still preserving a composed boutique framing. Show a little more breathing room around the garments, but do not turn it into a wide or empty shot. The wall-to-floor transition must look premium and seamless: either a flush invisible joint, a thin recessed shadow gap, or a very slim flat metal strip — absolutely NO cheap curved plastic baseboard, no bulky rounded skirting, no visible PVC trim. The floor should be clean polished concrete, micro-cement, or refined light stone. Keep the lower frame tidy, premium, and visually quiet: no stains, no dust, no messy plant pot clutter, and no distracting objects near the bottom edge of frame.
+Keep the camera slightly pulled back compared with a tight close-up, while still preserving a composed boutique framing. Show a little more breathing room around the garments, but do not turn it into a wide or empty shot. The floor must be perfectly clean pure white or very light off-white — the same tone as the wall, creating a seamless, continuous white surface. No visible baseboard, no skirting, no trim of any kind. The wall simply meets the floor with a clean, invisible transition. The entire lower portion of the frame must be immaculately clean: no specks, no dust, no spots, no dirt particles, no stains, no debris, no texture noise. Pure, pristine white.
 
 [Hard Constraints: Separation Is Mandatory]
 - You receive exactly ${uploadedCount} uploaded garments.
@@ -148,7 +148,7 @@ studio equipment, light stands, softboxes, lighting gear, umbrella reflector, ca
 harsh shadows, dramatic side lighting, cinematic lighting, strong directional light, deep shadows, high contrast lighting, studio flash, HDR effect, specular highlights on metal, glossy reflections.
 
 [Quality Control]
-cropped garments, partial view, missing hem, missing sleeves, missing collar details, wrong buttons, wrong zipper, wrong pockets, wrong labels, wrong embroidery, flat lay, low quality, blurry, distorted fabric, CGI artifacts, CGI rendering, plastic texture, overly sharp, over-processed, merged garments, layered on same hanger, one complete worn outfit look, two garments fused together, color mixing between garments, same-style garments merged into one, too many props, overly busy composition, invented pants, invented skirt, invented extra garment${hasBottoms ? "" : ", three garments when only two were uploaded"}, camera too near, tight crop, garments too large in frame, wide empty foreground, cheap lower-frame styling, missing clipped editorial poster, oversized framed wall art, giant poster, readable poster text, gibberish poster text, cheap curved baseboard, bulky rounded skirting, PVC baseboard trim, plastic baseboard, thick white baseboard, visible baseboard molding${accessoryNegatives.length > 0 ? `, ${accessoryNegatives.join(", ")}` : ""}.`;
+cropped garments, partial view, missing hem, missing sleeves, missing collar details, wrong buttons, wrong zipper, wrong pockets, wrong labels, wrong embroidery, flat lay, low quality, blurry, distorted fabric, CGI artifacts, CGI rendering, plastic texture, overly sharp, over-processed, merged garments, layered on same hanger, one complete worn outfit look, two garments fused together, color mixing between garments, same-style garments merged into one, too many props, overly busy composition, invented pants, invented skirt, invented extra garment${hasBottoms ? "" : ", three garments when only two were uploaded"}, camera too near, tight crop, garments too large in frame, wide empty foreground, cheap lower-frame styling, missing clipped editorial poster, oversized framed wall art, giant poster, readable poster text, gibberish poster text, cheap curved baseboard, bulky rounded skirting, PVC baseboard trim, plastic baseboard, thick white baseboard, visible baseboard molding, dirty floor, floor specks, dust particles, floor debris, floor stains, textured dirty floor, gray floor${accessoryNegatives.length > 0 ? `, ${accessoryNegatives.join(", ")}` : ""}.`;
 }
 
 const COMMON_PROMPT_INTRO_BASE = `A real photograph of garments displayed on a slim, simple horizontal metal rod that spans across the frame. The rod is thin and understated — plain silver or light chrome, not thick or heavy. The garments hang on natural wooden hangers, giving a warm, authentic boutique feel.
@@ -265,7 +265,7 @@ studio equipment, light stands, softboxes, lighting gear, umbrella reflector, ca
 harsh shadows, dramatic side lighting, cinematic lighting, strong directional light, deep shadows, high contrast lighting, studio flash, HDR effect, specular highlights on metal, glossy reflections.
 
 [Quality Control]
-cropped garments, partial view, missing hem, missing sleeves, missing collar details, wrong buttons, wrong zipper, wrong pockets, wrong labels, wrong embroidery, flat lay, low quality, blurry, distorted fabric, CGI artifacts, CGI rendering, plastic texture, overly sharp, over-processed, merged garments, layered on same hanger, one complete worn outfit look, two garments fused together, color mixing between garments, same-style garments merged into one, too many props, overcrowded retail store, packed clothing rails, shelving full of merchandise, signage, missing clipped editorial poster, oversized poster, giant framed artwork, watermarks, readable text, gibberish letters, invented extra furniture, invented extra garments, paper-flat clothing, cardboard clothing, stiff fabric sheet, flat front panel, zero drape, frozen folds, hollow tube sleeves, ruler-straight hem, pasted-on garment look, extra empty hangers, spare hangers, decorative hangers, more hangers than garments, cheap curved baseboard, bulky rounded skirting, PVC baseboard trim, plastic baseboard, thick white baseboard, visible baseboard molding`;
+cropped garments, partial view, missing hem, missing sleeves, missing collar details, wrong buttons, wrong zipper, wrong pockets, wrong labels, wrong embroidery, flat lay, low quality, blurry, distorted fabric, CGI artifacts, CGI rendering, plastic texture, overly sharp, over-processed, merged garments, layered on same hanger, one complete worn outfit look, two garments fused together, color mixing between garments, same-style garments merged into one, too many props, overcrowded retail store, packed clothing rails, shelving full of merchandise, signage, missing clipped editorial poster, oversized poster, giant framed artwork, watermarks, readable text, gibberish letters, invented extra furniture, invented extra garments, paper-flat clothing, cardboard clothing, stiff fabric sheet, flat front panel, zero drape, frozen folds, hollow tube sleeves, ruler-straight hem, pasted-on garment look, extra empty hangers, spare hangers, decorative hangers, more hangers than garments, cheap curved baseboard, bulky rounded skirting, PVC baseboard trim, plastic baseboard, thick white baseboard, visible baseboard molding, dirty floor, floor specks, dust particles, floor debris, floor stains, textured dirty floor, speckled floor`;
 
 export const HANGOUTFIT_TEMPLATES: HangoutfitTemplate[] = [
   {
@@ -276,7 +276,7 @@ export const HANGOUTFIT_TEMPLATES: HangoutfitTemplate[] = [
     sceneReferenceSrc: "/hangoutfit/default-template.svg",
     referenceBoardMode: "garments-grid",
     prompt: `[Template Scene: Minimal Boutique Default]
-Set the scene as a cozy, minimalist clothing boutique corner with a clean white wall and a refined polished concrete or micro-cement floor in light warm gray. The wall-to-floor transition must be premium and seamless: a flush invisible joint, a thin recessed shadow gap, or a very slim flat metal strip. Absolutely NO cheap curved plastic baseboard, no bulky rounded skirting, no PVC trim. Keep the composition airy and uncluttered.
+Set the scene as a cozy, minimalist clothing boutique corner with a clean pure white wall and a pure white floor — wall and floor are the same white tone, creating one continuous seamless white surface. No baseboard, no skirting, no trim. The floor is immaculately clean with zero specks, dust, or debris. Keep the composition airy and uncluttered.
 
 [Template Props]
 - One slim silver hanging rod across the frame
@@ -303,8 +303,8 @@ Warm, natural, inviting, and realistic — like a real indie fashion store, not 
     prompt: `[Template Scene: Olive Boutique Editorial]
 Recreate the right-side boutique template scene with high fidelity:
 - Clean matte white wall with only a faint cool-gray tonal variation
-- Refined light beige-gray stone floor with subtle seam lines and soft natural texture
-- The wall-to-floor transition must be premium and seamless: a flush invisible joint, a thin recessed shadow gap, or a very slim flat metal strip — absolutely NO cheap curved plastic baseboard, no bulky rounded skirting
+- Pure white or very light off-white floor — same tone as the wall, creating a seamless continuous white surface with no visible baseboard or skirting
+- The floor must be immaculately clean: no specks, no dust spots, no debris, no texture noise
 - One slim silver/chrome horizontal rod across the upper-middle composition, seen from a left-front three-quarter view so the rod recedes slightly toward the right
 - Use only the exact number of wooden hangers needed for the uploaded garments in the final result
 - One refined floral styling corner on the right side instead of a chair
@@ -346,7 +346,7 @@ The final result should feel like a premium seasonal boutique display: quiet, ed
     referenceBoardMode: "garments-plus-scene-template",
     prompt: `[Template Scene: Editorial Round Table Boutique]
 Recreate the right-side boutique template scene with high fidelity:
-- A warm off-white matte wall with a subtle creamy tone and a seamless premium wall-to-floor transition (flush joint, thin recessed shadow gap, or slim flat metal strip — NO cheap curved plastic baseboard)
+- A warm off-white matte wall with a subtle creamy tone and a pure white or very light off-white floor — same tone as the wall, creating a seamless continuous surface with no visible baseboard, no skirting, no trim. The floor must be immaculately clean with zero specks or debris
 - One slim silver horizontal rod spanning almost the full width of the composition across the upper section
 - Use only the exact number of wooden hangers needed for the uploaded garments in the final result
 - One hanging handbag anchor on the left side of the rod area, visually separate from the garments
