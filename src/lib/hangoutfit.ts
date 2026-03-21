@@ -6,7 +6,12 @@ export interface HangoutfitTemplate {
   sceneReferenceSrc: string;
   prompt: string;
   negativePrompt: string;
+  referenceBoardMode: HangoutfitReferenceBoardMode;
 }
+
+export type HangoutfitReferenceBoardMode =
+  | "garments-grid"
+  | "garments-plus-scene-template";
 
 export interface BuildHangoutfitPromptParams {
   template: HangoutfitTemplate;
@@ -24,6 +29,7 @@ export interface BuildHangoutfitWorkMetadataParams {
   uploadedImageCount: number;
   hasAdditionalNotes: boolean;
   selectedTemplateId: string;
+  referenceBoardMode: HangoutfitReferenceBoardMode;
 }
 
 export function buildDefaultHangoutfitPrompt({
@@ -170,6 +176,7 @@ export const HANGOUTFIT_TEMPLATES: HangoutfitTemplate[] = [
     description: "极简白墙挂拍，干净利落，重点突出服装。",
     previewSrc: "/hangoutfit/default-template.svg",
     sceneReferenceSrc: "/hangoutfit/default-template.svg",
+    referenceBoardMode: "garments-grid",
     prompt: `[Template Scene: Minimal Boutique Default]
 Set the scene as a cozy, minimalist clothing boutique corner with a clean white wall and a subtle light gray floor. Keep the composition airy and uncluttered.
 
@@ -194,6 +201,7 @@ Warm, natural, inviting, and realistic — like a real indie fashion store, not 
     description: "白墙、银色挂杆、枝干花艺与软装摆件，偏秋冬买手店陈列。",
     previewSrc: "/hangoutfit/boutique-olive-template.svg",
     sceneReferenceSrc: "/hangoutfit/boutique-olive-template.svg",
+    referenceBoardMode: "garments-plus-scene-template",
     prompt: `[Template Scene: Olive Boutique Editorial]
 Recreate the right-side boutique template scene with high fidelity:
 - Clean matte white wall with only a faint cool-gray tonal variation
@@ -226,9 +234,54 @@ Recreate the right-side boutique template scene with high fidelity:
 [Photography & Lighting]
 Boutique phone-photo perspective from the left front at roughly 45 degrees, with a balanced medium framing. Use bright soft diffused daylight, a clean bright white wall, very gentle shadows, subtle depth, and realistic ambient indoor lighting. Lift the exposure slightly so the scene feels airy and premium rather than moody or dim. Preserve the uploaded garments' original colors while making the overall scene a touch brighter and cleaner. Keep the overall color temperature neutral or slightly cool. No dramatic contrast, no crushed blacks, no muddy shadows, and no yellow color cast.
 
-[Visual Goal]
+    [Visual Goal]
 The final result should feel like a premium seasonal boutique display: quiet, editorial, realistic, highly composed, and slightly brighter/cleaner than a moody autumn editorial, while still looking like a real store photo rather than a studio set.`,
     negativePrompt: `missing floral styling corner, missing bare branches, missing birch-like trunk, missing clipped editorial poster, crowded showroom, mirrored wall, visible racks full of inventory, fashion model, mannequin torso, bright commercial signage, handwriting on the wall, unreadable text, hard spotlight, luxury marble showroom, purple tones, saturated colors, copying the exact same handbag from the template, copying the exact same boots from the template, straight-on frontal view, symmetrical head-on shot, yellow wall, warm yellow cast, beige wall tint, cheap plastic chair, chunky casual chair, oversized chair, too much empty floor, empty foreground void, wide vacant floor area, office chair, dining chair, stool, gaming chair, extreme close-up framing, camera too near, garments too large in frame, tight crop, camera too far away, distant wide shot, tiny garments in frame, bag and shoes scattered too far away, underexposed scene, dim lighting, moody darkness, crushed blacks, muddy shadows, gray dingy wall, dulled garment colors, extra empty hangers, spare hangers, decorative hangers, more hangers than garments`,
+  },
+  {
+    id: "editorial-round-table",
+    name: "杂志圆台陈列",
+    description: "杂志页、圆台与包鞋点缀，画面更完整，更有精品店陈列感。",
+    previewSrc: "/hangoutfit/editorial-round-table-template.svg",
+    sceneReferenceSrc: "/hangoutfit/editorial-round-table-template.svg",
+    referenceBoardMode: "garments-plus-scene-template",
+    prompt: `[Template Scene: Editorial Round Table Boutique]
+Recreate the right-side boutique template scene with high fidelity:
+- A warm off-white matte wall with a subtle creamy tone and a clean curved baseboard line near the floor
+- One slim silver horizontal rod spanning almost the full width of the composition across the upper section
+- Use only the exact number of wooden hangers needed for the uploaded garments in the final result
+- One hanging handbag anchor on the left side of the rod area, visually separate from the garments
+- One slightly tilted clipped editorial magazine page near the upper-right rod area
+- One small round pedestal table in the lower-left area with a refined top surface
+- One pair of women's shoes placed on or around the round table
+- One dark sculptural jewelry bust or small accessory display near the round table as a subtle boutique styling detail
+
+[Template Styling Rules]
+- Preserve the clean, calm, realistic boutique mood from the template image
+- Keep the wall bright and warm, not gray, not yellow, and not dramatic
+- The handbag anchor on the left, the clipped editorial page on the right, and the round table with shoes at the lower-left are mandatory scene anchors and must remain visible
+- The garments are always the hero, but the scene should still feel like a fully composed store display rather than a blank wall
+- Keep the handbag as a scene prop only. It must not be replaced by an uploaded garment and it must not count as one of the uploaded clothing items
+- Keep the shoes and jewelry display compact and elegant; they should support the composition without becoming the main subject
+- Do not add shelves full of inventory, mannequin forms, store signage, or oversized decorative furniture
+- Maintain a balanced boutique composition with clear breathing room around the garments
+- Keep the overall styling premium, restrained, and phone-photo realistic rather than luxury showroom glossy
+
+[Garment Count Mapping]
+- If 2 garments are uploaded, show exactly 2 garments hanging on the rod
+- If 3 garments are uploaded, show exactly 3 garments hanging on the rod
+- The uploaded garments must appear as separate hanging pieces on the same rod with visible spacing
+- Do not invent a fourth garment
+- Do not omit any uploaded garment
+- Do not merge two garments into one
+- The handbag, shoes, round table, magazine page, and jewelry display are props only and do not count toward garment count
+
+[Photography & Lighting]
+Shoot from a near-frontal boutique phone-photo angle with only a very slight offset. Keep the framing balanced and moderately pulled back so the full hanging garments, the left handbag anchor, the upper-right clipped editorial page, and the lower-left round table styling can all be read in one composition. Use soft, even natural indoor daylight with a clean bright exposure, minimal shadows, and realistic gentle depth. No dramatic spotlight, no hard shadow, no moody darkness, and no yellow tungsten cast.
+
+[Visual Goal]
+The final result should feel like a tasteful boutique display directly inspired by the template image: warm, airy, realistic, neatly styled, and highly suitable for product presentation while still looking like a real in-store photo.`,
+    negativePrompt: `missing hanging handbag anchor, handbag replaced by garment, missing clipped editorial magazine page, missing round pedestal table, missing women's shoes on the table, missing jewelry bust, large empty wall, luxury showroom gloss, busy department store, visible shelves full of merchandise, stacked product boxes, mannequin body, human model, retail signage, cashier desk, oversized furniture, giant decor sculpture, floor mirror, sofa, armchair, bench, stool as main prop, bag and shoes too far from the garment group, round table moved to the center, garments not hanging on the rod, garment count mismatch, extra fourth garment, invented outerwear not uploaded, empty hangers, spare hangers, harsh yellow lighting, dim scene, moody darkness, dramatic spotlight, camera too close, distant wide shot`,
   },
 ];
 
@@ -255,7 +308,10 @@ export function buildHangoutfitPrompt({
   return sections.join("\n\n");
 }
 
-export function buildHangoutfitNegativePrompt(template: HangoutfitTemplate, uploadedCount: number): string {
+export function buildHangoutfitNegativePrompt(
+  template: HangoutfitTemplate,
+  uploadedCount: number,
+): string {
   const conditional =
     uploadedCount === 2
       ? "three garments when only two were uploaded"
@@ -269,12 +325,13 @@ export function buildHangoutfitWorkMetadata({
   uploadedImageCount,
   hasAdditionalNotes,
   selectedTemplateId,
+  referenceBoardMode,
 }: BuildHangoutfitWorkMetadataParams) {
   return {
     line,
     hasAdditionalNotes,
     uploadedImageCount,
     selectedTemplateId,
-    referenceBoardMode: "garments-plus-scene-template",
+    referenceBoardMode,
   };
 }

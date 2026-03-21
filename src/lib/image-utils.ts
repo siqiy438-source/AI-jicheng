@@ -4,6 +4,7 @@
  * 支持根据设备性能自动调整压缩参数
  */
 
+import type { HangoutfitReferenceBoardMode } from './hangoutfit';
 import { getRecommendedImageQuality, getRecommendedImageSize } from './device-detection';
 
 const MOBILE_UA_REGEX = /iPhone|iPad|iPod|Android/i;
@@ -149,6 +150,22 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
+function drawImageContain(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+) {
+  const scale = Math.min(width / img.width, height / img.height);
+  const drawW = img.width * scale;
+  const drawH = img.height * scale;
+  const dx = x + (width - drawW) / 2;
+  const dy = y + (height - drawH) / 2;
+  ctx.drawImage(img, 0, 0, img.width, img.height, dx, dy, drawW, drawH);
+}
+
 /**
  * 将多张图片合并为带编号的网格拼图
  * 用于 AI 陈列功能，将多件衣服合并为一张图发送给 API
@@ -244,9 +261,11 @@ export async function mergeImagesToGrid(
 export async function buildHangoutfitReferenceBoard({
   garmentImages,
   sceneReferenceSrc,
+  boardMode = 'garments-plus-scene-template',
 }: {
   garmentImages: string[];
   sceneReferenceSrc: string;
+  boardMode?: HangoutfitReferenceBoardMode;
 }): Promise<string> {
   if (garmentImages.length === 0) {
     throw new Error('没有服装图片可合并');
@@ -323,12 +342,7 @@ export async function buildHangoutfitReferenceBoard({
     ctx.lineWidth = 2;
     ctx.strokeRect(cellX, cellY, cellW, cellH);
 
-    const scale = Math.min(cellW / img.width, cellH / img.height);
-    const drawW = img.width * scale;
-    const drawH = img.height * scale;
-    const dx = cellX + (cellW - drawW) / 2;
-    const dy = cellY + (cellH - drawH) / 2;
-    ctx.drawImage(img, 0, 0, img.width, img.height, dx, dy, drawW, drawH);
+    drawImageContain(ctx, img, cellX, cellY, cellW, cellH);
 
     const badgeR = 22;
     const badgeX = cellX + 34;
@@ -346,13 +360,9 @@ export async function buildHangoutfitReferenceBoard({
 
   const availableSceneW = scenePanelW - garmentInnerPadding * 2;
   const availableSceneH = panelH - garmentInnerPadding * 2;
-  const sceneScale = Math.min(availableSceneW / sceneImage.width, availableSceneH / sceneImage.height);
-  const sceneDrawW = sceneImage.width * sceneScale;
-  const sceneDrawH = sceneImage.height * sceneScale;
-  const sceneDx = scenePanelX + (scenePanelW - sceneDrawW) / 2;
-  const sceneDy = scenePanelY + (panelH - sceneDrawH) / 2;
-
-  ctx.drawImage(sceneImage, 0, 0, sceneImage.width, sceneImage.height, sceneDx, sceneDy, sceneDrawW, sceneDrawH);
+  const sceneDx = scenePanelX + (scenePanelW - availableSceneW) / 2;
+  const sceneDy = scenePanelY + (panelH - availableSceneH) / 2;
+  drawImageContain(ctx, sceneImage, sceneDx, sceneDy, availableSceneW, availableSceneH);
 
   return canvas.toDataURL('image/jpeg', 0.9);
 }

@@ -49,7 +49,6 @@ const lineOptions = [
   { id: "standard_4k", name: "灵犀 4K", line: "standard" as const, resolution: "4k" as const },
 ];
 
-const MAX_IMAGES = 3;
 const DEFAULT_TEMPLATE_ID = HANGOUTFIT_TEMPLATES[0]?.id ?? "default";
 
 const AIOneClickOutfit = () => {
@@ -79,6 +78,9 @@ const AIOneClickOutfit = () => {
     () => getHangoutfitTemplateById(selectedTemplateId) ?? HANGOUTFIT_TEMPLATES[0],
     [selectedTemplateId],
   );
+  const maxImages = 3;
+  const uploadDescription =
+    "支持上传 2-3 张服装图。系统会把每张图都当成独立服装参考，按所选模板生成对应场景，并严格按上传件数展示。";
 
   useEffect(() => {
     preloadDownloadImage(generatedImage);
@@ -87,7 +89,7 @@ const AIOneClickOutfit = () => {
   const handleUpload = async (files: FileList | null) => {
     if (!files) return;
 
-    const remainingSlots = MAX_IMAGES - imagePreviews.length;
+    const remainingSlots = maxImages - imagePreviews.length;
     const filesToProcess = Array.from(files)
       .filter((file) => file.type.startsWith("image/"))
       .slice(0, remainingSlots);
@@ -130,7 +132,7 @@ const AIOneClickOutfit = () => {
   };
 
   const handleGenerate = async () => {
-    if (imagePreviews.length < 2) return;
+    if (imagePreviews.length < 2 || imagePreviews.length > maxImages) return;
     const selectedLineOption = lineOptions.find((option) => option.id === selectedLine) || lineOptions[0];
     const featureCode =
       selectedLineOption.resolution === "2k" || selectedLineOption.resolution === "4k"
@@ -142,31 +144,37 @@ const AIOneClickOutfit = () => {
     setGeneratedImage(null);
 
     try {
-      setGenerationStep("正在整理服装与模板参考...");
       const uploadedCount = imagePreviews.length;
       const isDefaultTemplate = selectedTemplate.id === "default";
-      const referenceImage = isDefaultTemplate
-        ? await mergeImagesToGrid(imagePreviews, 380, 1, {
-            cellHeight: Math.round((380 * 16) / 9),
-            fit: "contain",
-          })
-        : await buildHangoutfitReferenceBoard({
-            garmentImages: imagePreviews,
-            sceneReferenceSrc: selectedTemplate.sceneReferenceSrc,
-          });
-      const prompt = isDefaultTemplate
-        ? buildDefaultHangoutfitPrompt({
-            uploadedCount,
-            notes: additionalNotes,
-          })
-        : buildHangoutfitPrompt({
-            template: selectedTemplate,
-            uploadedCount,
-            notes: additionalNotes,
-          });
-      const negativePrompt = isDefaultTemplate
-        ? buildDefaultHangoutfitNegativePrompt(uploadedCount)
-        : buildHangoutfitNegativePrompt(selectedTemplate, uploadedCount);
+      let referenceImage: string;
+      let prompt: string;
+      let negativePrompt: string;
+
+      if (isDefaultTemplate) {
+        setGenerationStep("正在整理服装与模板参考...");
+        referenceImage = await mergeImagesToGrid(imagePreviews, 380, 1, {
+          cellHeight: Math.round((380 * 16) / 9),
+          fit: "contain",
+        });
+        prompt = buildDefaultHangoutfitPrompt({
+          uploadedCount,
+          notes: additionalNotes,
+        });
+        negativePrompt = buildDefaultHangoutfitNegativePrompt(uploadedCount);
+      } else {
+        setGenerationStep("正在整理服装与模板参考...");
+        referenceImage = await buildHangoutfitReferenceBoard({
+          garmentImages: imagePreviews,
+          sceneReferenceSrc: selectedTemplate.sceneReferenceSrc,
+          boardMode: selectedTemplate.referenceBoardMode,
+        });
+        prompt = buildHangoutfitPrompt({
+          template: selectedTemplate,
+          uploadedCount,
+          notes: additionalNotes,
+        });
+        negativePrompt = buildHangoutfitNegativePrompt(selectedTemplate, uploadedCount);
+      }
 
       setGenerationStep("AI 正在生成挂搭图...");
       const response = await generateImage({
@@ -207,6 +215,7 @@ const AIOneClickOutfit = () => {
           hasAdditionalNotes: Boolean(additionalNotes.trim()),
           uploadedImageCount: uploadedCount,
           selectedTemplateId: selectedTemplate.id,
+          referenceBoardMode: selectedTemplate.referenceBoardMode,
         }),
       }).catch((error) => {
         console.error("自动保存挂搭图失败", error);
@@ -229,7 +238,7 @@ const AIOneClickOutfit = () => {
     }
   };
 
-  const canGenerate = Boolean(imagePreviews.length >= 2 && !isGenerating);
+  const canGenerate = Boolean(imagePreviews.length >= 2 && imagePreviews.length <= maxImages && !isGenerating);
 
   return (
     <PageLayout className="py-2 md:py-8">
@@ -261,15 +270,15 @@ const AIOneClickOutfit = () => {
           <span className="text-sm font-medium text-foreground">第一步：上传服装</span>
         </div>
 
-        <p className="mb-3 text-xs text-muted-foreground">
-          支持上传 2-3 张服装图。系统会把每张图都当成独立服装参考，完整展示版型和细节；只上传 2 张时，不会补第三件衣服。
-        </p>
+          <p className="mb-3 text-xs text-muted-foreground">
+          {uploadDescription}
+          </p>
 
         <div className="rounded-xl border border-border bg-card/60 p-3">
           <div className="flex items-center gap-2 mb-2.5">
             <Image className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium text-foreground">上传服装照片</span>
-            <span className="text-xs text-muted-foreground ml-auto">{imagePreviews.length}/{MAX_IMAGES}</span>
+            <span className="text-xs text-muted-foreground ml-auto">{imagePreviews.length}/{maxImages}</span>
           </div>
 
           {imagePreviews.length > 0 ? (
@@ -303,13 +312,13 @@ const AIOneClickOutfit = () => {
                   </div>
                 ))}
 
-                {imagePreviews.length < MAX_IMAGES && (
+                {imagePreviews.length < maxImages && (
                   <button
                     onClick={() => imageInputRef.current?.click()}
                     className="h-32 md:h-44 rounded-lg border-2 border-dashed border-border hover:border-primary/40 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary transition-colors"
                   >
                     <Upload className="w-5 h-5" />
-                    <span className="text-xs">继续上传</span>
+                  <span className="text-xs">继续上传</span>
                   </button>
                 )}
               </div>
@@ -321,7 +330,7 @@ const AIOneClickOutfit = () => {
             >
               <Upload className="w-8 h-8" />
               <span className="text-sm">点击上传服装照片</span>
-              <span className="text-xs text-muted-foreground">支持最多 3 张图片</span>
+              <span className="text-xs text-muted-foreground">{`支持最多 ${maxImages} 张图片`}</span>
             </button>
           )}
 
