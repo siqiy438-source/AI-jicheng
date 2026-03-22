@@ -54,13 +54,13 @@ export const tutorials: ToolTutorial[] = [
     category: "fashion",
     iconSrc: "/icons/fashion-outfit-custom.webp",
     route: "/fashion-detail-focus",
-    summary: "上传单品，自动生成主图和 3 张细节特写图。",
+    summary: "上传单品，先出主图，再从 AI 推荐中选 3 个细节一键生成。",
     tutorialImage: "/tutorials/fashion-detail-focus.webp",
     steps: [
-      { stepNumber: 1, title: "上传单品图片", description: "上传一张服装单品的完整图片，系统将基于此图生成主图和细节特写。" },
-      { stepNumber: 2, title: "生成主图", description: "系统首先生成一张高质量的服装主图，作为后续细节特写的基础。" },
-      { stepNumber: 3, title: "生成细节特写", description: "AI 自动识别并生成 3 张细节特写：结构特写、元素特写（纽扣/拉链/口袋等真实存在细节）、工艺/纹理特写。" },
-      { stepNumber: 4, title: "查看与下载", description: "浏览全部 4 张生成图片（1 张主图 + 3 张细节），可逐张下载或全部保存。" },
+      { stepNumber: 1, title: "上传单品图片", description: "上传一张服装单品的完整图片，系统会先为这件衣服生成主图。" },
+      { stepNumber: 2, title: "生成主图并分析建议", description: "主图生成后，AI 会分析这件衣服最值得展示的真实细节，并给出多个候选项。" },
+      { stepNumber: 3, title: "选择 3 个细节", description: "从候选项里选出 3 个想看的细节，也可以输入自定义要求替换其中 1 个名额。" },
+      { stepNumber: 4, title: "批量生成并查看", description: "一键批量生成 3 张细节图。主图和每张细节图都会保存到“我的作品”里，方便回看历史。" },
     ],
   },
   {

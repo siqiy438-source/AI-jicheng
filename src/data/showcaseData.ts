@@ -44,7 +44,7 @@ export const showcaseCategories: ShowcaseCategory[] = [
       {
         id: "detail-focus",
         title: "AI 细节特写",
-        description: "先生成主图，再按衣服真实存在的元素输出细节特写",
+        description: "先生成主图，再由你选择 3 个真实细节，一键批量生成特写",
         beforeImages: ["/showcase/detail-before-1.webp"],
         afterImages: ["/showcase/detail-after.webp", "/showcase/detail-after-2.webp"],
         toolRoute: "/fashion-detail-focus",

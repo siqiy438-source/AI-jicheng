@@ -51,7 +51,7 @@ const tools: ToolItem[] = [
   },
   {
     title: "AI 细节特写",
-    description: "先生成主图，再按衣服真实存在的元素输出细节特写。",
+    description: "先生成主图，再由你选择 3 个真实细节，一键批量生成特写。",
     iconSrc: "/icons/fashion-detail-focus-custom.png",
     to: "/fashion-detail-focus",
   },
