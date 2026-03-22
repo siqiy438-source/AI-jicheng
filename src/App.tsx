@@ -31,6 +31,7 @@ const AIDisplay = lazy(() => import("./pages/AIDisplay"));
 const AIOneClickOutfit = lazy(() => import("./pages/AIOneClickOutfit"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Clothing = lazy(() => import("./pages/Clothing"));
+const FashionBreakdown = lazy(() => import("./pages/FashionBreakdown"));
 const FashionOutfit = lazy(() => import("./pages/FashionOutfit"));
 const FashionModelOutfit = lazy(() => import("./pages/FashionModelOutfit"));
 const FashionVirtualTryOn = lazy(() => import("./pages/FashionVirtualTryOn"));
@@ -77,6 +78,7 @@ const App = () => (
               <Route path="/copywriting-topic" element={<ProtectedRoute><CopywritingTopic /></ProtectedRoute>} />
               <Route path="/copywriting-store-visit" element={<ProtectedRoute><CopywritingStoreVisit /></ProtectedRoute>} />
               <Route path="/clothing" element={<ProtectedRoute><Clothing /></ProtectedRoute>} />
+              <Route path="/fashion-breakdown" element={<ProtectedRoute><FashionBreakdown /></ProtectedRoute>} />
               <Route path="/fashion-outfit" element={<ProtectedRoute><FashionOutfit /></ProtectedRoute>} />
               <Route path="/fashion-model-outfit" element={<ProtectedRoute><FashionModelOutfit /></ProtectedRoute>} />
               <Route path="/fashion-virtual-tryon" element={<ProtectedRoute><FashionVirtualTryOn /></ProtectedRoute>} />

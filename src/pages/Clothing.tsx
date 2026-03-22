@@ -32,6 +32,12 @@ const tools: ToolItem[] = [
     to: "/fashion-outfit",
   },
   {
+    title: "穿搭拆解图",
+    description: "上传模特穿搭图，一键生成左模特右单品的拆解效果图。",
+    iconSrc: "/icons/outfit-combo-vintage.png",
+    to: "/fashion-breakdown",
+  },
+  {
     title: "模特生成",
     description: "支持自拍照或标准模特图，智能生成上身效果。",
     iconSrc: "/icons/fashion-model-custom.webp",

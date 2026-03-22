@@ -113,6 +113,74 @@ export const FASHION_OUTFIT_COMBO_PROMPT = `创建一张完整穿搭组合展示
 // 保持向后兼容
 export const FASHION_OUTFIT_PROMPT = FASHION_OUTFIT_FLATLAY_PROMPT;
 
+export type FashionBreakdownAspectRatio = "3:4" | "4:3";
+
+export const FASHION_BREAKDOWN_PROMPT = `A compound fashion image with a clean left-right split composition.
+
+[Left Panel: Original Model Image]
+- The left panel must contain the complete, un-cropped, scaled-to-fit-full-view photograph of the model from the uploaded reference image.
+- Keep the model inside her original environment from the uploaded image.
+- The model must remain fully visible inside the frame whenever the source image allows it, with no chopped head, chopped feet, chopped limbs, or cropped body caused by the new composition.
+- Preserve the original outfit identity, pose, camera perspective, and scene mood from the uploaded image.
+
+[Right Panel: Fashion Breakdown Layout]
+- The right panel must be a clean, minimalist, pure white background.
+- Arrange the extracted fashion items neatly in an organized, aesthetically balanced, vertically oriented flat-lay grid.
+- Each extracted item must be a high-resolution, perfectly isolated clean cut-out object.
+- No shadows or styling props that make the right panel feel like a lifestyle scene. It should feel like a clean product breakdown board.
+
+[Allowed Extraction Categories Only]
+- Extract ONLY the fashion items that are clearly visible and actually worn by the model in the uploaded image.
+- Allowed categories:
+  1. Outer clothing such as blazers, jackets, shirts, cardigans, sweaters, coats.
+  2. Inner tops such as tank tops, t-shirts, camisoles, undershirts.
+  3. Bottoms such as pants or skirts.
+  4. Specified accessories such as earrings, hats, sunglasses, belts, bags, scarves.
+  5. Shoes, but ONLY when they are clearly visible, fully enough to identify, and actually being worn by the model.
+
+[Critical Exclusion Rules]
+- Do NOT include any non-fashion objects such as cups, umbrellas, flowers, food, tables, chairs, benches, phones, background decorations, or street objects.
+- Do NOT hallucinate, invent, or add any item that is not clearly visible and worn in the uploaded image.
+- If the model is shown only from the waist up, do NOT add shoes, socks, or hidden lower-body items.
+- If shoes are blurred, heavily occluded, cropped out, or not clearly visible, do NOT extract shoes.
+- Do NOT infer hidden back details, hidden hems, hidden sleeves, or unseen garment parts beyond what is safely visible in the source image.
+- Do NOT duplicate the same item multiple times.
+
+[Strict No-Text Constraint]
+- The entire composite image must contain absolutely no text, no brand names, no product titles, no prices, no SKU numbers, no captions, and no watermarks.
+- The right panel must show pure objects only, without any labels or typography.
+
+[Output Quality]
+- The final image must look editorial, realistic, clean, and premium.
+- Keep the split composition visually balanced, with the model clearly readable on the left and the product cut-outs clearly separated on the right.
+- Prioritize fidelity to the uploaded outfit over creativity.
+
+${FASHION_EXPOSURE_SAFETY_RULES_EN}`;
+
+const FASHION_BREAKDOWN_LAYOUT_PATCHES: Record<FashionBreakdownAspectRatio, string> = {
+  "3:4": `Layout constraint:
+- Render the final image within a 3:4 portrait frame.
+- Use a vertical split layout: original model photo on the left, white breakdown panel on the right.
+- Keep both panels fully contained inside the 3:4 frame without changing the left-right structure.`,
+  "4:3": `Layout constraint:
+- Render the final image within a 4:3 landscape frame.
+- Use a left-right split layout inside the 4:3 frame: original model photo on the left, white breakdown panel on the right.
+- Do not switch to a top-bottom layout. The composition must remain left-right even in landscape.`,
+};
+
+export function buildFashionBreakdownPrompt(
+  aspectRatio: FashionBreakdownAspectRatio,
+  userNotes?: string,
+): string {
+  const normalizedRatio = aspectRatio === "4:3" ? "4:3" : "3:4";
+  const normalizedNotes = userNotes?.trim();
+  const notesSection = normalizedNotes
+    ? `\n\nAdditional user notes (secondary priority only; never override any hard visibility, no-text, or no-hallucination rules above):\n${normalizedNotes}`
+    : "";
+
+  return `${FASHION_BREAKDOWN_LAYOUT_PATCHES[normalizedRatio]}\n\n${FASHION_BREAKDOWN_PROMPT}${notesSection}`;
+}
+
 // ─── Model characteristics constants ──────────────────────────────────────────
 
 export const MODEL_FACE_DESCRIPTION = `【模特面部特征 - 基于参考图片统一标准】

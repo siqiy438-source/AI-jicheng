@@ -39,6 +39,7 @@ const FEATURE_LABELS: Record<string, string> = {
   ai_display_standard: "陈列图(标准)", ai_display_premium: "陈列图(Pro)",
   ai_outfit_standard: "挂搭图(标准)", ai_outfit_premium: "挂搭图(Pro)",
   ai_fashion_standard: "模特图(标准)", ai_fashion_premium: "模特图(Pro)",
+  ai_fashion_breakdown_standard: "穿搭拆解图(标准)", ai_fashion_breakdown_premium: "穿搭拆解图(Pro)", ai_fashion_breakdown_hd: "穿搭拆解图(2K/4K)",
   ai_virtual_tryon_standard: "定点换衣(标准)", ai_virtual_tryon_premium: "定点换衣(Pro)",
   ai_detail_standard: "细节特写(标准)", ai_detail_premium: "细节特写(Pro)",
   ai_flatlay_standard: "平铺摆拍(标准)", ai_flatlay_premium: "平铺摆拍(Pro)",
@@ -129,7 +130,9 @@ const Recharge = () => {
       if (!response.ok) {
         const text = await response.text();
         let msg = "请稍后重试";
-        try { const j = JSON.parse(text); msg = j.error || j.message || msg; } catch {}
+        try { const j = JSON.parse(text); msg = j.error || j.message || msg; } catch {
+          // Ignore non-JSON error payloads and fall back to the default message.
+        }
         toast({ title: "创建订单失败", description: msg });
         return;
       }

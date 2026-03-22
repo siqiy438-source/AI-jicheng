@@ -181,6 +181,7 @@ serve(async (req) => {
       ai_display_standard: 50, ai_display_premium: 100, ai_display_hd: 100,
       ai_outfit_standard: 50, ai_outfit_premium: 100, ai_outfit_hd: 100,
       ai_fashion_standard: 50, ai_fashion_premium: 100, ai_fashion_hd: 100,
+      ai_fashion_breakdown_standard: 50, ai_fashion_breakdown_premium: 100, ai_fashion_breakdown_hd: 100,
       ai_virtual_tryon_standard: 50, ai_virtual_tryon_premium: 100, ai_virtual_tryon_hd: 100,
       ai_detail_standard: 50, ai_detail_premium: 100, ai_detail_hd: 100,
       ai_flatlay_standard: 50, ai_flatlay_premium: 100, ai_flatlay_hd: 100,
