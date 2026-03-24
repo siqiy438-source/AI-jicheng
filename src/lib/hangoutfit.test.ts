@@ -19,16 +19,22 @@ describe("hangoutfit templates", () => {
     const defaultNegativePrompt = buildDefaultHangoutfitNegativePrompt(2);
 
     expect(defaultPrompt).toContain("[Core Setup: Minimal Hanging Rod]");
+    expect(defaultPrompt).toContain("[Reference Source Lock]");
+    expect(defaultPrompt).toContain("Images 2-3: the user's original full garment photos");
+    expect(defaultPrompt).toContain("Images 4-5: enlarged detail-strip references");
     expect(defaultPrompt).toContain("Shot from a near-frontal angle with a very slight offset.");
     expect(defaultPrompt).toContain("The image should look like a casual iPhone photo taken in a well-lit shop.");
     expect(defaultPrompt).toContain("Include one visible editorial poster or magazine page clipped to the rod and hanging beside the garments");
     expect(defaultPrompt).toContain("Place it near the upper-right side of the garment group");
+    expect(defaultPrompt).toContain("two visible waistband buttons");
     expect(defaultPrompt).toContain("[Framing & Lower Scene Refinement]");
     expect(defaultPrompt).toContain("Keep the camera slightly pulled back compared with a tight close-up");
     expect(defaultPrompt).toContain("The entire lower portion of the frame must be immaculately clean");
     expect(defaultPrompt).toContain("[Additional Notes]\n更偏轻熟通勤");
     expect(defaultNegativePrompt).toContain("invented extra garment");
     expect(defaultNegativePrompt).toContain("three garments when only two were uploaded");
+    expect(defaultNegativePrompt).toContain("wrong button count");
+    expect(defaultNegativePrompt).toContain("single button when reference has two buttons");
     expect(defaultNegativePrompt).toContain("dirty lower wall");
     expect(defaultNegativePrompt).toContain("camera too near");
     expect(defaultNegativePrompt).toContain("missing clipped editorial poster");
@@ -74,6 +80,9 @@ describe("hangoutfit templates", () => {
     expect(defaultPrompt).toContain("[Additional Notes]\n更偏通勤");
     expect(defaultPrompt).toContain("One visible clipped editorial poster or magazine page beside the garments");
     expect(boutiquePrompt).toContain("refined floral styling corner");
+    expect(boutiquePrompt).toContain("Images 2-4: the user's original full garment photos");
+    expect(boutiquePrompt).toContain("Images 5-7: enlarged detail-strip references");
+    expect(boutiquePrompt).toContain("Priority order when references conflict");
     expect(boutiquePrompt).toContain("bare branches");
     expect(boutiquePrompt).toContain("You receive exactly 3 uploaded garments.");
     expect(boutiquePrompt).toContain("The final image must contain exactly 3 visible hangers total");
@@ -144,6 +153,8 @@ describe("hangoutfit templates", () => {
     expect(negativePrompt).toContain("copying the exact same handbag from the template");
     expect(negativePrompt).toContain("straight-on frontal view");
     expect(negativePrompt).toContain("paper-flat clothing");
+    expect(negativePrompt).toContain("wrong button count");
+    expect(negativePrompt).toContain("wrong placket construction");
     expect(negativePrompt).toContain("extra empty hangers");
     expect(negativePrompt).toContain("missing clipped editorial poster");
     expect(negativePrompt).toContain("underexposed scene");
@@ -201,23 +212,28 @@ describe("hangoutfit templates", () => {
   });
 
   test("保存 metadata 时会记录选中的模板", () => {
-    expect(
-      buildHangoutfitWorkMetadata({
-        line: "speed",
-        uploadedImageCount: 3,
-        hasAdditionalNotes: true,
-        selectedTemplateId: "boutique-olive",
-        referenceBoardMode: "garments-plus-scene-template",
-      }),
-    ).toEqual({
+    expect(buildHangoutfitWorkMetadata({
       line: "speed",
       uploadedImageCount: 3,
       hasAdditionalNotes: true,
       selectedTemplateId: "boutique-olive",
       referenceBoardMode: "garments-plus-scene-template",
-      detectedRoles: undefined,
-      userProvidedBag: undefined,
-      userProvidedShoes: undefined,
+      hasShoesImage: true,
+      hasBagImage: false,
+      detailStripCount: 3,
+      sentReferenceImageCount: 8,
+      fidelityMode: "single-pass-prompt-plus-reference",
+    })).toEqual({
+      line: "speed",
+      uploadedImageCount: 3,
+      hasAdditionalNotes: true,
+      selectedTemplateId: "boutique-olive",
+      referenceBoardMode: "garments-plus-scene-template",
+      hasShoesImage: true,
+      hasBagImage: false,
+      detailStripCount: 3,
+      sentReferenceImageCount: 8,
+      fidelityMode: "single-pass-prompt-plus-reference",
     });
   });
 });

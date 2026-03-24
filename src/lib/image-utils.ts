@@ -166,6 +166,130 @@ function drawImageContain(
   ctx.drawImage(img, 0, 0, img.width, img.height, dx, dy, drawW, drawH);
 }
 
+function drawImageCropCover(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  sourceX: number,
+  sourceY: number,
+  sourceWidth: number,
+  sourceHeight: number,
+  destX: number,
+  destY: number,
+  destWidth: number,
+  destHeight: number,
+) {
+  const safeSourceX = Math.max(0, Math.min(sourceX, img.width - 1));
+  const safeSourceY = Math.max(0, Math.min(sourceY, img.height - 1));
+  const safeSourceWidth = Math.max(1, Math.min(sourceWidth, img.width - safeSourceX));
+  const safeSourceHeight = Math.max(1, Math.min(sourceHeight, img.height - safeSourceY));
+
+  const sourceRatio = safeSourceWidth / safeSourceHeight;
+  const destRatio = destWidth / destHeight;
+
+  let cropX = safeSourceX;
+  let cropY = safeSourceY;
+  let cropWidth = safeSourceWidth;
+  let cropHeight = safeSourceHeight;
+
+  if (sourceRatio > destRatio) {
+    cropWidth = safeSourceHeight * destRatio;
+    cropX = safeSourceX + (safeSourceWidth - cropWidth) / 2;
+  } else {
+    cropHeight = safeSourceWidth / destRatio;
+    cropY = safeSourceY + (safeSourceHeight - cropHeight) / 2;
+  }
+
+  ctx.drawImage(
+    img,
+    cropX,
+    cropY,
+    cropWidth,
+    cropHeight,
+    destX,
+    destY,
+    destWidth,
+    destHeight,
+  );
+}
+
+export async function buildGarmentDetailStrip(imageSrc: string): Promise<string> {
+  const img = await loadImage(imageSrc);
+  const canvas = document.createElement('canvas');
+  const panelGap = 18;
+  const outerPadding = 18;
+  const panelWidth = 420;
+  const panelHeight = 420;
+  const labelHeight = 28;
+  const canvasWidth = outerPadding * 2 + panelWidth * 3 + panelGap * 2;
+  const canvasHeight = outerPadding * 2 + labelHeight + panelHeight;
+
+  canvas.width = canvasWidth;
+  canvas.height = canvasHeight;
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('无法创建 canvas context');
+
+  ctx.fillStyle = '#f5f1eb';
+  ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+  const segments = [
+    {
+      label: 'UPPER DETAIL',
+      xRatio: 0.08,
+      yRatio: 0.02,
+      widthRatio: 0.84,
+      heightRatio: 0.38,
+    },
+    {
+      label: 'MIDDLE DETAIL',
+      xRatio: 0.12,
+      yRatio: 0.28,
+      widthRatio: 0.76,
+      heightRatio: 0.34,
+    },
+    {
+      label: 'LOWER DETAIL',
+      xRatio: 0.09,
+      yRatio: 0.58,
+      widthRatio: 0.82,
+      heightRatio: 0.28,
+    },
+  ] as const;
+
+  segments.forEach((segment, index) => {
+    const panelX = outerPadding + index * (panelWidth + panelGap);
+    const panelY = outerPadding;
+    const imageY = panelY + labelHeight;
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(panelX, panelY, panelWidth, labelHeight + panelHeight);
+    ctx.strokeStyle = '#dccfbe';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(panelX, panelY, panelWidth, labelHeight + panelHeight);
+
+    ctx.fillStyle = '#7a5c3c';
+    ctx.font = 'bold 14px Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(segment.label, panelX + panelWidth / 2, panelY + labelHeight / 2);
+
+    drawImageCropCover(
+      ctx,
+      img,
+      img.width * segment.xRatio,
+      img.height * segment.yRatio,
+      img.width * segment.widthRatio,
+      img.height * segment.heightRatio,
+      panelX,
+      imageY,
+      panelWidth,
+      panelHeight,
+    );
+  });
+
+  return canvas.toDataURL('image/jpeg', 0.9);
+}
+
 /**
  * 将多张图片合并为带编号的网格拼图
  * 用于 AI 陈列功能，将多件衣服合并为一张图发送给 API

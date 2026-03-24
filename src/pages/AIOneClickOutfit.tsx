@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { CreditCostHint } from "@/components/CreditCostHint";
 import { cn } from "@/lib/utils";
 import {
+  buildGarmentDetailStrip,
   buildHangoutfitReferenceBoard,
   compressImage,
   downloadGeneratedImage,
@@ -31,10 +32,12 @@ import {
 import type { AccessoryUploadInfo } from "@/lib/hangoutfit";
 import {
   ArrowLeft,
+  ChevronDown,
   Download,
   Footprints,
   Image,
   Loader2,
+  Ratio,
   RefreshCw,
   Send,
   ShirtIcon,
@@ -51,7 +54,68 @@ const lineOptions = [
   { id: "standard_4k", name: "灵犀 4K", line: "standard" as const, resolution: "4k" as const },
 ];
 
+const aspectRatioOptions = [
+  { id: "9:16", label: "9:16", hint: "长竖版挂搭图" },
+  { id: "4:3", label: "4:3", hint: "横版陈列画幅" },
+  { id: "3:4", label: "3:4", hint: "常用竖版画幅" },
+] as const;
+
 const DEFAULT_TEMPLATE_ID = HANGOUTFIT_TEMPLATES[0]?.id ?? "default";
+
+interface PreparedImageAsset {
+  preview: string;
+  source: string;
+}
+
+interface PreparedGarmentAsset extends PreparedImageAsset {
+  detailStrip: string;
+}
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => resolve(event.target?.result as string);
+    reader.onerror = () => reject(new Error("文件读取失败"));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function prepareImageAsset(file: File): Promise<PreparedImageAsset> {
+  const preferredSourceMime = file.type === "image/png" ? "image/png" : "image/jpeg";
+
+  try {
+    const [preview, source] = await Promise.all([
+      compressImage(file, {
+        maxWidth: 1024,
+        maxHeight: 1024,
+        quality: 0.85,
+      }),
+      compressImage(file, {
+        maxWidth: 1440,
+        maxHeight: 1440,
+        quality: 0.92,
+        mimeType: preferredSourceMime,
+        autoOptimize: false,
+      }),
+    ]);
+
+    return { preview, source };
+  } catch {
+    const source = await readFileAsDataUrl(file);
+    return { preview: source, source };
+  }
+}
+
+async function prepareGarmentAsset(file: File): Promise<PreparedGarmentAsset> {
+  const asset = await prepareImageAsset(file);
+
+  try {
+    const detailStrip = await buildGarmentDetailStrip(asset.source);
+    return { ...asset, detailStrip };
+  } catch {
+    return { ...asset, detailStrip: asset.source };
+  }
+}
 
 const AIOneClickOutfit = () => {
   const navigate = useNavigate();
@@ -68,21 +132,24 @@ const AIOneClickOutfit = () => {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const shoesInputRef = useRef<HTMLInputElement>(null);
   const bagInputRef = useRef<HTMLInputElement>(null);
+  const ratioMenuRef = useRef<HTMLDivElement>(null);
 
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [shoesImage, setShoesImage] = useState<string | null>(null);
-  const [bagImage, setBagImage] = useState<string | null>(null);
+  const [garmentAssets, setGarmentAssets] = useState<PreparedGarmentAsset[]>([]);
+  const [shoesAsset, setShoesAsset] = useState<PreparedImageAsset | null>(null);
+  const [bagAsset, setBagAsset] = useState<PreparedImageAsset | null>(null);
   const [selectedLine, setSelectedLine] = useState("speed");
+  const [selectedAspectRatio, setSelectedAspectRatio] = useState<(typeof aspectRatioOptions)[number]["id"]>("9:16");
   const [selectedTemplateId, setSelectedTemplateId] = useState(DEFAULT_TEMPLATE_ID);
   const [additionalNotes, setAdditionalNotes] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStep, setGenerationStep] = useState("");
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [showRatioMenu, setShowRatioMenu] = useState(false);
   const { statuses } = useLineStatus();
 
   const accessories: AccessoryUploadInfo = {
-    hasShoesImage: Boolean(shoesImage),
-    hasBagImage: Boolean(bagImage),
+    hasShoesImage: Boolean(shoesAsset),
+    hasBagImage: Boolean(bagAsset),
   };
 
   const selectedTemplate = useMemo(
@@ -97,32 +164,34 @@ const AIOneClickOutfit = () => {
     preloadDownloadImage(generatedImage);
   }, [generatedImage]);
 
+  useEffect(() => {
+    if (!showRatioMenu) return;
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (ratioMenuRef.current && !ratioMenuRef.current.contains(event.target as Node)) {
+        setShowRatioMenu(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, [showRatioMenu]);
+
   const handleUpload = async (files: FileList | null) => {
     if (!files) return;
 
-    const remainingSlots = maxImages - imagePreviews.length;
+    const remainingSlots = maxImages - garmentAssets.length;
     const filesToProcess = Array.from(files)
       .filter((file) => file.type.startsWith("image/"))
       .slice(0, remainingSlots);
 
-    for (const file of filesToProcess) {
-      try {
-        const compressed = await compressImage(file, {
-          maxWidth: 1024,
-          maxHeight: 1024,
-          quality: 0.85,
-        });
-        setImagePreviews((prev) => [...prev, compressed]);
-        setGeneratedImage(null);
-      } catch {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          setImagePreviews((prev) => [...prev, event.target?.result as string]);
-          setGeneratedImage(null);
-        };
-        reader.readAsDataURL(file);
-      }
+    if (filesToProcess.length === 0) {
+      return;
     }
+
+    const preparedAssets = await Promise.all(filesToProcess.map((file) => prepareGarmentAsset(file)));
+    setGarmentAssets((prev) => [...prev, ...preparedAssets]);
+    setGeneratedImage(null);
 
     if (imageInputRef.current) {
       imageInputRef.current.value = "";
@@ -130,12 +199,12 @@ const AIOneClickOutfit = () => {
   };
 
   const clearImage = (index: number) => {
-    setImagePreviews((prev) => prev.filter((_, imageIndex) => imageIndex !== index));
+    setGarmentAssets((prev) => prev.filter((_, imageIndex) => imageIndex !== index));
     setGeneratedImage(null);
   };
 
   const clearAllImages = () => {
-    setImagePreviews([]);
+    setGarmentAssets([]);
     setGeneratedImage(null);
     if (imageInputRef.current) {
       imageInputRef.current.value = "";
@@ -144,29 +213,16 @@ const AIOneClickOutfit = () => {
 
   const handleAccessoryUpload = async (
     files: FileList | null,
-    setter: (value: string | null) => void,
+    setter: (value: PreparedImageAsset | null) => void,
     inputRef: React.RefObject<HTMLInputElement | null>,
   ) => {
     if (!files || files.length === 0) return;
     const file = Array.from(files).find((f) => f.type.startsWith("image/"));
     if (!file) return;
 
-    try {
-      const compressed = await compressImage(file, {
-        maxWidth: 1024,
-        maxHeight: 1024,
-        quality: 0.85,
-      });
-      setter(compressed);
-      setGeneratedImage(null);
-    } catch {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setter(event.target?.result as string);
-        setGeneratedImage(null);
-      };
-      reader.readAsDataURL(file);
-    }
+    const preparedAsset = await prepareImageAsset(file);
+    setter(preparedAsset);
+    setGeneratedImage(null);
 
     if (inputRef.current) {
       inputRef.current.value = "";
@@ -174,7 +230,7 @@ const AIOneClickOutfit = () => {
   };
 
   const handleGenerate = async () => {
-    if (imagePreviews.length < 2 || imagePreviews.length > maxImages) return;
+    if (garmentAssets.length < 2 || garmentAssets.length > maxImages) return;
     const selectedLineOption = lineOptions.find((option) => option.id === selectedLine) || lineOptions[0];
     const featureCode =
       selectedLineOption.resolution === "2k" || selectedLineOption.resolution === "4k"
@@ -186,7 +242,9 @@ const AIOneClickOutfit = () => {
     setGeneratedImage(null);
 
     try {
-      const uploadedCount = imagePreviews.length;
+      const uploadedCount = garmentAssets.length;
+      const garmentSourceImages = garmentAssets.map((asset) => asset.source);
+      const garmentDetailStrips = garmentAssets.map((asset) => asset.detailStrip);
       const isDefaultTemplate = selectedTemplate.id === "default";
       let referenceImage: string;
       let prompt: string;
@@ -195,11 +253,11 @@ const AIOneClickOutfit = () => {
       if (isDefaultTemplate) {
         setGenerationStep("正在整理服装与模板参考...");
         referenceImage = await mergeImagesToGridWithAccessories(
-          imagePreviews,
+          garmentSourceImages,
           380,
           1,
           { cellHeight: Math.round((380 * 16) / 9), fit: "contain" },
-          { shoesImage: shoesImage ?? undefined, bagImage: bagImage ?? undefined },
+          { shoesImage: shoesAsset?.source, bagImage: bagAsset?.source },
         );
         prompt = buildDefaultHangoutfitPrompt({
           uploadedCount,
@@ -210,11 +268,11 @@ const AIOneClickOutfit = () => {
       } else {
         setGenerationStep("正在整理服装与模板参考...");
         referenceImage = await buildHangoutfitReferenceBoard({
-          garmentImages: imagePreviews,
+          garmentImages: garmentSourceImages,
           sceneReferenceSrc: selectedTemplate.sceneReferenceSrc,
           boardMode: selectedTemplate.referenceBoardMode,
-          shoesImage: shoesImage ?? undefined,
-          bagImage: bagImage ?? undefined,
+          shoesImage: shoesAsset?.source,
+          bagImage: bagAsset?.source,
         });
         prompt = buildHangoutfitPrompt({
           template: selectedTemplate,
@@ -225,15 +283,15 @@ const AIOneClickOutfit = () => {
         negativePrompt = buildHangoutfitNegativePrompt(selectedTemplate, uploadedCount, accessories);
       }
 
-      const imagesToSend: string[] = [referenceImage];
-      if (shoesImage) imagesToSend.push(shoesImage);
-      if (bagImage) imagesToSend.push(bagImage);
+      const imagesToSend: string[] = [referenceImage, ...garmentSourceImages, ...garmentDetailStrips];
+      if (shoesAsset?.source) imagesToSend.push(shoesAsset.source);
+      if (bagAsset?.source) imagesToSend.push(bagAsset.source);
 
       setGenerationStep("AI 正在生成挂搭图...");
       const response = await generateImage({
         prompt,
         negativePrompt,
-        aspectRatio: "3:4",
+        aspectRatio: selectedAspectRatio,
         images: imagesToSend,
         line: selectedLineOption.line,
         resolution: selectedLineOption.resolution,
@@ -271,6 +329,9 @@ const AIOneClickOutfit = () => {
           referenceBoardMode: selectedTemplate.referenceBoardMode,
           hasShoesImage: accessories.hasShoesImage,
           hasBagImage: accessories.hasBagImage,
+          detailStripCount: garmentDetailStrips.length,
+          sentReferenceImageCount: imagesToSend.length,
+          fidelityMode: "single-pass-prompt-plus-reference",
         }),
       }).catch((error) => {
         console.error("自动保存挂搭图失败", error);
@@ -293,7 +354,7 @@ const AIOneClickOutfit = () => {
     }
   };
 
-  const canGenerate = Boolean(imagePreviews.length >= 2 && imagePreviews.length <= maxImages && !isGenerating);
+  const canGenerate = Boolean(garmentAssets.length >= 2 && garmentAssets.length <= maxImages && !isGenerating);
 
   return (
     <PageLayout className="py-2 md:py-8">
@@ -333,10 +394,10 @@ const AIOneClickOutfit = () => {
           <div className="flex items-center gap-2 mb-2.5">
             <Image className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium text-foreground">上传服装照片</span>
-            <span className="text-xs text-muted-foreground ml-auto">{imagePreviews.length}/{maxImages}</span>
+            <span className="text-xs text-muted-foreground ml-auto">{garmentAssets.length}/{maxImages}</span>
           </div>
 
-          {imagePreviews.length > 0 ? (
+          {garmentAssets.length > 0 ? (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">每张图都会作为独立服装参考使用</span>
@@ -346,10 +407,10 @@ const AIOneClickOutfit = () => {
               </div>
 
               <div className="grid grid-cols-3 gap-3">
-                {imagePreviews.map((image, index) => (
-                  <div key={`${image.slice(0, 24)}-${index}`} className="relative group">
+                {garmentAssets.map((asset, index) => (
+                  <div key={`${asset.preview.slice(0, 24)}-${index}`} className="relative group">
                     <img
-                      src={image}
+                      src={asset.preview}
                       alt={`参考图 ${index + 1}`}
                       loading="lazy"
                       decoding="async"
@@ -367,7 +428,7 @@ const AIOneClickOutfit = () => {
                   </div>
                 ))}
 
-                {imagePreviews.length < maxImages && (
+                {garmentAssets.length < maxImages && (
                   <button
                     onClick={() => imageInputRef.current?.click()}
                     className="h-32 md:h-44 rounded-lg border-2 border-dashed border-border hover:border-primary/40 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary transition-colors"
@@ -418,10 +479,10 @@ const AIOneClickOutfit = () => {
               <span className="text-xs font-medium text-foreground">鞋子</span>
             </div>
 
-            {shoesImage ? (
+            {shoesAsset ? (
               <div className="relative group">
                 <img
-                  src={shoesImage}
+                  src={shoesAsset.preview}
                   alt="鞋子参考"
                   loading="lazy"
                   decoding="async"
@@ -429,7 +490,7 @@ const AIOneClickOutfit = () => {
                 />
                 <button
                   onClick={() => {
-                    setShoesImage(null);
+                    setShoesAsset(null);
                     setGeneratedImage(null);
                   }}
                   className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity"
@@ -452,7 +513,7 @@ const AIOneClickOutfit = () => {
               type="file"
               accept="image/*"
               className="hidden"
-              onChange={(event) => handleAccessoryUpload(event.target.files, setShoesImage, shoesInputRef)}
+              onChange={(event) => handleAccessoryUpload(event.target.files, setShoesAsset, shoesInputRef)}
             />
           </div>
 
@@ -463,10 +524,10 @@ const AIOneClickOutfit = () => {
               <span className="text-xs font-medium text-foreground">包包</span>
             </div>
 
-            {bagImage ? (
+            {bagAsset ? (
               <div className="relative group">
                 <img
-                  src={bagImage}
+                  src={bagAsset.preview}
                   alt="包包参考"
                   loading="lazy"
                   decoding="async"
@@ -474,7 +535,7 @@ const AIOneClickOutfit = () => {
                 />
                 <button
                   onClick={() => {
-                    setBagImage(null);
+                    setBagAsset(null);
                     setGeneratedImage(null);
                   }}
                   className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity"
@@ -497,7 +558,7 @@ const AIOneClickOutfit = () => {
               type="file"
               accept="image/*"
               className="hidden"
-              onChange={(event) => handleAccessoryUpload(event.target.files, setBagImage, bagInputRef)}
+              onChange={(event) => handleAccessoryUpload(event.target.files, setBagAsset, bagInputRef)}
             />
           </div>
         </div>
@@ -587,7 +648,53 @@ const AIOneClickOutfit = () => {
           className="w-full bg-secondary/30 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-1 focus:ring-primary/30 mb-3"
         />
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div ref={ratioMenuRef} className="relative inline-flex self-start" onClick={(event) => event.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => setShowRatioMenu((prev) => !prev)}
+              className={cn(
+                "flex items-center gap-2 rounded-full border-2 bg-white px-4 py-2.5 shadow-sm transition-colors",
+                showRatioMenu
+                  ? "border-primary text-primary hover:bg-primary/5"
+                  : "border-border text-foreground hover:border-primary/30 hover:bg-primary/5",
+              )}
+              aria-haspopup="menu"
+              aria-expanded={showRatioMenu}
+              aria-label={`画幅比例 ${selectedAspectRatio}`}
+            >
+              <Ratio className="w-4 h-4" />
+              <span className="text-sm font-medium">{selectedAspectRatio}</span>
+              <ChevronDown className={cn("w-4 h-4 transition-transform", showRatioMenu && "rotate-180")} />
+            </button>
+
+            {showRatioMenu && (
+              <div className="absolute left-0 top-full z-20 mt-3 w-[188px] overflow-hidden rounded-[24px] border border-primary/10 bg-white p-3 shadow-[0_20px_60px_-20px_rgba(15,23,42,0.28)]">
+                {aspectRatioOptions.map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedAspectRatio(option.id);
+                      setShowRatioMenu(false);
+                    }}
+                    className={cn(
+                      "w-full rounded-2xl px-4 py-3 text-left transition-colors",
+                      selectedAspectRatio === option.id
+                        ? "bg-primary/10 text-primary"
+                        : "text-foreground hover:bg-primary/5",
+                    )}
+                    role="menuitem"
+                  >
+                    <div className="text-sm font-medium">{option.label}</div>
+                    <div className="mt-1 text-xs text-muted-foreground">{option.hint}</div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-end">
           <button
             onClick={handleGenerate}
             disabled={!canGenerate}
@@ -609,6 +716,7 @@ const AIOneClickOutfit = () => {
                 : "ai_outfit_standard"
             }
           />
+          </div>
         </div>
       </div>
 
