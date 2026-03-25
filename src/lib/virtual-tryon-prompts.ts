@@ -3,42 +3,88 @@ import { FASHION_EXPOSURE_SAFETY_RULES_EN } from "@/lib/fashion-safety";
 export type TryOnGarmentCategory = "auto" | "top" | "bottom" | "dress" | "outfit";
 export type TryOnReferenceMode = "single-garment" | "multi-piece";
 export type TryOnGarmentRole = "outer" | "top" | "inner" | "bottom";
+export type TryOnAccessoryReplacementMode = "conservative";
+
+export interface TryOnAccessoryOptions {
+  hasShoesImage?: boolean;
+  hasBagImage?: boolean;
+  replacementMode?: TryOnAccessoryReplacementMode;
+}
 
 interface BuildVirtualTryOnPromptParams {
   garmentCount: number;
   category: TryOnGarmentCategory;
   referenceMode: TryOnReferenceMode;
   garmentRoles?: TryOnGarmentRole[];
+  accessories?: TryOnAccessoryOptions;
   additionalNotes?: string;
 }
 
-const CATEGORY_FOCUS: Record<TryOnGarmentCategory, string> = {
-  auto: `- Automatically determine whether the target garment is a top, bottom, or dress based on the uploaded garment reference images.
+function buildCategoryFocus(category: TryOnGarmentCategory, accessories?: TryOnAccessoryOptions): string {
+  const hasShoes = accessories?.hasShoesImage ?? false;
+  const hasBag = accessories?.hasBagImage ?? false;
+  const keepShoesLine = hasShoes
+    ? "- If a shoes reference image is provided, you may also replace only the visible shoes while preserving the original foot position, leg position, ankle angle, gait, crop, and ground contact from Image 1."
+    : "- Keep the model's original shoes unchanged unless natural garment occlusion requires overlap handling.";
+  const keepBagLine = hasBag
+    ? "- If a bag reference image is provided, replace the original bag only when Image 1 already contains a bag or a natural carrying/contact condition. Do not change the hands, shoulders, arms, or pose to force the bag into the image."
+    : "- Keep the model's original bag and visible accessories unchanged unless natural garment occlusion requires overlap handling.";
+
+  const categoryFocus: Record<TryOnGarmentCategory, string> = {
+    auto: `- Automatically determine whether the target garment is a top, bottom, or dress based on the uploaded garment reference images.
 - Replace only the garment area required by that category.
 - Keep every unrelated clothing piece on the model unchanged.`,
-  top: `- The target garment is a TOP.
+    top: `- The target garment is a TOP.
 - Replace only the upper-body clothing region.
-- Keep the model's original bottoms, shoes, legs, hands, hair, and accessories unchanged unless they are naturally occluding the new top.`,
-  bottom: `- The target garment is a BOTTOM.
+- Keep the model's original bottoms, legs, hands, and hair unchanged unless they are naturally occluding the new top.
+${keepShoesLine}
+${keepBagLine}`,
+    bottom: `- The target garment is a BOTTOM.
 - Replace only the lower-body clothing region.
-- Keep the model's original top, jacket, face, hair, hands, shoes, and background unchanged unless natural occlusion requires overlap handling.`,
-  dress: `- The target garment is a DRESS or one-piece garment.
+- Keep the model's original top, jacket, face, hair, hands, and background unchanged unless natural occlusion requires overlap handling.
+${keepShoesLine}
+${keepBagLine}`,
+    dress: `- The target garment is a DRESS or one-piece garment.
 - Remove ALL existing clothing currently worn by the model — including any inner layers, undershirts, base layers, tank tops, or tops — before applying the new dress.
 - Replace the model's entire outfit region with the uploaded dress while keeping the same person, pose, hair, hands, background, lighting, and framing.
-- Keep shoes and visible accessories only if they remain naturally compatible and do not conflict with the uploaded dress.`,
-  outfit: `- The target is a MULTI-PIECE OUTFIT built from the uploaded garment references.
+- Keep shoes and visible accessories only if they remain naturally compatible and do not conflict with the uploaded dress.
+${hasShoes ? "- If a shoes reference image is provided, replace the visible shoes with that exact pair when the shoes or feet are naturally visible in Image 1." : ""}
+${hasBag ? "- If a bag reference image is provided, replace only an existing bag or a naturally supportable bag position. Never invent a forced carry pose for the bag." : ""}`,
+    outfit: `- The target is a MULTI-PIECE OUTFIT built from the uploaded garment references.
 - Remove ALL existing clothing currently worn by the model — including any inner layers, undershirts, base layers, tank tops, white tops, or any garment not in the uploaded references — before applying the new garments.
 - Apply ONLY the uploaded garment pieces. Do not preserve or blend in any of the model's original clothing.
-- Keep the same person, pose, hair, hands, body shape, background, framing, and lighting while replacing all clothing.`,
-};
+- Keep the same person, pose, hair, hands, body shape, background, framing, and lighting while replacing all clothing.
+${hasShoes ? "- If a shoes reference image is provided, replace the original shoes only when the feet or shoes are already visible in Image 1." : ""}
+${hasBag ? "- If a bag reference image is provided, replace the original bag only when Image 1 already supports a natural bag placement or carrying relationship." : ""}`,
+  };
 
-const CATEGORY_NEGATIVE: Record<TryOnGarmentCategory, string> = {
-  auto: "wrong garment category, mismatched garment type, partial garment replacement",
-  top: "changed pants, changed skirt, changed shorts, changed shoes",
-  bottom: "changed shirt, changed blouse, changed sweater, changed jacket",
-  dress: "two-piece outfit, separate top and skirt, separate top and pants, original model clothing visible, original inner layer bleeding through",
-  outfit: "missing garment piece, dropped uploaded outer layer, dropped uploaded bottom, merged garments into one, original model clothing preserved, original inner layer visible, original white top visible, original undershirt bleeding through, model's original clothing under new garments",
-};
+  return categoryFocus[category]
+    .split("\n")
+    .filter((line) => line.trim().length > 0)
+    .join("\n");
+}
+
+function buildCategoryNegative(
+  category: TryOnGarmentCategory,
+  accessories?: TryOnAccessoryOptions,
+): string {
+  const hasShoes = accessories?.hasShoesImage ?? false;
+
+  const categoryNegative: Record<TryOnGarmentCategory, string> = {
+    auto: "wrong garment category, mismatched garment type, partial garment replacement",
+    top: [
+      "changed pants",
+      "changed skirt",
+      "changed shorts",
+      hasShoes ? "wrong shoes design, different shoes than reference, shoes color mismatch, wrong shoe material, wrong heel height" : "changed shoes",
+    ].join(", "),
+    bottom: "changed shirt, changed blouse, changed sweater, changed jacket",
+    dress: "two-piece outfit, separate top and skirt, separate top and pants, original model clothing visible, original inner layer bleeding through",
+    outfit: "missing garment piece, dropped uploaded outer layer, dropped uploaded bottom, merged garments into one, original model clothing preserved, original inner layer visible, original white top visible, original undershirt bleeding through, model's original clothing under new garments",
+  };
+
+  return categoryNegative[category];
+}
 
 const REFERENCE_MODE_FOCUS: Record<TryOnReferenceMode, string> = {
   "single-garment": `- Treat the uploaded garment references as the SAME garment shown from different views or detail angles.
@@ -60,15 +106,94 @@ function getEffectiveCategory(category: TryOnGarmentCategory, referenceMode: Try
   return category;
 }
 
+function buildAccessoryReferenceLines(garmentCount: number, accessories?: TryOnAccessoryOptions): string {
+  const hasShoes = accessories?.hasShoesImage ?? false;
+  const hasBag = accessories?.hasBagImage ?? false;
+  const lines: string[] = [];
+  let nextImageIndex = garmentCount + 2;
+
+  if (hasShoes) {
+    lines.push(`- Image ${nextImageIndex} is the SHOES reference image. Use it only to replace the visible shoes when Image 1 naturally shows shoes or feet.`);
+    nextImageIndex += 1;
+  }
+
+  if (hasBag) {
+    lines.push(`- Image ${nextImageIndex} is the BAG reference image. Use it only to replace an existing bag or a naturally supported bag position from Image 1.`);
+  }
+
+  return lines.join("\n");
+}
+
+function buildAccessoryRules(accessories?: TryOnAccessoryOptions): string {
+  const hasShoes = accessories?.hasShoesImage ?? false;
+  const hasBag = accessories?.hasBagImage ?? false;
+
+  if (!hasShoes && !hasBag) {
+    return "";
+  }
+
+  const lines = [
+    "ACCESSORY SYNC RULES:",
+  ];
+
+  if (hasShoes) {
+    lines.push("- If a SHOES reference image is provided, replace only the shoes that are already visible on the model in Image 1.");
+    lines.push("- Preserve the exact foot position, leg position, ankle angle, stride, crop, and ground contact from Image 1 while changing the shoes.");
+    lines.push("- If the feet or shoes are fully out of frame or fully hidden, do not invent new visible shoes.");
+    lines.push("- The uploaded shoes must keep the same complete design language as the reference photo: same silhouette, proportions, toe shape, sole thickness, heel height, material, color blocking, trim, and hardware.");
+  }
+
+  if (hasBag) {
+    lines.push("- If a BAG reference image is provided, replace only an existing bag or a naturally supportable bag position already implied by Image 1.");
+    lines.push("- Do not change the hands, arm angle, shoulder angle, body pose, or framing to force the bag into the image.");
+    lines.push("- If Image 1 has no bag and no natural carrying/contact condition, do not invent a new bag.");
+    lines.push("- The uploaded bag must keep the same complete design language as the reference photo: same shape, proportions, strap or handle structure, panel construction, pockets, zippers, hardware, and material finish.");
+  }
+
+  lines.push("- Do not add any extra accessories beyond the uploaded shoes or uploaded bag.");
+  lines.push("- Do not restyle, simplify, beautify, reinterpret, or swap the uploaded shoes or bag into a similar-looking item.");
+
+  return `\n${lines.join("\n")}`;
+}
+
+function buildReferenceFidelityLock(accessories?: TryOnAccessoryOptions): string {
+  const hasShoes = accessories?.hasShoesImage ?? false;
+  const hasBag = accessories?.hasBagImage ?? false;
+
+  const lines = [
+    "REFERENCE FIDELITY LOCK - NON-NEGOTIABLE:",
+    "- The uploaded reference images are the single source of truth for what the final items must look like.",
+    "- The final garments must keep the same complete item identity as the uploaded images: same silhouette, proportions, length, structure, paneling, neckline, collar, sleeves, hem, waistband, closure construction, pockets, seams, trim, print placement, texture, and color.",
+    "- What the uploaded item looks like is exactly what the final item must look like. Do not redesign it, beautify it, sharpen it into a different style, or replace it with a similar item.",
+    "- Do NOT change the item into a different style, different cut, different version, different season, different fit, or different design variant.",
+    "- Do NOT simplify visible details. Do NOT remove parts. Do NOT merge parts. Do NOT change the style logic of the item.",
+    "- Preserve item completeness as much as the locked framing allows. Do not silently drop major parts of the uploaded item or replace a complete uploaded item with a partial or simplified version.",
+    "- If some part of the final item is naturally hidden by pose, crop, layering, or occlusion, the visible part must still clearly belong to the exact same uploaded item and not a modified version.",
+    "- If a reference photo is slightly folded, angled, cropped, or partially occluded, recover missing parts conservatively from the same item only. Never invent a new style or unsupported design detail.",
+  ];
+
+  if (hasShoes) {
+    lines.push("- For uploaded shoes: do not change toe shape, sole height, heel height, opening shape, strap layout, decorative details, material, or color blocking.");
+  }
+
+  if (hasBag) {
+    lines.push("- For uploaded bags: do not change bag shape, size impression, strap/handle type, flap construction, zipper placement, pocket layout, hardware, quilting, stitching, or material.");
+  }
+
+  return lines.join("\n");
+}
+
 export function buildVirtualTryOnPrompt({
   garmentCount,
   category,
   referenceMode,
   garmentRoles,
+  accessories,
   additionalNotes,
 }: BuildVirtualTryOnPromptParams): string {
   const effectiveCategory = getEffectiveCategory(category, referenceMode);
   const hasExplicitPieceRoles = referenceMode === "multi-piece" && garmentRoles?.length === garmentCount && garmentCount > 1;
+  const accessoryReferenceLines = buildAccessoryReferenceLines(garmentCount, accessories);
 
   const garmentReferenceLine = hasExplicitPieceRoles
     ? garmentRoles
@@ -110,6 +235,7 @@ Create one single photorealistic edited image.
 IMAGE INPUT ORDER:
 - Image 1 is the original model photo. This is the locked base image.
 ${garmentReferenceLine}
+${accessoryReferenceLines ? `${accessoryReferenceLines}\n` : ""}
 
 PRIMARY GOAL:
 - Keep the exact same model identity, face, hairstyle, expression, skin tone, body proportions, hands, pose, camera angle, crop, lighting, shadows, background, props, and scene from Image 1.
@@ -121,20 +247,22 @@ STRICT PRESERVATION RULES:
 - Do not change the background.
 - Do not change the pose, gesture, hand position, or body angle.
 - Do not change the framing, zoom, perspective, lens feel, or composition.
-- Do not add or remove people, props, accessories, furniture, text, or scenery.
+- Do not add or remove people, props, furniture, text, or scenery. Do not add or remove unrelated accessories beyond the explicitly uploaded shoes or bag rules below.
 - Keep natural occlusion relationships: if hair, arms, hands, or accessories overlap the clothing area, preserve those overlaps realistically.
 - Preserve the original limb positions and body silhouette from Image 1, and warp the garments to that pose instead of altering the pose to fit the garments.
 
 GARMENT MAPPING RULES:
 ${REFERENCE_MODE_FOCUS[referenceMode]}
-${CATEGORY_FOCUS[effectiveCategory]}
+${buildCategoryFocus(effectiveCategory, accessories)}
 - Reproduce the uploaded garment faithfully: silhouette, neckline, collar, sleeve length, hem shape, waistline, closures, pockets, stitching, print placement, trim, texture, and color must match the garment reference images.
 - Use Image 2 as the primary source for silhouette and main color whenever there is ambiguity.
 - If the reference mode is single-garment, use the extra garment reference images only to recover missing angles or details such as collar shape, cuffs, hem, back view, print placement, or fabric texture.
 - If the reference mode is multi-piece, assign each garment image to a different real clothing layer or clothing item.
 - If the garment reference images conflict, resolve conservatively instead of inventing unsupported details.
 - Do not invent details that are not supported by the garment reference images.
+${buildReferenceFidelityLock(accessories)}
 ${layeringRules}
+${buildAccessoryRules(accessories)}
 
 REALISM RULES:
 - The new garment must follow the model's exact pose and body geometry from Image 1.
@@ -153,8 +281,19 @@ OUTPUT RULES:
 ${additionalNotes?.trim() ? `USER NOTES:\n- ${additionalNotes.trim()}` : ""}`;
 }
 
-export function buildVirtualTryOnNegativePrompt(category: TryOnGarmentCategory, referenceMode: TryOnReferenceMode): string {
+export function buildVirtualTryOnNegativePrompt(
+  category: TryOnGarmentCategory,
+  referenceMode: TryOnReferenceMode,
+  accessories?: TryOnAccessoryOptions,
+): string {
   const effectiveCategory = getEffectiveCategory(category, referenceMode);
+  const hasBag = accessories?.hasBagImage ?? false;
+  const hasShoes = accessories?.hasShoesImage ?? false;
+
+  const accessoryNegatives = [
+    hasBag ? "wrong bag design, different bag than reference, bag color mismatch, wrong bag material, wrong bag hardware, invented second bag" : "bag",
+    hasShoes ? "wrong shoes design, different shoes than reference, shoes color mismatch, wrong shoe material, wrong heel height, invented extra pair of shoes" : "",
+  ].filter(Boolean);
 
   return [
     "different face",
@@ -188,7 +327,7 @@ export function buildVirtualTryOnNegativePrompt(category: TryOnGarmentCategory, 
     "bare skin replacing clothing",
     "hat",
     "sunglasses",
-    "bag",
+    ...accessoryNegatives,
     "jewelry",
     "collage",
     "split screen",
@@ -212,6 +351,6 @@ export function buildVirtualTryOnNegativePrompt(category: TryOnGarmentCategory, 
     "wrong hem",
     "wrong color",
     referenceMode === "multi-piece" ? "missing garment, missing inner layer, missing undershirt, extra third garment, extra fourth garment, single-layer top when multiple tops were uploaded, fused outfit" : "split one garment into multiple pieces",
-    CATEGORY_NEGATIVE[effectiveCategory],
+    buildCategoryNegative(effectiveCategory, accessories),
   ].join(", ");
 }

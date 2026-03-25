@@ -4,11 +4,13 @@ import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   Download,
+  Footprints,
   ImagePlus,
   Loader2,
   RefreshCw,
   Send,
   ShirtIcon,
+  ShoppingBag,
   Sparkles,
   X,
 } from "lucide-react";
@@ -29,6 +31,7 @@ import { findExposurePolicyViolation } from "@/lib/fashion-safety";
 import {
   buildVirtualTryOnNegativePrompt,
   buildVirtualTryOnPrompt,
+  type TryOnAccessoryOptions,
   type TryOnGarmentCategory,
   type TryOnGarmentRole,
   type TryOnReferenceMode,
@@ -111,9 +114,13 @@ const FashionVirtualTryOn = () => {
 
   const modelInputRef = useRef<HTMLInputElement>(null);
   const multiPieceInputRefs = useRef<Array<HTMLInputElement | null>>([]);
+  const shoesInputRef = useRef<HTMLInputElement>(null);
+  const bagInputRef = useRef<HTMLInputElement>(null);
 
   const [modelImage, setModelImage] = useState<string | null>(null);
   const [multiPieceSlots, setMultiPieceSlots] = useState<MultiPieceSlot[]>(createMultiPieceSlots);
+  const [shoesImage, setShoesImage] = useState<string | null>(null);
+  const [bagImage, setBagImage] = useState<string | null>(null);
   const [multiPieceMode, setMultiPieceMode] = useState<2 | 3>(2);
   const [selectedCategory, setSelectedCategory] = useState<TryOnGarmentCategory>("outfit");
   const [selectedRatio, setSelectedRatio] = useState("9:16");
@@ -127,6 +134,11 @@ const FashionVirtualTryOn = () => {
   const activeMultiPieceSlots = multiPieceSlots.slice(0, multiPieceMode);
   const garmentImages = activeMultiPieceSlots.filter((slot) => Boolean(slot.image)).map((slot) => slot.image as string);
   const garmentRoles: TryOnGarmentRole[] = activeMultiPieceSlots.filter((slot) => Boolean(slot.image)).map((slot) => slot.role);
+  const accessories: TryOnAccessoryOptions = {
+    hasShoesImage: Boolean(shoesImage),
+    hasBagImage: Boolean(bagImage),
+    replacementMode: "conservative",
+  };
 
   useEffect(() => {
     preloadDownloadImage(generatedImage);
@@ -182,6 +194,19 @@ const FashionVirtualTryOn = () => {
     setGeneratedImage(null);
   };
 
+  const handleAccessoryUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    setter: React.Dispatch<React.SetStateAction<string | null>>,
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file || !file.type.startsWith("image/")) return;
+
+    const preview = await fileToPreview(file, 1024, 1024, 0.85);
+    setter(preview);
+    setGeneratedImage(null);
+    event.target.value = "";
+  };
+
   const handleGenerate = async () => {
     if (!modelImage || !hasRequiredGarments || !canGenerate) return;
     const promptError = findExposurePolicyViolation(additionalNotes);
@@ -201,16 +226,20 @@ const FashionVirtualTryOn = () => {
         category: selectedCategory,
         referenceMode,
         garmentRoles,
+        accessories,
         additionalNotes,
       });
-      const negativePrompt = buildVirtualTryOnNegativePrompt(selectedCategory, referenceMode);
+      const negativePrompt = buildVirtualTryOnNegativePrompt(selectedCategory, referenceMode, accessories);
+      const imagesToSend = [modelImage, ...garmentImages];
+      if (shoesImage) imagesToSend.push(shoesImage);
+      if (bagImage) imagesToSend.push(bagImage);
 
       setGenerationStep("正在按服装参考图做局部换衣...");
       const response = await generateImage({
         prompt,
         negativePrompt,
         aspectRatio: selectedRatio,
-        images: [modelImage, ...garmentImages],
+        images: imagesToSend,
         line: currentLineOption.line,
         resolution: currentLineOption.resolution,
         hasFrameworkPrompt: true,
@@ -245,6 +274,10 @@ const FashionVirtualTryOn = () => {
           line: selectedLine,
           aspectRatio: selectedRatio,
           garmentReferenceCount: garmentImages.length,
+          hasShoesImage: accessories.hasShoesImage,
+          hasBagImage: accessories.hasBagImage,
+          sentReferenceImageCount: imagesToSend.length,
+          accessorySyncMode: accessories.replacementMode,
         },
       }).catch((error) => {
         console.error("自动保存定点换衣作品失败", error);
@@ -492,6 +525,108 @@ const FashionVirtualTryOn = () => {
           </section>
         </div>
 
+        <section className="rounded-2xl border border-border/70 bg-card/40 p-4">
+          <div className="mb-3 flex items-center gap-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-100 text-xs font-semibold text-orange-700">3</div>
+            <div>
+              <p className="text-sm font-medium text-foreground">上传配饰参考图（可选）</p>
+              <p className="text-xs text-muted-foreground">上传鞋子或包包后，会在自然条件成立时同步替换，不会强行改动作和构图</p>
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl border border-border/70 bg-card/40 p-3">
+              <div className="mb-2 flex items-center gap-2">
+                <Footprints className="w-4 h-4 text-orange-500" />
+                <p className="text-xs font-medium text-foreground">鞋子</p>
+              </div>
+              {shoesImage ? (
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => shoesInputRef.current?.click()}
+                    className="group relative block w-full overflow-hidden rounded-xl border border-border bg-card touch-manipulation"
+                  >
+                    <img src={shoesImage} alt="鞋子参考图" className="h-32 w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]" />
+                    <span className="absolute left-2 bottom-2 rounded-full bg-black/60 px-2 py-0.5 text-[10px] text-white">
+                      点击更换鞋子
+                    </span>
+                  </button>
+                  <Button variant="ghost" size="sm" onClick={() => {
+                    setShoesImage(null);
+                    setGeneratedImage(null);
+                  }}>
+                    <X className="w-4 h-4 mr-1.5" />
+                    清除鞋子
+                  </Button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => shoesInputRef.current?.click()}
+                  className="flex h-32 w-full touch-manipulation flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border text-muted-foreground transition-colors hover:border-primary/45 hover:text-primary"
+                >
+                  <ImagePlus className="w-6 h-6" />
+                  <span className="text-xs">上传鞋子</span>
+                </button>
+              )}
+
+              <input
+                ref={shoesInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(event) => handleAccessoryUpload(event, setShoesImage)}
+              />
+            </div>
+
+            <div className="rounded-2xl border border-border/70 bg-card/40 p-3">
+              <div className="mb-2 flex items-center gap-2">
+                <ShoppingBag className="w-4 h-4 text-orange-500" />
+                <p className="text-xs font-medium text-foreground">包包</p>
+              </div>
+              {bagImage ? (
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => bagInputRef.current?.click()}
+                    className="group relative block w-full overflow-hidden rounded-xl border border-border bg-card touch-manipulation"
+                  >
+                    <img src={bagImage} alt="包包参考图" className="h-32 w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]" />
+                    <span className="absolute left-2 bottom-2 rounded-full bg-black/60 px-2 py-0.5 text-[10px] text-white">
+                      点击更换包包
+                    </span>
+                  </button>
+                  <Button variant="ghost" size="sm" onClick={() => {
+                    setBagImage(null);
+                    setGeneratedImage(null);
+                  }}>
+                    <X className="w-4 h-4 mr-1.5" />
+                    清除包包
+                  </Button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => bagInputRef.current?.click()}
+                  className="flex h-32 w-full touch-manipulation flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border text-muted-foreground transition-colors hover:border-primary/45 hover:text-primary"
+                >
+                  <ImagePlus className="w-6 h-6" />
+                  <span className="text-xs">上传包包</span>
+                </button>
+              )}
+
+              <input
+                ref={bagInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(event) => handleAccessoryUpload(event, setBagImage)}
+              />
+            </div>
+          </div>
+        </section>
+
         <section className="space-y-3">
           <div>
             <p className="text-sm font-medium text-foreground mb-2">服装类型</p>
@@ -630,6 +765,15 @@ const FashionVirtualTryOn = () => {
                     ))}
                   </div>
                 </div>
+                {shoesImage || bagImage ? (
+                  <div>
+                    <p className="text-xs font-medium text-foreground mb-2">配饰参考图</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {shoesImage ? <img src={shoesImage} alt="鞋子参考图" className="h-20 w-full rounded-lg object-cover border border-border" /> : null}
+                      {bagImage ? <img src={bagImage} alt="包包参考图" className="h-20 w-full rounded-lg object-cover border border-border" /> : null}
+                    </div>
+                  </div>
+                ) : null}
               </div>
 
               <div className="rounded-2xl border border-border/70 bg-secondary/20 p-2 md:p-4">
