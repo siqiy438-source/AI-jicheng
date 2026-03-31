@@ -89,12 +89,7 @@ export const MobileNav = () => {
       to: "/copywriting",
       matchPaths: [
         "/copywriting",
-        "/copywriting-opinion",
-        "/copywriting-knowledge",
-        "/copywriting-process",
-        "/copywriting-story",
-        "/copywriting-topic",
-        "/copywriting-store-visit",
+        "/copywriting-moments",
       ],
     },
     {

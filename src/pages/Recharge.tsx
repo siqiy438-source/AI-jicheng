@@ -43,7 +43,7 @@ const FEATURE_LABELS: Record<string, string> = {
   ai_virtual_tryon_standard: "定点换衣(标准)", ai_virtual_tryon_premium: "定点换衣(Pro)",
   ai_detail_standard: "细节特写(标准)", ai_detail_premium: "细节特写(Pro)",
   ai_flatlay_standard: "平铺摆拍(标准)", ai_flatlay_premium: "平铺摆拍(Pro)",
-  ai_copywriting: "AI文案生成", ai_ppt_outline: "PPT大纲",
+  ai_copywriting: "朋友圈文案", ai_ppt_outline: "PPT大纲",
   ai_ppt_slide: "PPT页面描述", ai_report_page: "报告生成",
   ai_ppt_image_standard: "PPT图片生成",
   ai_outfit_recommend: "专业搭配师",
@@ -185,7 +185,7 @@ const Recharge = () => {
             const usages = [
               { label: "标准绘图", value: `×${Math.floor(tier.pointsTotal / 50)}` },
               { label: "Pro绘图", value: `×${Math.floor(tier.pointsTotal / 100)}` },
-              { label: "文案工具", value: "探索5 / 生成40" },
+              { label: "朋友圈文案", value: "10 积分/次" },
               { label: "图像工具", value: "固定积分" },
             ];
 
@@ -396,8 +396,8 @@ const Recharge = () => {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
               <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-secondary/40">
-                <span className="text-xs text-muted-foreground">AI 文案</span>
-                <span className="text-xs font-bold text-foreground">探索 5 / 生成 40</span>
+                <span className="text-xs text-muted-foreground">朋友圈文案</span>
+                <span className="text-xs font-bold text-foreground">10 积分/次</span>
               </div>
               <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-secondary/40">
                 <span className="text-xs text-muted-foreground">PPT 大纲</span>

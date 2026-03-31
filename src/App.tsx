@@ -15,14 +15,8 @@ const Index = lazy(() => import("./pages/Index"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const AIDrawing = lazy(() => import("./pages/AIDrawing"));
 const AIPPT = lazy(() => import("./pages/AIPPT"));
-const AICopywriting = lazy(() => import("./pages/AICopywriting"));
 const Copywriting = lazy(() => import("./pages/Copywriting"));
-const CopywritingOpinion = lazy(() => import("./pages/CopywritingOpinion"));
-const CopywritingKnowledge = lazy(() => import("./pages/CopywritingKnowledge"));
-const CopywritingProcess = lazy(() => import("./pages/CopywritingProcess"));
-const CopywritingStory = lazy(() => import("./pages/CopywritingStory"));
-const CopywritingTopic = lazy(() => import("./pages/CopywritingTopic"));
-const CopywritingStoreVisit = lazy(() => import("./pages/CopywritingStoreVisit"));
+const CopywritingMoments = lazy(() => import("./pages/CopywritingMoments"));
 const MyWorks = lazy(() => import("./pages/MyWorks"));
 const MyMaterials = lazy(() => import("./pages/MyMaterials"));
 const MoreFeatures = lazy(() => import("./pages/MoreFeatures"));
@@ -69,14 +63,9 @@ const App = () => (
               <Route path="/ai-display" element={<ProtectedRoute><AIDisplay /></ProtectedRoute>} />
               <Route path="/ai-hangoutfit" element={<ProtectedRoute><AIOneClickOutfit /></ProtectedRoute>} />
               <Route path="/ai-ppt" element={<ProtectedRoute><AIPPT /></ProtectedRoute>} />
-              <Route path="/ai-copywriting" element={<Navigate to="/copywriting" replace />} />
+              <Route path="/ai-copywriting" element={<Navigate to="/copywriting-moments" replace />} />
               <Route path="/copywriting" element={<ProtectedRoute><Copywriting /></ProtectedRoute>} />
-              <Route path="/copywriting-opinion" element={<ProtectedRoute><CopywritingOpinion /></ProtectedRoute>} />
-              <Route path="/copywriting-knowledge" element={<ProtectedRoute><CopywritingKnowledge /></ProtectedRoute>} />
-              <Route path="/copywriting-process" element={<ProtectedRoute><CopywritingProcess /></ProtectedRoute>} />
-              <Route path="/copywriting-story" element={<ProtectedRoute><CopywritingStory /></ProtectedRoute>} />
-              <Route path="/copywriting-topic" element={<ProtectedRoute><CopywritingTopic /></ProtectedRoute>} />
-              <Route path="/copywriting-store-visit" element={<ProtectedRoute><CopywritingStoreVisit /></ProtectedRoute>} />
+              <Route path="/copywriting-moments" element={<ProtectedRoute><CopywritingMoments /></ProtectedRoute>} />
               <Route path="/clothing" element={<ProtectedRoute><Clothing /></ProtectedRoute>} />
               <Route path="/fashion-breakdown" element={<ProtectedRoute><FashionBreakdown /></ProtectedRoute>} />
               <Route path="/fashion-outfit" element={<ProtectedRoute><FashionOutfit /></ProtectedRoute>} />

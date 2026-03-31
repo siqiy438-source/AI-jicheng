@@ -192,7 +192,7 @@ def main():
         pages_to_test = [
             ("首页", "http://localhost:8080/"),
             ("AI海报", "http://localhost:8080/ai-poster"),
-            ("AI文案", "http://localhost:8080/ai-copywriting"),
+            ("朋友圈文案", "http://localhost:8080/copywriting-moments"),
             ("AI绘图", "http://localhost:8080/ai-drawing"),
             ("我的作品", "http://localhost:8080/my-works"),
             ("我的素材", "http://localhost:8080/my-materials"),

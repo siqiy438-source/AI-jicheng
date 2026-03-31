@@ -105,10 +105,10 @@
       ]
     },
     {
-      "name": "AI 文案",
-      "short_name": "文案",
-      "description": "快速启动 AI 文案生成",
-      "url": "/ai-copywriting",
+      "name": "朋友圈文案",
+      "short_name": "朋友圈",
+      "description": "快速启动朋友圈文案生成",
+      "url": "/copywriting-moments",
       "icons": [
         {
           "src": "/icons/shortcut-copywriting.png",

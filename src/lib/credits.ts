@@ -46,7 +46,7 @@ export const FEATURE_PRICES: Record<string, FeaturePriceConfig> = {
   ai_flatlay_standard: { name: '平铺摆拍(标准)', cost: 50, billing: 'fixed' },
   ai_flatlay_premium: { name: '平铺摆拍(Pro)', cost: 100, billing: 'fixed' },
   ai_flatlay_hd: { name: '平铺摆拍(2K/4K)', cost: 100, billing: 'fixed' },
-  ai_copywriting: { name: 'AI文案生成', cost: 5, billing: 'fixed' },
+  ai_copywriting: { name: '朋友圈文案', cost: 10, billing: 'fixed' },
   ai_ppt_outline: { name: 'PPT大纲', cost: 10, billing: 'fixed' },
   ai_ppt_slide: { name: 'PPT页面描述', cost: 5, billing: 'fixed' },
   ai_ppt_image_standard: { name: 'PPT图片生成', cost: 50, billing: 'fixed' },

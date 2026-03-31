@@ -149,7 +149,7 @@ begin
         when 'ai_detail_premium'         then '细节特写(Pro)'
         when 'ai_flatlay_standard'       then '平铺摆拍(标准)'
         when 'ai_flatlay_premium'        then '平铺摆拍(Pro)'
-        when 'ai_copywriting'            then 'AI文案生成'
+        when 'ai_copywriting'            then '朋友圈文案'
         when 'ai_ppt_outline'            then 'PPT大纲'
         when 'ai_ppt_slide'              then 'PPT页面描述'
         when 'ai_ppt_image_standard'     then 'PPT图片生成'

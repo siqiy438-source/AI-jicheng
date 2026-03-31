@@ -14,9 +14,9 @@ const entranceItems = [
   },
   {
     label: "文案创作",
-    title: "一句卖点，继续长成故事、观点和到店理由",
-    description: "适合短视频口播、朋友圈发布、商品详情页和活动预热，开口就更像成交内容。",
-    highlights: ["讲观点文案", "讲故事文案", "晒过程文案", "到店理由文案"],
+    title: "一组图片，直接长成可发的朋友圈文案",
+    description: "适合上新、日常分享、门店记录和活动预热，上传图片后直接生成 3 条候选文案。",
+    highlights: ["朋友圈文案", "多图自动匹配", "3 条候选结果", "10 积分/次"],
     to: "/copywriting",
     icon: FileText,
     accent: "from-orange-100 via-orange-50 to-white",

@@ -602,10 +602,10 @@ serve(async (req) => {
       'ai_outfit_recommend',
       'ai_fabric_analysis',
     ])
-    // ai_copywriting: 固定积分计费，每轮探索扣5积分，生成阶段扣40积分
+    // ai_copywriting: 朋友圈文案固定扣 10 积分
     let fixedCreditCost = 0
     if (feature_code === 'ai_copywriting') {
-      fixedCreditCost = phase === 'generate' ? 40 : 5
+      fixedCreditCost = 10
     } else {
       const shouldChargeFixedByPhase = !phase || phase === 'generate'
       fixedCreditCost = shouldChargeFixedByPhase ? (FIXED_CREDIT_COSTS[feature_code] || 0) : 0
@@ -1183,10 +1183,31 @@ serve(async (req) => {
 
     // 构建消息
     const systemPrompt = AGENT_SYSTEM_PROMPTS[agentId] || AGENT_SYSTEM_PROMPTS.general
+    const shouldUseMomentsMultimodal =
+      agentId === 'moments' &&
+      Array.isArray(images) &&
+      images.some((image) => typeof image === 'string' && image.startsWith('data:'))
+
+    const momentsUserContent: Array<{ type: string; text?: string; image_url?: { url: string } }> = []
+    if (shouldUseMomentsMultimodal) {
+      momentsUserContent.push({ type: 'text', text: prompt })
+      for (const imageBase64 of images || []) {
+        if (typeof imageBase64 === 'string' && imageBase64.startsWith('data:')) {
+          momentsUserContent.push({
+            type: 'image_url',
+            image_url: { url: imageBase64 },
+          })
+        }
+      }
+    }
+
     const messages = [
       { role: 'system', content: systemPrompt },
       ...(history || []),
-      { role: 'user', content: prompt },
+      {
+        role: 'user',
+        content: shouldUseMomentsMultimodal ? momentsUserContent : prompt,
+      },
     ]
 
     // 调用 BLTCY Text API

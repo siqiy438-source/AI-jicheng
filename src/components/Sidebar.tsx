@@ -128,12 +128,7 @@ export const Sidebar = () => {
   ].includes(location.pathname);
   const isCopywritingActive = [
     "/copywriting",
-    "/copywriting-opinion",
-    "/copywriting-knowledge",
-    "/copywriting-process",
-    "/copywriting-story",
-    "/copywriting-topic",
-    "/copywriting-store-visit",
+    "/copywriting-moments",
   ].includes(location.pathname);
 
   // 移动端不渲染 Sidebar
