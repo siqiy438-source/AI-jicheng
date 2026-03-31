@@ -211,13 +211,6 @@ const FashionModelOutfit = () => {
       description: "手机挡脸的镜前全身自拍，日常博主同款氛围",
     },
     {
-      id: "standard-model",
-      name: "标准模特图",
-      prompt: buildStandardModelPrompt(age, scene),
-      iconSrc: "/icons/model-standard-vintage.png",
-      description: "常规时尚模特上身图，适合通用服装展示",
-    },
-    {
       id: "faceless-half",
       name: "氛围半身图",
       prompt: FASHION_MODEL_FACELESS_HALF_PROMPT,
